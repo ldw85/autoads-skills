@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "skills": {
+    "tavily-search": {
+      "version": "1.0.0",
+      "installedAt": 1773144438493
+    },
+    "summarize": {
+      "version": "1.0.0",
+      "installedAt": 1773144444322
+    },
+    "agent-browser": {
+      "version": "0.2.0",
+      "installedAt": 1773144446808
+    },
+    "find-skills": {
+      "version": "0.1.0",
+      "installedAt": 1773144450909
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1773144456242
+    },
+    "obsidian": {
+      "version": "1.0.0",
+      "installedAt": 1773144457770
+    },
+    "weather": {
+      "version": "1.0.0",
+      "installedAt": 1773144462148
+    },
+    "tencentcloud-lighthouse-skill": {
+      "version": "1.0.0",
+      "installedAt": 1772979775049
+    },
+    "tencent-docs": {
+      "version": "1.0.4",
+      "installedAt": 1772979777037
+    },
+    "tencent-cos-skill": {
+      "version": "1.0.6",
+      "installedAt": 1772979779532
+    },
+    "seo-competitor-analysis": {
+      "version": "1.0.0",
+      "installedAt": 1773144730271
+    },
+    "keyword-research": {
+      "version": "3.0.0",
+      "installedAt": 1773146996031
+    },
+    "landing-page-generator": {
+      "version": "1.0.0",
+      "installedAt": 1773147002939
+    },
+    "marketing-mode": {
+      "version": "1.0.0",
+      "installedAt": 1773147006646
+    },
+    "seo-content-writer": {
+      "version": "3.0.0",
+      "installedAt": 1773147041203
+    },
+    "seo-optimizer": {
+      "version": "0.1.0",
+      "installedAt": 1773147046502
+    },
+    "web-deploy-github": {
+      "version": "1.0.0",
+      "installedAt": 1773147050904
+    },
+    "frontend-design-3": {
+      "version": "0.1.0",
+      "installedAt": 1773147062141
+    },
+    "google-trends": {
+      "version": "1.0.0",
+      "installedAt": 1773147958999
+    },
+    "website": {
+      "version": "1.0.0",
+      "installedAt": 1773147090096
+    },
+    "news-aggregator-skill": {
+      "version": "0.1.0",
+      "installedAt": 1773147096176
+    },
+    "on-page-seo-auditor": {
+      "version": "3.0.0",
+      "installedAt": 1773147100945
+    },
+    "technical-seo-checker": {
+      "version": "3.0.0",
+      "installedAt": 1773147106371
+    },
+    "amazon-product-scraper": {
+      "version": "1.0.0",
+      "installedAt": 1773361985006
+    },
+    "amazon-product-fetcher": {
+      "version": "1.0.0",
+      "installedAt": 1773362002248
+    },
+    "decodo-scraper": {
+      "version": "1.1.0",
+      "installedAt": 1773362013880
+    },
+    "tavily": {
+      "version": "1.0.0",
+      "installedAt": 1773362027224
+    },
+    "yoder-skill-auditor": {
+      "version": "3.1.0",
+      "installedAt": 1773384550315
+    },
+    "landing-page-converter": {
+      "version": "1.0.0",
+      "installedAt": 1773400591150
+    },
+    "frontend-design-ultimate": {
+      "version": "1.0.0",
+      "installedAt": 1773402218018
+    }
+  }
+}

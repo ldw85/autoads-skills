@@ -21,6 +21,13 @@
 
 ---
 
+## 用户偏好 (2026-03-17)
+
+- **不感兴趣的领域**: 体育、WWE摔角、棒球、NBA、综艺娱乐
+- **偏好的趋势**: AI硬件、科技评测、产品相关内容
+
+---
+
 ## 工作准则 (2026-03-13)
 
 1. 长任务告知计划完成时间，定时同步进展
@@ -33,6 +40,17 @@
 8. 超过3个月的记忆归档
 
 ---
+
+## 定时任务
+
+### 每日趋势简报 (2026-03-21)
+- **Cron Job ID**: `5d4ea908-59e9-4f98-91d9-477a51baf2b3`
+- **运行时间**: 每天 09:00 (Asia/Shanghai)
+- **触发事件**: `systemEvent: "daily_trends"` 发送到 main session
+- **执行脚本**: `/root/.openclaw/workspace/scripts/daily-trends.mjs`
+- **过滤逻辑**: 排除体育、娱乐、政治内容，保留 AI/科技/产品相关内容
+- **输出文件**: `/root/.openclaw/workspace/logs/trends_to_send.txt`
+- **状态**: ✅ 已配置
 
 ## 技能库
 
@@ -48,6 +66,8 @@
 - video-frames (视频)
 - tencent-cloud-cos (腾讯云)
 - tencentcloud-lighthouse-skill (腾讯云轻量服务器)
+- **social-media-publisher** (社交媒体多平台发布: Reddit/Medium/X)
+- **product-review-writer** (高质量产品评测写作: SEO+真实感)
 
 ---
 
@@ -57,6 +77,39 @@
 - ✅ 本地AI硬件评测文章 (3,390词)
 - ✅ 发布到my-blog并推送GitHub
 - ✅ 超时配置改为1小时
+
+---
+
+## my-blog 工程结构 (2026-03-15)
+
+### 目录结构
+- **文章目录**: `src/data/post/` (注意不是 `content/posts/`)
+- **配置文件**: `astro.config.ts`
+- **部署配置**: `wrangler.toml` (Cloudflare Pages)
+
+### URL 规则
+- **文章链接**: `https://techruling.com/{文件名}` (无 `/posts/` 前缀)
+- **分类页面**: `https://techruling.com/category/{category}`
+- **标签页面**: `https://techruling.com/tag/{tag}`
+
+### 文章 Frontmatter 必填字段
+```yaml
+---
+title: "文章标题"
+description: "SEO描述"
+pubDate: "2026-03-15"
+heroImage: "/blog-placeholder-1.jpg"
+category: "分类"  # 见下方分类列表
+tags: ["标签1", "标签2"]
+affiliateCategory: "electronics"  # 联盟营销分类
+---
+```
+
+### 可用分类 (Category)
+- AI News, AI Tools, Apple, Audio, Computing, Gift, Mobile, Open Source, Other, Peripherals, Productivity, Product Reviews, SaaS, Smart Home, tutorial
+
+### 联盟营销分类 (affiliateCategory)
+- electronics, audio, etc.
 
 ---
 

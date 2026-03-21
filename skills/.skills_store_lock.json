@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "skills": {
+    "tavily-search": {
+      "name": "Tavily Web Search",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=tavily-search",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "summarize": {
+      "name": "Summarize",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=summarize",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "agent-browser": {
+      "name": "Agent Browser",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=agent-browser",
+      "source": "skillhub",
+      "version": "0.2.0"
+    },
+    "find-skills": {
+      "name": "Find Skills",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=find-skills",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "github": {
+      "name": "Github",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=github",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "obsidian": {
+      "name": "Obsidian",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=obsidian",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "weather": {
+      "name": "Weather",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=weather",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "seo-competitor-analysis": {
+      "name": "SEO Intelligence & Competitor Analysis Pro",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=seo-competitor-analysis",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "keyword-research": {
+      "name": "Keyword Research",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=keyword-research",
+      "source": "skillhub",
+      "version": "3.0.0"
+    },
+    "landing-page-generator": {
+      "name": "Landing Page Generator",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=landing-page-generator",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "marketing-mode": {
+      "name": "Marketing Mode",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=marketing-mode",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "seo-content-writer": {
+      "name": "Seo Content Writer",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=seo-content-writer",
+      "source": "skillhub",
+      "version": "3.0.0"
+    },
+    "seo-optimizer": {
+      "name": "Seo Optimizer",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=seo-optimizer",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "web-deploy-github": {
+      "name": "Web Deploy GitHub Pages",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=web-deploy-github",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "frontend-design-3": {
+      "name": "Frontend Design",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=frontend-design-3",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "google-trends": {
+      "name": "Google Trends",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=google-trends",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "website": {
+      "name": "Website",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=website",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "news-aggregator-skill": {
+      "name": "News Aggregator Skill",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=news-aggregator-skill",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "on-page-seo-auditor": {
+      "name": "On Page Seo Auditor",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=on-page-seo-auditor",
+      "source": "skillhub",
+      "version": "3.0.0"
+    },
+    "technical-seo-checker": {
+      "name": "Technical Seo Checker",
+      "zip_url": "http://lightmake.site/api/v1/download?slug=technical-seo-checker",
+      "source": "skillhub",
+      "version": "3.0.0"
+    },
+    "amazon-product-scraper": {
+      "name": "Amazon Product Scraper",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=amazon-product-scraper",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "amazon-product-fetcher": {
+      "name": "Amazon Product Fetcher",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=amazon-product-fetcher",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "decodo-scraper": {
+      "name": "Decodo Scraper",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=decodo-scraper",
+      "source": "skillhub",
+      "version": "1.1.0"
+    },
+    "tavily": {
+      "name": "Tavily AI Search",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=tavily",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "yoder-skill-auditor": {
+      "name": "Yoder Skill Auditor",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=yoder-skill-auditor",
+      "source": "skillhub",
+      "version": "3.1.0"
+    },
+    "landing-page-converter": {
+      "name": "Landing Page Converter",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=landing-page-converter",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "frontend-design-ultimate": {
+      "name": "Frontend Design Ultimate",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=frontend-design-ultimate",
+      "source": "skillhub",
+      "version": "1.0.0"
+    }
+  }
+}
