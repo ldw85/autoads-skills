@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Sony WH-1000XM5",
+    "tagline": "降噪天花板，音质旗舰",
+    "position": "最佳综合",
+    "price": "$349",
+    "originalPrice": "$399",
+    "affiliateLink": "https://amazon.com/sony-xm5",
+    "image": "",
+    "rating": 4.8,
+    "reviewCount": 12500,
+    "highlights": ["顶级降噪", "30小时续航", "LDAC高解析"],
+    "useCases": ["通勤", "办公", "音乐"],
+    "specs": {
+      "type": "头戴式",
+      "anc": "主动降噪",
+      "battery": "30小时",
+      "weight": "250g",
+      "bluetooth": "5.2"
+    }
+  },
+  {
+    "name": "Apple AirPods Pro 2",
+    "tagline": "iOS用户最佳搭档",
+    "position": "iOS用户首选",
+    "price": "$249",
+    "originalPrice": "",
+    "affiliateLink": "https://amazon.com/airpods-pro-2",
+    "image": "",
+    "rating": 4.7,
+    "reviewCount": 8900,
+    "highlights": ["无缝Apple生态", "自适应降噪", "空间音频"],
+    "useCases": ["通勤", "运动", "办公"],
+    "specs": {
+      "type": "入耳式",
+      "anc": "自适应降噪",
+      "battery": "6小时",
+      "weight": "51g",
+      "bluetooth": "5.3"
+    }
+  },
+  {
+    "name": "Bose QuietComfort Ultra",
+    "tagline": "佩戴舒适的降噪之选",
+    "position": "最佳舒适度",
+    "price": "$429",
+    "originalPrice": "",
+    "affiliateLink": "https://amazon.com/bose-qc-ultra",
+    "image": "",
+    "rating": 4.6,
+    "reviewCount": 4200,
+    "highlights": ["佩戴极其舒适", "沉浸式音频", "CustomTune"],
+    "useCases": ["长途旅行", "办公", "音乐"],
+    "specs": {
+      "type": "头戴式",
+      "anc": "顶级降噪",
+      "battery": "24小时",
+      "weight": "240g",
+      "bluetooth": "5.3"
+    }
+  }
+]
