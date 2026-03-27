@@ -1,0 +1,287 @@
+---
+import Layout from '~/layouts/LandingLayout.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Features from '~/components/widgets/Features.astro';
+import Content from '~/components/widgets/Content.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+
+// ============================================
+// PRODUCT DATA - EDIT THIS SECTION
+// ============================================
+const metadata = {
+  title: 'YOUR PRODUCT TITLE | TechReviews',
+  description: 'Your meta description for SEO',
+};
+
+// Products array - each product has its own review
+const products = [
+  {
+    id: 1,
+    name: "Product Full Name",
+    shortName: "Short Product Name",
+    price: "$XX.XX",           // Current sale price
+    originalPrice: "$XX.XX",   // Original price (for strikethrough)
+    rating: 4.5,                // Star rating (1-5)
+    reviewCount: 1234,          // Number of reviews
+    image: "https://example.com/image1.jpg",
+    images: [
+      "https://example.com/image1.jpg",
+      "https://example.com/image2.jpg"
+    ],
+    affiliateLink: "https://amzn.to/xxxx",
+    tagline: "Brief tagline describing the product",
+    benefit: "Best for X",     // Badge text
+    review: {
+      title: "Review Title",
+      text: "Full review text from customer...",
+      author: "Verified Amazon Buyer",
+      stars: 5                 // 1-5 stars
+    },
+    highlights: [
+      "Benefit highlight 1",
+      "Benefit highlight 2",
+      "Benefit highlight 3",
+      "Benefit highlight 4"
+    ]
+  },
+  // Add more products here...
+];
+
+const heroImage = products[0].images[0];
+const heroTitle = "YOUR HERO TITLE";
+const heroSubtitle = "Your hero subtitle describing the collection";
+const heroBadge = "🏷️ 2026 Trends";
+// ============================================
+
+// Problem/solution section
+const problems = [
+  {
+    title: 'Problem Title 1',
+    description: 'Problem description that leads to your product solving it.',
+  },
+  {
+    title: 'Problem Title 2',
+    description: 'Another problem your product solves.',
+  },
+  // Add more problems...
+];
+
+// Use case / scenario section
+const useCases = [
+  {
+    title: 'For [Persona/Situation]',
+    description: 'Description of which product fits this use case.',
+  },
+  // Add more use cases...
+];
+
+// FAQ section
+const faqs = [
+  {
+    question: 'FAQ Question 1?',
+    description: 'FAQ Answer 1.',
+  },
+  {
+    question: 'FAQ Question 2?',
+    description: 'FAQ Answer 2.',
+  },
+  // Add more FAQs...
+];
+
+const ctaTitle = "Your Final CTA Headline";
+const ctaSubtitle = "Your final CTA subtitle";
+const ctaButtonText = "Shop Now ($XX.XX)";
+const ctaButtonLink = "https://amzn.to/xxxx";
+---
+
+<style is:global>
+  .hero-section .intersect-once {
+    opacity: 1 !important;
+  }
+  .hero-section .motion-safe\:md\:opacity-0 {
+    opacity: 1 !important;
+  }
+  .hero-section {
+    animation: none !important;
+  }
+  .product-card:hover .product-image {
+    transform: scale(1.05);
+  }
+  .star-filled {
+    color: #FBBF24;
+  }
+  .star-empty {
+    color: #D1D5DB;
+  }
+</style>
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <section class="relative md:-mt-[76px] not-prose hero-section">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="py-12 md:py-20">
+        <div class="text-center pb-10 md:pb-16 max-w-5xl mx-auto">
+          <p class="text-base text-secondary dark:text-pink-200 font-bold tracking-wide uppercase">
+            {heroBadge}
+          </p>
+          <h1 class="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200">
+            {heroTitle}
+          </h1>
+          <div class="max-w-3xl mx-auto">
+            <p class="text-xl text-muted mb-6 dark:text-slate-300">
+              {heroSubtitle}
+            </p>
+            <div class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4">
+              <a href="#products" class="btn btn-primary sm:mb-0">
+                View Our Picks
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="relative m-auto max-w-5xl">
+          <img 
+            src={heroImage} 
+            alt={heroTitle}
+            class="mx-auto rounded-md w-full"
+            loading="eager"
+            width="1024"
+            height="576"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Problem Section -->
+  <Features
+    id="products"
+    title="The Problem"
+    subtitle="Why you need our product picks"
+    columns={2}
+    items={problems}
+  />
+
+  <!-- Product Cards with Individual Reviews -->
+  <section class="py-16 bg-gray-50 dark:bg-slate-800/50">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-4">Our Top Picks</h2>
+      <p class="text-center text-gray-600 dark:text-gray-400 mb-12">Each pick comes with real customer reviews to help you decide</p>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        {products.map((product) => (
+          <div class="product-card bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
+            <div class="flex flex-col lg:flex-row">
+              <!-- Product Image -->
+              <div class="lg:w-2/5 relative overflow-hidden bg-gray-100">
+                <img 
+                  src={product.images[0]} 
+                  alt={product.name}
+                  class="product-image w-full h-48 lg:h-full object-cover transition-transform duration-300"
+                />
+                <span class="absolute top-2 left-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
+                  {product.benefit}
+                </span>
+              </div>
+              
+              <!-- Product Info -->
+              <div class="lg:w-3/5 p-6">
+                <div class="flex items-center mb-2">
+                  <span class={`text-lg ${product.review.stars >= 1 ? 'star-filled' : 'star-empty'}`}>★</span>
+                  <span class={`text-lg ${product.review.stars >= 2 ? 'star-filled' : 'star-empty'}`}>★</span>
+                  <span class={`text-lg ${product.review.stars >= 3 ? 'star-filled' : 'star-empty'}`}>★</span>
+                  <span class={`text-lg ${product.review.stars >= 4 ? 'star-filled' : 'star-empty'}`}>★</span>
+                  <span class={`text-lg ${product.review.stars >= 5 ? 'star-filled' : 'star-empty'}`}>★</span>
+                  <span class="text-sm text-gray-500 ml-2">{product.rating} ({product.reviewCount.toLocaleString()})</span>
+                </div>
+                
+                <h3 class="font-bold text-lg mb-2">{product.shortName}</h3>
+                
+                <div class="flex items-baseline gap-2 mb-3">
+                  <span class="text-2xl font-bold text-blue-600">{product.price}</span>
+                  <span class="text-lg text-gray-400 line-through">{product.originalPrice}</span>
+                </div>
+                
+                <p class="text-gray-600 text-sm mb-3">{product.tagline}</p>
+                
+                <!-- Highlights -->
+                <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                  {product.highlights.slice(0, 3).map((h) => (
+                    <li class="flex items-start gap-1">
+                      <span class="text-green-500">✓</span>
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+                
+                <!-- Individual Review -->
+                <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 mb-4">
+                  <p class="text-sm italic text-gray-700 dark:text-gray-300 mb-1">"{product.review.text}"</p>
+                  <p class="text-xs text-gray-500">— {product.review.author}</p>
+                </div>
+                
+                <a 
+                  href={product.affiliateLink} 
+                  target="_blank" 
+                  rel="noopener" 
+                  class="block text-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold py-2 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition"
+                >
+                  Check Price on Amazon
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Best For Scenarios -->
+  <Content
+    title="Find Your Perfect Match"
+    subtitle="Which style matches your lifestyle?"
+    items={useCases}
+    image={{
+      src: products[0].images[1],
+      alt: 'Product Styling',
+    }}
+    reverse={true}
+  />
+
+  <!-- FAQ -->
+  <FAQs
+    title="Frequently Asked Questions"
+    items={faqs}
+  />
+
+  <!-- Final CTA -->
+  <CallToAction
+    title={ctaTitle}
+    subtitle={ctaSubtitle}
+    actions={[
+      { variant: 'primary', text: ctaButtonText, href: ctaButtonLink, target: '_blank' },
+      { variant: 'secondary', text: 'View All Picks', href: '#products', target: '_self' },
+    ]}
+  />
+</Layout>
+
+<style is:global>
+.amazon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: linear-gradient(180deg, #FFD814 0%, #FFBB50 100%) !important;
+  border: 1px solid #FCD200 !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+  font-weight: 600 !important;
+  color: #0F1111 !important;
+}
+.amazon-btn:hover {
+  background: linear-gradient(180deg, #F7CA00 0%, #F7CA00 100%) !important;
+  border-color: #FCD200 !important;
+}
+.amazon-icon {
+  width: 20px;
+  height: 20px;
+}
+</style>
