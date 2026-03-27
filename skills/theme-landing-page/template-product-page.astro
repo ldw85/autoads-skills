@@ -168,67 +168,69 @@ const ctaButtonLink = "https://amzn.to/xxxx";
       <h2 class="text-3xl font-bold text-center mb-4">Our Top Picks</h2>
       <p class="text-center text-gray-600 dark:text-gray-400 mb-12">Each pick comes with real customer reviews to help you decide</p>
       
-      <div class="grid md:grid-cols-2 gap-8">
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => (
-          <div class="product-card bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
-            <div class="flex flex-col lg:flex-row">
-              <!-- Product Image -->
-              <div class="lg:w-2/5 relative overflow-hidden bg-gray-100">
-                <img 
-                  src={product.images[0]} 
-                  alt={product.name}
-                  class="product-image w-full h-48 lg:h-full object-cover transition-transform duration-300"
-                />
-                <span class="absolute top-2 left-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  {product.benefit}
-                </span>
+          <div class="product-card bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+            <!-- Product Image - Full width on top -->
+            <div class="relative overflow-hidden bg-gray-100 aspect-square">
+              <img 
+                src={product.images[0]} 
+                alt={product.name}
+                class="product-image w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+              <span class="absolute top-2 left-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">
+                {product.benefit}
+              </span>
+            </div>
+            
+            <!-- Product Info - Below image -->
+            <div class="p-4 flex flex-col flex-grow">
+              <!-- Rating -->
+              <div class="flex items-center mb-1">
+                <span class={`text-sm ${product.review.stars >= 1 ? 'star-filled' : 'star-empty'}`}>★</span>
+                <span class={`text-sm ${product.review.stars >= 2 ? 'star-filled' : 'star-empty'}`}>★</span>
+                <span class={`text-sm ${product.review.stars >= 3 ? 'star-filled' : 'star-empty'}`}>★</span>
+                <span class={`text-sm ${product.review.stars >= 4 ? 'star-filled' : 'star-empty'}`}>★</span>
+                <span class={`text-sm ${product.review.stars >= 5 ? 'star-filled' : 'star-empty'}`}>★</span>
+                <span class="text-xs text-gray-500 ml-1">{product.rating} ({product.reviewCount.toLocaleString()})</span>
               </div>
               
-              <!-- Product Info -->
-              <div class="lg:w-3/5 p-6">
-                <div class="flex items-center mb-2">
-                  <span class={`text-lg ${product.review.stars >= 1 ? 'star-filled' : 'star-empty'}`}>★</span>
-                  <span class={`text-lg ${product.review.stars >= 2 ? 'star-filled' : 'star-empty'}`}>★</span>
-                  <span class={`text-lg ${product.review.stars >= 3 ? 'star-filled' : 'star-empty'}`}>★</span>
-                  <span class={`text-lg ${product.review.stars >= 4 ? 'star-filled' : 'star-empty'}`}>★</span>
-                  <span class={`text-lg ${product.review.stars >= 5 ? 'star-filled' : 'star-empty'}`}>★</span>
-                  <span class="text-sm text-gray-500 ml-2">{product.rating} ({product.reviewCount.toLocaleString()})</span>
-                </div>
-                
-                <h3 class="font-bold text-lg mb-2">{product.shortName}</h3>
-                
-                <div class="flex items-baseline gap-2 mb-3">
-                  <span class="text-2xl font-bold text-blue-600">{product.price}</span>
-                  <span class="text-lg text-gray-400 line-through">{product.originalPrice}</span>
-                </div>
-                
-                <p class="text-gray-600 text-sm mb-3">{product.tagline}</p>
-                
-                <!-- Highlights -->
-                <ul class="text-sm text-gray-600 mb-4 space-y-1">
-                  {product.highlights.slice(0, 3).map((h) => (
-                    <li class="flex items-start gap-1">
-                      <span class="text-green-500">✓</span>
-                      {h}
-                    </li>
-                  ))}
-                </ul>
-                
-                <!-- Individual Review -->
-                <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 mb-4">
-                  <p class="text-sm italic text-gray-700 dark:text-gray-300 mb-1">"{product.review.text}"</p>
-                  <p class="text-xs text-gray-500">— {product.review.author}</p>
-                </div>
-                
-                <a 
-                  href={product.affiliateLink} 
-                  target="_blank" 
-                  rel="noopener" 
-                  class="block text-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold py-2 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition"
-                >
-                  Check Price on Amazon
-                </a>
+              <!-- Product Name -->
+              <h3 class="font-bold text-sm mb-1 line-clamp-2">{product.shortName}</h3>
+              
+              <!-- Price -->
+              <div class="flex items-baseline gap-2 mb-2">
+                <span class="text-lg font-bold text-blue-600">{product.price}</span>
+                <span class="text-sm text-gray-400 line-through">{product.originalPrice}</span>
               </div>
+              
+              <!-- Tagline -->
+              <p class="text-gray-600 text-xs mb-3 line-clamp-2">{product.tagline}</p>
+              
+              <!-- Highlights -->
+              <ul class="text-xs text-gray-600 mb-3 space-y-0.5">
+                {product.highlights.slice(0, 2).map((h) => (
+                  <li class="flex items-start gap-1">
+                    <span class="text-green-500 shrink-0">✓</span>
+                    <span class="line-clamp-1">{h}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <!-- Mini Review -->
+              <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 mb-3 flex-grow">
+                <p class="text-xs italic text-gray-700 dark:text-gray-300 line-clamp-3">"{product.review.text}"</p>
+              </div>
+              
+              <!-- CTA Button -->
+              <a 
+                href={product.affiliateLink} 
+                target="_blank" 
+                rel="noopener" 
+                class="block text-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold py-2 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition text-sm mt-auto"
+              >
+                Check Price
+              </a>
             </div>
           </div>
         ))}
