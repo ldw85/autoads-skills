@@ -158,6 +158,8 @@
 - 桌面端多列，移动端单列
 - 只放产品图/名/价格/评分/CTA，不重复 Benefits
 
+**重要：条件渲染** — 如果没有次选产品（即 `otherProducts.length === 0`），整个 section 应隐藏，不渲染空区域。
+
 ```html
 <section class="other-section">
   <h2>More [Category] Favorites →</h2>
