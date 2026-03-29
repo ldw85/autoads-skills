@@ -1,0 +1,152 @@
+[2026-03-23T00:41:29.945Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T00:41:30.088Z] Fetched 10 trend items
+[2026-03-23T00:41:30.089Z] Analyzing products from 7 categories...
+[2026-03-23T00:41:30.210Z] Decodo bestsellers error for "electronics gadget": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers electronics gadget top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:31.315Z] Decodo bestsellers error for "smart home device": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers smart home device top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:32.419Z] Decodo bestsellers error for "fitness tracker smartwatch": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers fitness tracker smartwatch top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:33.522Z] Decodo bestsellers error for "gaming accessory": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers gaming accessory top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:34.627Z] Decodo bestsellers error for "audio headphones earbuds": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers audio headphones earbuds top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:35.733Z] Decodo bestsellers error for "kitchen appliance": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers kitchen appliance top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:36.839Z] Decodo bestsellers error for "camera photography": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "site:amazon.com best sellers camera photography top 10"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:37.947Z] Decodo search error for "anthony edwards": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "anthony edwards best seller Amazon"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:39.054Z] Decodo search error for "cuban military": Command failed: python3 "/root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py" --target google_search --query "cuban military best seller Amazon"
+{"error": "Set DECODO_AUTH_TOKEN."}
+
+[2026-03-23T00:41:40.068Z] === Analysis Complete: 0 products analyzed ===
+[2026-03-23T00:43:09.443Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T00:43:09.445Z] Fetching Google Trends...
+[2026-03-23T00:43:09.805Z] Fetched 10 trends
+[2026-03-23T00:43:09.805Z] Analyzing trends for product opportunities...
+[2026-03-23T00:43:09.807Z] Attempting to fetch Amazon data...
+[2026-03-23T00:43:10.679Z] Amazon electronics: 0 products
+[2026-03-23T00:43:12.558Z] Amazon computers: 0 products
+[2026-03-23T00:43:14.030Z] Amazon camera: 0 products
+[2026-03-23T00:43:16.497Z] Amazon wireless: 0 products
+[2026-03-23T00:43:18.326Z] Amazon home: 0 products
+[2026-03-23T00:43:20.057Z] Amazon kitchen: 0 products
+[2026-03-23T00:43:21.608Z] Amazon sports: 0 products
+[2026-03-23T00:43:23.064Z] Amazon fitness: 0 products
+[2026-03-23T00:43:24.078Z] === Analysis Complete: 5 opportunities found ===
+[2026-03-23T00:47:21.795Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T00:47:21.797Z] Fetching Google Trends...
+[2026-03-23T00:47:21.933Z] Fetched 10 trends
+[2026-03-23T00:47:21.933Z] Analyzing trends for product opportunities...
+[2026-03-23T00:47:21.935Z] Attempting to fetch Amazon data...
+[2026-03-23T00:47:22.788Z] Amazon electronics: 0 products
+[2026-03-23T00:47:24.308Z] Amazon computers: 0 products
+[2026-03-23T00:47:25.775Z] Amazon camera: 0 products
+[2026-03-23T00:47:28.025Z] Amazon wireless: 0 products
+[2026-03-23T00:47:30.054Z] Amazon home: 0 products
+[2026-03-23T00:47:31.939Z] Amazon kitchen: 0 products
+[2026-03-23T00:47:33.346Z] Amazon sports: 0 products
+[2026-03-23T00:47:35.328Z] Amazon fitness: 0 products
+[2026-03-23T00:47:36.342Z] === Analysis Complete: 0 opportunities found ===
+[2026-03-23T00:49:03.312Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T00:49:03.314Z] Fetching Google Trends...
+[2026-03-23T00:49:03.450Z] Fetched 10 trends
+[2026-03-23T00:49:03.450Z] Analyzing trends for product opportunities...
+[2026-03-23T00:49:03.453Z] Attempting to fetch Amazon data...
+[2026-03-23T00:49:04.245Z] Amazon electronics: 0 products
+[2026-03-23T00:49:05.818Z] Amazon computers: 0 products
+[2026-03-23T00:49:07.211Z] Amazon camera: 0 products
+[2026-03-23T00:49:09.179Z] Amazon wireless: 0 products
+[2026-03-23T00:49:10.954Z] Amazon home: 0 products
+[2026-03-23T00:49:12.824Z] Amazon kitchen: 0 products
+[2026-03-23T00:49:14.288Z] Amazon sports: 0 products
+[2026-03-23T00:49:15.848Z] Amazon fitness: 0 products
+[2026-03-23T00:49:16.873Z] === Analysis Complete: 0 opportunities found ===
+[Mon Mar 23 08:49:16 AM CST 2026] Amazon opportunities saved to /root/.openclaw/workspace/logs/amazon_to_send.txt
+[2026-03-23T00:50:41.728Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T00:50:41.730Z] Fetching Google Trends...
+[2026-03-23T00:50:41.824Z] Fetched 10 trends
+[2026-03-23T00:50:41.824Z] Analyzing trends for product opportunities...
+[2026-03-23T00:50:41.827Z] Attempting to fetch Amazon data...
+[2026-03-23T00:50:43.155Z] Amazon electronics: 0 products
+[2026-03-23T00:50:44.925Z] Amazon computers: 0 products
+[2026-03-23T00:50:46.493Z] Amazon camera: 0 products
+[2026-03-23T00:50:48.354Z] Amazon wireless: 0 products
+[2026-03-23T00:50:50.645Z] Amazon home: 0 products
+[2026-03-23T00:50:52.518Z] Amazon kitchen: 0 products
+[2026-03-23T00:50:53.924Z] Amazon sports: 0 products
+[2026-03-23T00:50:55.701Z] Amazon fitness: 0 products
+[2026-03-23T00:50:56.714Z] === Analysis Complete: 0 opportunities found ===
+[2026-03-23T01:30:08.467Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T01:30:08.469Z] Fetching Google Trends...
+[2026-03-23T01:30:08.689Z] Fetched 10 trends
+[2026-03-23T01:30:08.689Z] Analyzing trends for product opportunities...
+[2026-03-23T01:30:08.692Z] Attempting to fetch Amazon data...
+[2026-03-23T01:30:09.584Z] Amazon electronics: 0 products
+[2026-03-23T01:30:11.357Z] Amazon computers: 0 products
+[2026-03-23T01:30:12.754Z] Amazon camera: 0 products
+[2026-03-23T01:30:14.972Z] Amazon wireless: 0 products
+[2026-03-23T01:30:16.986Z] Amazon home: 0 products
+[2026-03-23T01:30:18.892Z] Amazon kitchen: 0 products
+[2026-03-23T01:30:20.300Z] Amazon sports: 0 products
+[2026-03-23T01:30:21.805Z] Amazon fitness: 0 products
+[2026-03-23T01:30:22.818Z] === Analysis Complete: 2 opportunities found ===
+[2026-03-23T05:50:32.531Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T05:50:32.534Z] Fetching all Google Trends...
+[2026-03-23T05:50:32.724Z] Error fetching trends: newsXml is not defined
+[2026-03-23T05:50:32.725Z] Analyzing trends for product opportunities...
+[2026-03-23T05:50:32.745Z] === Analysis Complete: 0 opportunities found ===
+[2026-03-23T05:50:42.208Z] === Amazon Opportunities Analysis Started ===
+[2026-03-23T05:50:42.211Z] Fetching all Google Trends...
+[2026-03-23T05:50:42.377Z] Fetched 10 trends
+[2026-03-23T05:50:42.377Z] Analyzing trends for product opportunities...
+[2026-03-23T05:50:42.399Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-24T01:30:07.011Z] === Amazon Opportunities Analysis Started ===
+[2026-03-24T01:30:07.015Z] Fetching all Google Trends...
+[2026-03-24T01:30:07.456Z] Fetched 10 trends
+[2026-03-24T01:30:07.456Z] Analyzing trends for product opportunities...
+[2026-03-24T01:30:07.493Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-25T00:22:29.909Z] === Amazon Opportunities Analysis Started ===
+[2026-03-25T00:22:29.913Z] Fetching all Google Trends...
+[2026-03-25T00:22:30.482Z] Fetched 10 trends
+[2026-03-25T00:22:30.482Z] Analyzing trends for product opportunities...
+[2026-03-25T00:22:30.543Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-25T01:30:12.136Z] === Amazon Opportunities Analysis Started ===
+[2026-03-25T01:30:12.138Z] Fetching all Google Trends...
+[2026-03-25T01:30:12.470Z] Fetched 10 trends
+[2026-03-25T01:30:12.470Z] Analyzing trends for product opportunities...
+[2026-03-25T01:30:12.490Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-26T01:30:13.825Z] === Amazon Opportunities Analysis Started ===
+[2026-03-26T01:30:13.828Z] Fetching all Google Trends...
+[2026-03-26T01:30:13.972Z] Fetched 10 trends
+[2026-03-26T01:30:13.973Z] Analyzing trends for product opportunities...
+[2026-03-26T01:30:13.996Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-27T01:30:06.972Z] === Amazon Opportunities Analysis Started ===
+[2026-03-27T01:30:06.975Z] Fetching all Google Trends...
+[2026-03-27T01:30:07.175Z] Fetched 10 trends
+[2026-03-27T01:30:07.176Z] Analyzing trends for product opportunities...
+[2026-03-27T01:30:07.197Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-27T16:25:47.680Z] === Amazon Opportunities Analysis Started ===
+[2026-03-27T16:25:47.682Z] Fetching all Google Trends...
+[2026-03-27T16:25:47.971Z] Fetched 10 trends
+[2026-03-27T16:25:47.971Z] Analyzing trends for product opportunities...
+[2026-03-27T16:25:47.997Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-28T01:30:04.100Z] === Amazon Opportunities Analysis Started ===
+[2026-03-28T01:30:04.103Z] Fetching all Google Trends...
+[2026-03-28T01:30:04.278Z] Fetched 10 trends
+[2026-03-28T01:30:04.279Z] Analyzing trends for product opportunities...
+[2026-03-28T01:30:04.308Z] === Analysis Complete: 10 opportunities found ===
+[2026-03-29T01:30:09.403Z] === Amazon Opportunities Analysis Started ===
+[2026-03-29T01:30:09.406Z] Fetching all Google Trends...
+[2026-03-29T01:30:09.764Z] Fetched 10 trends
+[2026-03-29T01:30:09.765Z] Analyzing trends for product opportunities...
+[2026-03-29T01:30:09.791Z] === Analysis Complete: 10 opportunities found ===

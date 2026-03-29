@@ -162,6 +162,24 @@
       "zip_url": "https://lightmake.site/api/v1/download?slug=frontend-design-ultimate",
       "source": "skillhub",
       "version": "1.0.0"
+    },
+    "competitor-analysis": {
+      "name": "Competitor Analysis",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=competitor-analysis",
+      "source": "skillhub",
+      "version": "3.0.0"
+    },
+    "sentiment-bot": {
+      "name": "Sentiment Bot",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=sentiment-bot",
+      "source": "skillhub",
+      "version": "1.1.0"
+    },
+    "review-analysis": {
+      "name": "Review Analysis",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=review-analysis",
+      "source": "skillhub",
+      "version": "1.0.0"
     }
   }
 }

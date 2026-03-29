@@ -120,6 +120,18 @@
     "frontend-design-ultimate": {
       "version": "1.0.0",
       "installedAt": 1773402218018
+    },
+    "competitor-analysis": {
+      "version": "3.0.0",
+      "installedAt": 1774063988360
+    },
+    "sentiment-bot": {
+      "version": "1.1.0",
+      "installedAt": 1774064000608
+    },
+    "review-analysis": {
+      "version": "1.0.0",
+      "installedAt": 1774090972011
     }
   }
 }

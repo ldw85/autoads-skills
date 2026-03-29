@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专题落地页</title>
+    <meta name="description" content="2026年亚马逊复活节最受欢迎的礼物推荐，精选玩具、美食、创意礼品，给孩子和大人都能找到惊喜">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141418;
+            --bg-card: #1a1a1f;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #FF9900;
+            --accent-secondary: #00C4B4;
+            --border: #27272a;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 800px; height: 400px;
+            background: radial-gradient(ellipse, rgba(255,153,0,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(255,153,0,0.1);
+            border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+        .hero h1 {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-description { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto 32px; }
+        .hero-meta { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; color: var(--text-muted); font-size: 14px; }
+        .section-header { text-align: center; margin-bottom: 40px; }
+        .section-header h2 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+        .section-header p { color: var(--text-secondary); }
+        
+        .quick-picks { padding: 60px 0; background: var(--bg-secondary); }
+        .quick-picks-table { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+        .quick-picks-table table { width: 100%; border-collapse: collapse; }
+        .quick-picks-table th, .quick-picks-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); }
+        .quick-picks-table th { background: var(--bg-secondary); font-weight: 600; font-size: 13px; text-transform: uppercase; color: var(--text-muted); }
+        .quick-picks-table tr:last-child td { border-bottom: none; }
+        .pick-badge { display: inline-block; padding: 4px 10px; background: rgba(0,196,180,0.1); border: 1px solid rgba(0,196,180,0.3); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--accent-secondary); }
+        .pick-highlight { color: var(--text-primary); font-weight: 500; }
+        .pick-price { color: var(--accent); font-weight: 600; }
+        .pick-cta { display: inline-block; padding: 8px 16px; background: linear-gradient(180deg, #FFD814 0%, #FFBB50 100%); color: #0F1111; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; }
+        
+        .products { padding: 60px 0; background: var(--bg-secondary); }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; margin-top: 40px; }
+        .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: all 0.3s; display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow); border-color: rgba(255,153,0,0.3); }
+        .product-image { width: 100%; height: 200px; background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+        .product-image img { max-width: 80%; max-height: 80%; object-fit: contain; }
+        .product-badge { position: absolute; top: 16px; left: 16px; padding: 6px 12px; background: rgba(0,196,180,0.9); color: #000; font-size: 11px; font-weight: 700; border-radius: 4px; text-transform: uppercase; }
+        .product-badge.badge-alt { background: rgba(255,153,0,0.9); }
+        .product-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+        .product-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .product-tagline { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; }
+        .product-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .stars { color: #FFC107; font-size: 14px; }
+        .rating-text { color: var(--text-muted); font-size: 13px; }
+        .product-highlights { list-style: none; margin-bottom: 20px; flex: 1; }
+        .product-highlights li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+        .product-highlights li:last-child { border-bottom: none; }
+        .product-highlights li::before { content: '✓'; color: var(--accent-secondary); font-weight: 600; }
+        .product-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .product-tag { padding: 4px 10px; background: var(--bg-secondary); border-radius: 4px; font-size: 12px; color: var(--text-muted); }
+        .product-price-row { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); }
+        .product-price { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .product-price-original { font-size: 14px; color: var(--text-muted); text-decoration: line-through; margin-left: 8px; }
+        .product-cta { padding: 10px 20px; background: linear-gradient(180deg, #FFD814 0%, #FFBB50 100%); color: #0F1111; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; }
+        
+        .use-cases { padding: 60px 0; background: var(--bg-secondary); }
+        .use-case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 40px; }
+        .use-case-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; }
+        .use-case-icon { font-size: 40px; margin-bottom: 16px; }
+        .use-case-card h3 { font-size: 18px; margin-bottom: 8px; }
+        .use-case-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+        .use-case-recommendation { background: var(--bg-secondary); border-radius: 8px; padding: 16px; }
+        .use-case-recommendation strong { color: var(--accent-secondary); }
+        .use-case-reason { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+        
+        .faq { padding: 60px 0; }
+        .faq-list { max-width: 800px; margin: 40px auto 0; }
+        .faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+        .faq-question { padding: 20px 24px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-question:hover { background: var(--bg-secondary); }
+        .faq-question::after { content: '+'; font-size: 20px; color: var(--text-muted); }
+        .faq-item.active .faq-question::after { transform: rotate(45deg); }
+        .faq-answer { padding: 0 24px; max-height: 0; overflow: hidden; transition: all 0.3s; }
+        .faq-item.active .faq-answer { padding: 0 24px 20px; max-height: 500px; }
+        .faq-answer p { color: var(--text-secondary); font-size: 15px; line-height: 1.7; }
+        
+        .final-cta { padding: 80px 0; background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); text-align: center; }
+        .final-cta h2 { font-size: 32px; margin-bottom: 16px; }
+        .final-cta p { color: var(--text-secondary); max-width: 600px; margin: 0 auto 32px; font-size: 18px; }
+        .final-cta-buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .final-cta-btn { padding: 14px 28px; background: linear-gradient(180deg, #FFD814 0%, #FFBB50 100%); color: #0F1111; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px; }
+        .final-cta-btn.secondary { background: transparent; border: 2px solid var(--border); color: var(--text-primary); }
+        
+        .disclosure { padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border); }
+        footer { padding: 40px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+        
+        @media (max-width: 768px) {
+            .hero { padding: 60px 0 40px; }
+            .hero h1 { font-size: 28px; }
+            .products-grid { grid-template-columns: 1fr; }
+            .section-header h2 { font-size: 24px; }
+            .final-cta h2 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <span class="hero-badge">🐰 复活节特惠</span>
+            <h1>复活节礼物专题</h1>
+            <p class="hero-description">2026年亚马逊复活节最受欢迎的礼物推荐，精选玩具、美食、创意礼品，给孩子和大人都能找到惊喜</p>
+            <div class="hero-meta">
+                <span>4款商品精选</span>
+                <span>独立评测 · 无广告植入</span>
+                <span>最后更新: 2026-03-24</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-picks">
+        <div class="container">
+            <div class="section-header">
+                <h2>⚡ 快速选择</h2>
+                <p>不知道选哪款？看看我们的精选推荐</p>
+            </div>
+            <div class="quick-picks-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>推荐</th>
+                            <th>核心亮点</th>
+                            <th>适合人群</th>
+                            <th>价格</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td><span class="pick-badge">最佳互动玩具</span></td>
+                            <td class="pick-highlight">会发光的飞行环，夜晚最靓的玩具</td>
+                            <td>复活节礼物, 户外活动</td>
+                            <td class="pick-price">See on Amazon</td>
+                            <td><a href="https://amzn.to/47es5w8" class="pick-cta" target="_blank" rel="noopener">查看详情</a></td>
+                        </tr>
+        
+                        <tr>
+                            <td><span class="pick-badge">最佳解压玩具</span></td>
+                            <td class="pick-highlight">百变指尖陀螺，释放压力的神器</td>
+                            <td>复活节礼物, 减压放松</td>
+                            <td class="pick-price">See on Amazon</td>
+                            <td><a href="https://amzn.to/4lLgF9b" class="pick-cta" target="_blank" rel="noopener">查看详情</a></td>
+                        </tr>
+        
+                        <tr>
+                            <td><span class="pick-badge">最佳美食礼物</span></td>
+                            <td class="pick-highlight">巧克力礼篮，大人小孩都爱的甜蜜礼物</td>
+                            <td>复活节礼物, 美食礼品</td>
+                            <td class="pick-price">See on Amazon</td>
+                            <td><a href="https://amzn.to/487bACf" class="pick-cta" target="_blank" rel="noopener">查看详情</a></td>
+                        </tr>
+        
+                        <tr>
+                            <td><span class="pick-badge">最佳惊喜礼物</span></td>
+                            <td class="pick-highlight">魔法龙蛋玩具，释放水晶龙的惊喜体验</td>
+                            <td>复活节礼物, 收藏玩具</td>
+                            <td class="pick-price">See on Amazon</td>
+                            <td><a href="https://amzn.to/4sv6Rm0" class="pick-cta" target="_blank" rel="noopener">查看详情</a></td>
+                        </tr>
+        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="products" id="products">
+        <div class="container">
+            <div class="section-header">
+                <h2>🏆 商品推荐</h2>
+                <p>每款都是同价位的最佳选择</p>
+            </div>
+            <div class="products-grid">
+                
+                <div class="product-card">
+                    <div class="product-image">
+                        <span class="product-badge ">最佳互动玩具</span>
+                        <img src="https://m.media-amazon.com/images/I/81OqycnzByL._AC_SX679_.jpg" alt="TOSY Flying Ring" loading="lazy">
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-name">TOSY Flying Ring</h3>
+                        <p class="product-tagline">会发光的飞行环，夜晚最靓的玩具</p>
+                        <div class="product-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-text">4.7 (3.2K条评价)</span>
+                        </div>
+                        <ul class="product-highlights">
+                            <li>36颗RGB LED，1600万色变化</li><li>自动光控，飞行即点亮</li><li>获2024国家育儿创意玩具奖</li>
+                        </ul>
+                        <div class="product-tags">
+                            <span class="product-tag">#复活节礼物</span><span class="product-tag">#户外活动</span><span class="product-tag">#亲子互动</span>
+                        </div>
+                        <div class="product-price-row">
+                            <div>
+                                <span class="product-price">See on Amazon</span>
+                                
+                            </div>
+                            <a href="https://amzn.to/47es5w8" class="product-cta" target="_blank" rel="noopener">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="product-card">
+                    <div class="product-image">
+                        <span class="product-badge badge-alt">最佳解压玩具</span>
+                        <img src="https://m.media-amazon.com/images/I/71q4u8Y4PmL._AC_SY300_SX300_QL70_FMwebp_.jpg" alt="Transformable Fidget Spinners 4-Pack" loading="lazy">
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-name">Transformable Fidget Spinners 4-Pack</h3>
+                        <p class="product-tagline">百变指尖陀螺，释放压力的神器</p>
+                        <div class="product-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-text">4.5 (1.8K条评价)</span>
+                        </div>
+                        <ul class="product-highlights">
+                            <li>4色套装，可变形6种形态</li><li>高速轴承，旋转数分钟</li><li>帮助集中注意力减压</li>
+                        </ul>
+                        <div class="product-tags">
+                            <span class="product-tag">#复活节礼物</span><span class="product-tag">#减压放松</span><span class="product-tag">#课堂玩具</span>
+                        </div>
+                        <div class="product-price-row">
+                            <div>
+                                <span class="product-price">See on Amazon</span>
+                                
+                            </div>
+                            <a href="https://amzn.to/4lLgF9b" class="product-cta" target="_blank" rel="noopener">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="product-card">
+                    <div class="product-image">
+                        <span class="product-badge ">最佳美食礼物</span>
+                        <img src="https://m.media-amazon.com/images/I/81bnwjXx4LL._SX679_.jpg" alt="Bonnie & Pop Chocolate Gift Basket" loading="lazy">
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-name">Bonnie & Pop Chocolate Gift Basket</h3>
+                        <p class="product-tagline">巧克力礼篮，大人小孩都爱的甜蜜礼物</p>
+                        <div class="product-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-text">4.8 (4.5K条评价)</span>
+                        </div>
+                        <ul class="product-highlights">
+                            <li>牛奶/黑/白巧克力松露组合</li><li>精美礼盒包装，送礼体面</li><li>节日/生日/探访首选</li>
+                        </ul>
+                        <div class="product-tags">
+                            <span class="product-tag">#复活节礼物</span><span class="product-tag">#美食礼品</span><span class="product-tag">#节日送礼</span>
+                        </div>
+                        <div class="product-price-row">
+                            <div>
+                                <span class="product-price">See on Amazon</span>
+                                
+                            </div>
+                            <a href="https://amzn.to/487bACf" class="product-cta" target="_blank" rel="noopener">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="product-card">
+                    <div class="product-image">
+                        <span class="product-badge badge-alt">最佳惊喜礼物</span>
+                        <img src="https://m.media-amazon.com/images/I/816DOjjDNkL._SX679_.jpg" alt="3D Printed Dragon Egg Toy" loading="lazy">
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-name">3D Printed Dragon Egg Toy</h3>
+                        <p class="product-tagline">魔法龙蛋玩具，释放水晶龙的惊喜体验</p>
+                        <div class="product-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-text">4.3 (890条评价)</span>
+                        </div>
+                        <ul class="product-highlights">
+                            <li>5.5寸3D打印龙蛋</li><li>内置可摆Pose水晶龙</li><li>多种颜色可选</li>
+                        </ul>
+                        <div class="product-tags">
+                            <span class="product-tag">#复活节礼物</span><span class="product-tag">#收藏玩具</span><span class="product-tag">#创意礼物</span>
+                        </div>
+                        <div class="product-price-row">
+                            <div>
+                                <span class="product-price">See on Amazon</span>
+                                
+                            </div>
+                            <a href="https://amzn.to/4sv6Rm0" class="product-cta" target="_blank" rel="noopener">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+        </div>
+    </section>
+
+    <section class="use-cases">
+        <div class="container">
+            <div class="section-header">
+                <h2>🎯 场景推荐</h2>
+                <p>按需匹配，找到最适合你的那一款</p>
+            </div>
+            <div class="use-case-grid">
+                
+                <div class="use-case-card">
+                    <div class="use-case-icon">📦</div>
+                    <h3>适合复活节礼物</h3>
+                    <p>基于实际使用场景和用户反馈推荐</p>
+                    <div class="use-case-recommendation">
+                        <strong>TOSY Flying Ring</strong>
+                        <p class="use-case-reason">推荐理由: 36颗RGB LED，1600万色变化</p>
+                    </div>
+                </div>
+        
+                <div class="use-case-card">
+                    <div class="use-case-icon">📦</div>
+                    <h3>适合户外活动</h3>
+                    <p>基于实际使用场景和用户反馈推荐</p>
+                    <div class="use-case-recommendation">
+                        <strong>TOSY Flying Ring</strong>
+                        <p class="use-case-reason">推荐理由: 36颗RGB LED，1600万色变化</p>
+                    </div>
+                </div>
+        
+                <div class="use-case-card">
+                    <div class="use-case-icon">📦</div>
+                    <h3>适合亲子互动</h3>
+                    <p>基于实际使用场景和用户反馈推荐</p>
+                    <div class="use-case-recommendation">
+                        <strong>TOSY Flying Ring</strong>
+                        <p class="use-case-reason">推荐理由: 36颗RGB LED，1600万色变化</p>
+                    </div>
+                </div>
+        
+                <div class="use-case-card">
+                    <div class="use-case-icon">📦</div>
+                    <h3>适合夜间玩耍</h3>
+                    <p>基于实际使用场景和用户反馈推荐</p>
+                    <div class="use-case-recommendation">
+                        <strong>TOSY Flying Ring</strong>
+                        <p class="use-case-reason">推荐理由: 36颗RGB LED，1600万色变化</p>
+                    </div>
+                </div>
+        
+            </div>
+        </div>
+    </section>
+
+    <section class="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2>❓ 常见问题</h2>
+                <p>选购前的疑问，一文解答</p>
+            </div>
+            <div class="faq-list">
+                
+                <div class="faq-item">
+                    <div class="faq-question">这个推荐是怎么选的？</div>
+                    <div class="faq-answer"><p>我们基于实际评测、用户反馈和性价比综合考量。</p></div>
+                </div>
+        
+                <div class="faq-item">
+                    <div class="faq-question">价格会波动吗？</div>
+                    <div class="faq-answer"><p>显示的价格为参考价，实际价格以购买页面为准。</p></div>
+                </div>
+        
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="container">
+            <h2>找到最适合你的复活节礼物专题</h2>
+            <p>无论预算是高是低，这份清单都能帮你找到最佳选择。我们精选了4款商品，总有一款适合你。</p>
+            <div class="final-cta-buttons">
+                
+                <a href="https://amzn.to/47es5w8" class="final-cta-btn" target="_blank" rel="noopener">查看我们的首选</a>
+                <a href="#products" class="final-cta-btn secondary">查看所有推荐</a>
+        
+            </div>
+        </div>
+    </section>
+
+    <div class="disclosure">
+        <p>⚠️ 作为 Amazon Associate，我们从符合资质的购买中获得收益。这不影响我们的客观评测结果。</p>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 TechRuling.com - 专注科技产品评测与选购指南</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', () => q.parentElement.classList.toggle('active'));
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,8 @@
 ---
 name: autoads
 description: |
-  Google Ads自动化广告创建工具。通过提供落地页URL、跟踪模板、痛点信息等参数，
-  自动创建完整的Google Ads广告系列（包括关键词、标题、描述、附加链接等）。
-  替代手动调用autoads项目CLI。
+  Google Ads广告自动创建工具。通过AI调研生成精准广告素材，支持任何品牌和产品。
+  工作流：用户输入 → AI痛点研究 → AI素材生成(PAS模型) → AI关键词研究 → Google Ads API创建。
 triggers:
   - 创建广告
   - Google Ads
@@ -19,62 +18,50 @@ input:
     landing_url:
       type: string
       description: 广告落地页URL（必填）
-      example: https://merachfit.com/products/novarow-r50-air-resistance-rower
+      example: https://example.com/products/product-name
     tracking_template:
       type: string
-      description: 跟踪模板URL（可选，需包含{lpurl}占位符）
-      example: https://tatrck.com/h/0Hu30_Cb0ueB?model=cpa&url={lpurl}
+      description: 跟踪模板URL（需包含{lpurl}占位符）
+      example: https://tatrck.com/h/xxx?url={lpurl}
     country:
       type: string
-      description: 目标国家代码（默认US）
+      description: 目标国家代码
       default: US
     budget:
       type: number
-      description: 日预算，单位为账户货币（默认100）
-      default: 100
-    cpc:
+      description: 日预算（固定20美元）
+      default: 20
+    product_price:
       type: number
-      description: CPC出价（默认0.56）
-      default: 0.56
-    pain_points:
-      type: array
-      description: 痛点列表，每项包含topic和pain_text
-      items:
-        type: object
-        properties:
-          topic:
-            type: string
-            description: 痛点主题
-          pain_text:
-            type: string
-            description: 痛点描述
-      example:
-        - topic: space
-          pain_text: bulky gym equipment takes up too much space
-        - topic: noise
-          pain_text: noisy workouts disturb family and neighbors
-    marketing_copy:
-      type: object
-      description: 营销文案素材（可选，将覆盖AI生成的内容）
-      properties:
-        headlines:
-          type: array
-          items:
-            type: string
-          description: 广告标题列表（每个≤30字符）
-        descriptions:
-          type: array
-          items:
-            type: string
-          description: 广告描述列表（每个≤90字符）
-        keywords:
-          type: array
-          items:
-            type: string
-          description: 关键词列表
+      description: 商品金额（美元），用于计算每次点击最大金额
+      example: 99.99
+    commission_rate:
+      type: number
+      description: 佣金率（小数格式，如0.05代表5%），用于计算每次点击最大金额
+      example: 0.05
     campaign_name:
       type: string
-      description: 广告系列名称（可选，自动生成）
+      description: 广告系列名称
+    use_ai_research:
+      type: boolean
+      description: 使用AI调研工作流（推荐）
+      default: true
+    brand_name:
+      type: string
+      description: 品牌名称（AI调研必需）
+      example: BrandName
+    product_type:
+      type: string
+      description: 产品类型描述（AI调研用）
+      example: fitness equipment, rowing machines
+    features:
+      type: string
+      description: 产品特性（AI调研用）
+      example: patented technology, smart app, quiet operation
+    user_base:
+      type: string
+      description: 用户规模/统计数据（AI调研用）
+      example: 10M+ users in 24 countries
 output:
   type: object
   properties:
@@ -82,113 +69,138 @@ output:
       type: boolean
     campaign:
       type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        status:
-          type: string
     ad_groups:
       type: integer
     ads:
       type: integer
     keywords:
       type: integer
-    errors:
-      type: array
-      items:
-        type: string
-    warnings:
-      type: array
-      items:
-        type: string
 ---
 
-# Autoads - Google Ads 自动创建技能
+# Autoads - Google Ads 广告自动创建
 
-本技能封装autoads项目的CLI，提供标准化的广告创建接口。
+## 工作流
 
-## 工作目录
+### 推荐: AI调研工作流
+
 ```
-/root/.openclaw/workspace/autoads
+用户输入 → AI痛点研究 → AI素材生成 → AI关键词研究 → Google Ads API
 ```
 
-## 核心命令
+**Step 1: 用户提供产品信息**
+- URL、品牌、产品类型、特性
 
-### 创建广告（create）
+**Step 2: AI痛点研究**
+- 模拟 review-analysis 技能逻辑
+- 提取用户评论中的痛点
+
+**Step 3: AI素材生成 (PAS模型)**
+- 模拟 affiliate-marketing-creator 技能
+- Problem-Agitate-Solution 框架
+- 双系统理论 (情感+理性)
+- 生成 Headlines 和 Descriptions
+
+**Step 4: AI关键词研究**
+- 模拟 keyword-research 技能
+- 核心关键词 + 长尾关键词
+- 搜索意图分类
+
+**Step 5: Google Ads API创建广告**
+
+---
+
+## 使用方法
+
+### 创建广告（AI调研模式）
+
 ```bash
-cd /root/.openclaw/workspace/autoads && python3 -m src.main --command create \
-  --url "<landing_url>" \
-  --country <country> \
-  --tracking-template "<tracking_template>" \
-  --budget <budget> \
-  --cpc <cpc> \
-  --name "<campaign_name>" \
-  --manual-pain-points '<pain_points_json>' \
-  --product-description "<description>"
+cd /root/.openclaw/workspace/autoads
+python3 -m src.main --command create \
+  --url "https://example.com/products/product-name" \
+  --brand-name "BrandName" \
+  --product-type "product category" \
+  --features "key features, benefits" \
+  --user-base "user statistics" \
+  --tracking-template "https://tatrck.com/h/xxx?url={lpurl}" \
+  --product-price 99.99 \
+  --commission-rate 0.05 \
+  --name "CampaignName" \
+  --country US \
+  --use-ai-research
 ```
 
-### 查看状态（status）
+**注意**: 
+- 每日预算固定为 20 美元
+- CPC 计算公式: `商品价格 × 佣金率 / 50 × 0.9 × 6.98`
+- CPC 范围: **0.1 - 0.56**（低于0.1则用0.1，高于0.56则用0.56）
+- 程序会从文本中自动提取商品价格和佣金率
+- 示例: $202 × 0.025 / 50 × 0.9 × 6.98 = $0.63 → 超过0.56上限，使用 $0.56
+
+### 仅调研（查看生成的素材）
+
 ```bash
-cd /root/.openclaw/workspace/autoads && python3 -m src.main --command status
+python3 -m src.main --command research \
+  --url "https://example.com/products/product-name" \
+  --brand-name "BrandName" \
+  --product-type "product category" \
+  --features "key features" \
+  --user-base "user statistics"
 ```
 
-### 测试连接（test）
+### 查看状态
+
 ```bash
-cd /root/.openclaw/workspace/autoads && python3 -m src.main --command test
+python3 -m src.main --command status
 ```
 
-## 使用流程
+### 测试连接
 
-1. **验证配置** - 运行 `--command test` 确认Google Ads连接正常
-2. **准备参数** - 收集landing_url、tracking_template、pain_points
-3. **执行创建** - 调用CLI创建广告
-4. **返回结果** - 解析输出返回结构化结果
-
-## 痛点格式（pain_points）
-
-JSON数组格式：
-```json
-'[{"topic":"space","pain_text":"bulky gym equipment takes up too much space"},{"topic":"noise","pain_text":"noisy workouts disturb neighbors"}]'
-```
-
-## 注意事项
-
-- 使用 `--manual-pain-points` 传递痛点（避免AI技能调用失败）
-- 跟踪模板建议包含 `{lpurl}` 占位符
-- 关键词会自动通过关键词生成器扩展（EXACT + PHRASE）
-- 政策过滤会自动应用（过滤禁用词、夸大宣传等）
-
-## AI技能调用失败问题分析
-
-### 问题原因
-`research_flow.py` 中的 `call_skill()` 函数依赖Claude Code CLI调用AI技能：
-```python
-result = subprocess.run(
-    ["claude", "--print", "--output-format", "json", full_prompt],
-    ...
-)
-```
-
-**失败原因：**
-1. Claude Code CLI (`claude`) 存在但未配置正确的API认证
-2. 环境变量 `MINIMAX_API_KEY` 或 `ANTHROPIC_API_KEY` 未设置
-3. `ANTHROPIC_BASE_URL` 可能指向错误的端点
-
-### 解决方案
-1. **使用手动痛点** - 传递 `--manual-pain-points` 参数完全绕过AI调用
-2. **修复API配置** - 设置正确的API key环境变量
-3. **使用内置生成器** - 当AI调用失败时，`policy_filter.py` 和 `keyword_generator.py` 会使用内置规则生成素材
-
-### 验证API配置
 ```bash
-# 检查环境变量
-env | grep -i "minimax\|anthropic"
-
-# 测试Claude Code
-claude --version
+python3 -m src.main --command test
 ```
 
-### 当前推荐用法
-提供完整的 `pain_points` 和 `marketing_copy` 参数，使用 `--manual-pain-points` 选项，确保广告创建不依赖AI技能调用。
+---
+
+## 参数说明
+
+| 参数 | 必需 | 说明 |
+|------|------|------|
+| `--url` | ✅ | 落地页URL |
+| `--brand-name` | ✅ (AI模式) | 品牌名称 |
+| `--product-type` | ✅ (AI模式) | 产品类型 |
+| `--features` | ✅ (AI模式) | 产品特性 |
+| `--tracking-template` | ❌ | 跟踪模板，需包含{lpurl} |
+| `--product-price` | ❌* | 商品金额（美元），可从文本自动提取 |
+| `--commission-rate` | ❌* | 佣金率（小数），可从文本自动提取 |
+| `--budget` | ❌ | 日预算（固定20美元，不建议修改） |
+| `--country` | ❌ | 国家代码，默认US |
+| `--use-ai-research` | ❌ | 使用AI调研，默认true |
+
+*`--product-price` 和 `--commission-rate` 用于计算CPC，程序也会尝试从文本描述中自动提取
+
+---
+
+## 素材规格
+
+- **Headlines**: ≤30字符
+- **Descriptions**: ≤90字符
+- **Keywords**: ≤8单词
+
+---
+
+## 示例输出
+
+**Headlines:**
+- Best Home Gym Equipment
+- Ultimate Silent Workouts
+- Easy Home Fitness Setup
+- Proven Home Rowing Machine
+
+**Keywords:**
+- rowing machine, best rowing machine for home
+- foldable treadmill for apartment
+- quiet treadmill for condo
+
+**Descriptions:**
+- No bulky equipment or loud machines. Easy setup, AI-driven workouts, professional results.
+- Professional-grade home gym with smart app. 16 resistance levels for all fitness goals.

@@ -53,6 +53,39 @@
 - **输出文件**: `/root/.openclaw/workspace/logs/trends_to_send.txt`
 - **状态**: ✅ 已配置
 
+### 每日亚马逊产品机会简报 (2026-03-23)
+- **Cron Job ID**: `9d12052b-bb16-41e0-ad45-066f8fe6a999`
+- **运行时间**: 每天 09:30 (Asia/Shanghai)
+- **触发事件**: `systemEvent: "daily_amazon_opportunities"` 发送到 main session
+- **执行脚本**: `/root/.openclaw/workspace/scripts/amazon-opportunities.mjs`
+- **数据来源**: Google Trends RSS (免费) + AI分析
+- **过滤逻辑**: 排除体育、娱乐、政治内容
+- **产品映射**: 12个品类（音频/手机/电脑/智能家居/游戏/健身/摄影/生活等）
+- **输出文件**: `/root/.openclaw/workspace/logs/amazon_to_send.txt`
+- **状态**: ✅ 已配置
+- **注意**: Amazon直接爬取被封锁，使用Google Trends趋势驱动产品推荐
+
+### 每日亚马逊产品机会分析 (2026-03-23)
+- **Cron Job ID**: `d032a513-3da9-45cf-8bfd-93b7d2a6711e`
+- **运行时间**: 每天 09:00 (Asia/Shanghai)
+- **目标**: isolated session，自动运行脚本并发送飞书
+- **执行脚本**: `/root/.openclaw/workspace/scripts/amazon-opportunities.mjs`
+- **包装脚本**: `/root/.openclaw/workspace/scripts/run-amazon-opportunities.sh`
+- **数据来源**: Google Trends RSS (免费) + AI产品推荐映射
+- **输出文件**: `/root/.openclaw/workspace/logs/amazon_to_send.txt`
+- **状态**: ✅ 已配置
+- **注意**: Amazon直接爬取被封锁，使用趋势映射方案
+
+### Amazon库存检查定时任务 (2026-03-29)
+- **Cron Job ID**: `a02b17ee-3798-48e9-a7e9-10c94c64e967`
+- **运行时间**: 每天 20:00 (Asia/Shanghai)
+- **目标**: isolated session，执行检查脚本并发送飞书
+- **执行脚本**: `/root/.openclaw/workspace/skills/amazon-inventory-monitor/check_inventory.py`
+- **功能**: 检查所有Google Ads启用状态广告系列中的亚马逊商品链接，验证商品是否仍有货
+- **数据来源**: Google Ads API + Decodo Amazon Scraper
+- **Customer ID**: 3674729801
+- **状态**: ✅ 已配置
+
 ### 商机分析支持的品类
 - 🤖 AI/科技产品 (AI工具订阅、Claude Pro、ChatGPT Plus等)
 - 📱 消费电子 (手机配件、平板保护套、无线充电器等)
@@ -64,6 +97,7 @@
 - 🎧 音频设备 (无线耳机、降噪耳机、蓝牙音箱等)
 - 📸 摄影摄像 (三脚架、补光灯、麦克风、稳定器等)
 - ☕ 生活品质 (咖啡机、空气炸锅、扫地机器人等)
+- 🏆 体育赛事及用品 (球队周边、运动装备、粉丝商品、赛事装备等)
 
 ## 技能库
 
@@ -81,6 +115,113 @@
 - tencentcloud-lighthouse-skill (腾讯云轻量服务器)
 - **social-media-publisher** (社交媒体多平台发布: Reddit/Medium/X)
 - **product-review-writer** (高质量产品评测写作: SEO+真实感)
+- **autoads** (Google Ads广告自动创建)
+- **amazon-inventory-monitor** (检查Google Ads中亚马逊商品库存状态)
+
+---
+
+## AutoAds 项目 (2026-03-21)
+
+### 项目位置
+```
+/root/.openclaw/workspace/autoads/
+```
+
+### 功能
+自动创建Google Ads广告系列，包含：
+- AI驱动的用户痛点研究
+- 营销素材智能生成 (PAS模型)
+- 关键词精准优化
+- Responsive Search Ads (RSA)
+- 政策合规过滤
+
+### 新AI工作流 (推荐)
+
+**Step 1: 用户提供输入信息**
+- URL、Brand名称、产品类型、特性、用户规模
+
+**Step 2: AI痛点研究 (ad_researcher.py)**
+- 模拟 review-analysis 技能逻辑
+- 提取用户评论痛点
+
+**Step 3: 营销素材生成**
+- 模拟 affiliate-marketing-creator 技能
+- PAS模型 + 双系统理论 + 需求层次
+
+**Step 4: 关键词研究**
+- 模拟 keyword-research 技能
+- 核心词 + 长尾词 + 竞品词
+
+**Step 5: autoads CLI 创建广告**
+
+### 核心模块
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| AI调研 | `ad_researcher.py` | 串联AI技能生成素材 |
+| 产品提取 | `product_extractor.py` | 从URL解析产品信息 |
+| 旧AI研究 | `research_flow.py` | 原research流程(保留) |
+| 关键词生成 | `keyword_generator.py` | 生成关键词变体 |
+| 政策过滤 | `policy_filter.py` | Google Ads合规检查 |
+| 广告构建 | `campaign_builder.py` | 组装广告系列 |
+| Google Ads API | `google_ads_client.py` | 调用Google Ads API |
+
+### 使用方法
+
+**方式1: AI调研 + 创建广告 (推荐)**
+```bash
+cd /root/.openclaw/workspace/autoads
+python3 -m src.main --command create \
+  --url "https://example.com/product" \
+  --brand-name "BrandName" \
+  --product-type "product category" \
+  --features "key features" \
+  --user-base "user statistics" \
+  --tracking-template "https://track.com/h/xxx?url={lpurl}" \
+  --budget 50 \
+  --name "CampaignName" \
+  --use-ai-research
+```
+
+**方式2: 仅调研(查看生成的素材)**
+```bash
+python3 -m src.main --command research \
+  --url "https://example.com/product" \
+  --brand-name "BrandName" \
+  --product-type "product category" \
+  --features "key features" \
+  --user-base "user statistics"
+```
+
+### 注意事项
+1. **无硬编码** - 所有品牌/产品信息由用户输入
+2. **AI驱动** - 使用Claude Code调用AI生成素材
+3. **技能串联** - review-analysis + affiliate-marketing-creator + keyword-research
+4. **字符限制** - Headlines≤30, Descriptions≤90, Keywords≤8词
+- `auto` - 自动检测（默认）
+
+### 依赖技能
+- `competitor-analysis` - 已安装 ✅
+- `keyword-research` - 已安装 ✅
+- `sentiment-bot` - 需要 AIPROX_SPEND_TOKEN
+
+### 注意事项
+1. 落地页URL必须是有效的（返回200）
+2. 关键词单词数≤8（Google限制）
+3. Headlines≤30字符，Descriptions≤90字符
+4. 避免硬编码产品名称（已修复）
+
+### CPC计算规则 (2026-03-29更新)
+- **每日预算**: 固定20美元
+- **CPC公式**: `商品价格 × 佣金率 / 50 × 0.9 × 6.98`
+- **CPC范围**: 0.1 - 0.56（低于0.1用0.1，高于0.56用0.56）
+- **自动提取**: 程序从文本中自动提取商品价格和佣金率
+- **必需参数**: `--product-price` (商品金额美元) + `--commission-rate` (佣金率小数) 可选，程序自动提取
+
+### Decodo自动提取 (2026-03-29)
+- **触发条件**: 只提供URL和佣金率时，自动调用Decodo提取Amazon商品信息
+- **提取内容**: 标题、品牌、价格、评分、图片、特性、评论等
+- **流程**: URL + 佣金率 → Decodo提取 → 自动构建product_description → 创建广告
+- **校验**: 创建广告后自动执行广告校验（使用verify_ads.py）
 
 ---
 
