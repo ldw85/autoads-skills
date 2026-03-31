@@ -176,10 +176,12 @@ python3 -m src.main --command create \
   --product-type "product category" \
   --features "key features" \
   --user-base "user statistics" \
-  --tracking-template "https://track.com/h/xxx?url={lpurl}" \
-  --budget 50 \
+  --product-price 99.99 \
+  --commission-rate 0.05 \
   --name "CampaignName" \
+  --country US \
   --use-ai-research
+# 注意：不要传 --tracking-template，除非用户明确要求！
 ```
 
 **方式2: 仅调研(查看生成的素材)**
@@ -222,6 +224,19 @@ python3 -m src.main --command research \
 - **提取内容**: 标题、品牌、价格、评分、图片、特性、评论等
 - **流程**: URL + 佣金率 → Decodo提取 → 自动构建product_description → 创建广告
 - **校验**: 创建广告后自动执行广告校验（使用verify_ads.py）
+
+### ⚠️ 重要教训 (2026-03-31)
+**跟踪模板URL处理规则：**
+- **不要**把用户输入的完整Amazon URL设置为跟踪模板
+- Amazon URL中的maas/tag等追踪参数会自动提取为`final_url_suffix`
+- **只有用户明确说"跟踪模板URL"时才设置tracking_template参数**
+- 典型错误命令：`--tracking-template "https://www.amazon.com/dp/XXX?maas=..."` ❌
+- 正确做法：不传`--tracking-template`参数，让URL参数自动进入suffix ✅
+
+**RSA图片说明：**
+- Responsive Search Ad在搜索网络不直接显示营销图片
+- 图片主要用于展示网络广告和动态搜索广告
+- 图片已正确上传并关联到广告组（资产库可见）
 
 ---
 
