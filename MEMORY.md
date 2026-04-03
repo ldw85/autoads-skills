@@ -92,8 +92,9 @@
 - **目标**: isolated session，执行检查脚本并发送飞书
 - **执行脚本**: `/root/.openclaw/workspace/autoads/scripts/check_amazon_suffix.py`
 - **包装脚本**: `/root/.openclaw/workspace/scripts/run-amazon-suffix-check.sh`
-- **功能**: 检查所有Amazon广告是否缺少final_url_suffix（affiliate tag）
-- **严重性**: 🔴 CRITICAL - 缺少tag会导致广告费白付无佣金
+- **检查账户**: 3674729801, 6052559425
+- **功能**: 检查所有Amazon广告 + 站内链接广告的final_url_suffix是否为空
+- **严重性**: 🔴 CRITICAL - Amazon缺少tag会丢失佣金，站内链接缺少suffix追踪不完整
 - **输出文件**: `/root/.openclaw/workspace/logs/amazon_suffix_report.txt`
 - **状态**: ⚠️ 已配置但需要调试（isolated session初始化较慢）
 - **注意**: 发现问题广告会通过飞书通知用户
