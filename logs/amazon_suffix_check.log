@@ -1,0 +1,37 @@
+================================================================================
+🔍 Amazon广告 final_url_suffix 检查
+================================================================================
+
+🚨 发现 5 个Amazon广告缺少final_url_suffix！
+
+⏸️ 广告系列 23656456730: PowerStep Pinnacle Insoles - 1773543421
+   状态: PAUSED, 问题广告数: 1
+   - Ad ID: 800381888869
+     URL: ['https://www.amazon.com/dp/B000KPOMZY']
+
+⏸️ 广告系列 23674236672: Amazon Product - US - amazon.com - car-iPad-holder-1774176670
+   状态: PAUSED, 问题广告数: 1
+   - Ad ID: 801434359095
+     URL: ['https://www.amazon.com/dp/B0CLLSC4BF']
+
+⏸️ 广告系列 23706296151: archer - GROWNSY Baby Instant Warmer, Glass Water Boiler wi... - US - 1775018554
+   状态: PAUSED, 问题广告数: 1
+   - Ad ID: 803301980863
+     URL: ['https://www.amazon.com/dp/B088D839T5']
+
+⏸️ 广告系列 23711706899: archer - Baby Car Camera, HD Display Baby Car Mirror with N... - US - 1775018840
+   状态: PAUSED, 问题广告数: 1
+   - Ad ID: 803303835100
+     URL: ['https://www.amazon.com/dp/B0C39QS3D9']
+
+⏸️ 广告系列 23715941245: atcher - DC HOUSE 48V 100Ah Lithium Golf Cart Battery w/Swi... - US - 1775008342
+   状态: PAUSED, 问题广告数: 1
+   - Ad ID: 803212709247
+     URL: ['https://www.amazon.com/dp/B0DBHKHPDX']
+
+================================================================================
+⚠️ 这些广告正在白白支出广告费但无法获得佣金！
+需要添加 affiliate tag 到 final_url_suffix
+---
+Check completed at Fri Apr  3 08:32:39 PM CST 2026
+Exit code: 1
