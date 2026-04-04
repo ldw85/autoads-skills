@@ -27,6 +27,7 @@ class LinkROI:
     link_name: str
     asin: str
     product_name: str = ""   # 产品名称
+    created_date: str = ""    # 广告创建日期
 
     # Google Ads 花费数据
     campaign_id: str = ""
@@ -121,7 +122,13 @@ class ROIReport:
                     "clicks": 0,
                     "campaigns": set(),
                     "product_name": link.product_name or "",
+                    "created_date": link.created_date or "",
                 }
+
+            # 记录创建时间（同一ASIN取最早的）
+            cd = link.created_date or ""
+            if cd and (not asins[asin]["created_date"] or cd < asins[asin]["created_date"]):
+                asins[asin]["created_date"] = cd
             asins[asin]["cost"] += link.cost_usd
             asins[asin]["sales"] += link.archer_sales
             asins[asin]["commission"] += link.archer_commission
@@ -132,15 +139,16 @@ class ROIReport:
         # 按佣金降序排列
         sorted_asins = sorted(asins.items(), key=lambda x: x[1]["commission"], reverse=True)
 
-        print(f"  {'ASIN':<14} {'产品名称':<26} {'广告费':>8} {'佣金':>8} {'ROI%':>8}")
-        print("-" * 80)
+        print(f"  {'ASIN':<14} {'产品名称':<24} {'创建日期':<12} {'广告费':>8} {'佣金':>8} {'ROI%':>8}")
+        print("-" * 95)
 
         active = [(a, d) for a, d in sorted_asins if d["cost"] > 0 or d["commission"] > 0]
         inactive = [(a, d) for a, d in sorted_asins if d["cost"] == 0 and d["commission"] == 0]
 
         for asin, data in active:
-            name = (data.get("product_name") or asin or "Unknown")[:24]
-            name = name + " " * (24 - len(name)) if len(name) < 24 else name[:24] + ".."
+            name = (data.get("product_name") or asin or "Unknown")[:22]
+            name = name + " " * (22 - len(name)) if len(name) < 22 else name[:22] + ".."
+            created = data.get("created_date", "—")
 
             if data["cost"] > 0:
                 roi_pct = (data["commission"] - data["cost"]) / data["cost"] * 100
@@ -152,7 +160,7 @@ class ROIReport:
             else:
                 roi_str = "+∞ 💰"
 
-            print(f"  {asin:<14} {name:<26} ${data['cost']:>7.2f} ${data['commission']:>7.2f} {roi_str:>10}")
+            print(f"  {asin:<14} {name:<24} {created:<12} ${data['cost']:>6.2f} ${data['commission']:>6.2f} {roi_str}")
 
         if inactive:
             print(f"  ... 另有 {len(inactive)} 个产品无广告费也无佣金")
@@ -392,25 +400,26 @@ class ROICalculator:
             archer_clicks = archer_item.get("totalClickThroughs", 0)
             attributed_purchases = archer_item.get("totalAttributedTotalPurchases14d", 0)
             
-            # 从 archer_links_map 获取产品名称
+            # 从 archer_links_map 获取产品名称和创建时间
             product_name = ""
+            created_date = ""
             if link_name in archer_links_map:
-                product_name = archer_links_map[link_name].get("product_name", "")
-
+                link_data = archer_links_map[link_name]
+                product_name = link_data.get("product_name", "")
+                created_date = link_data.get("created_date_time", "")[:10] if link_data.get("created_date_time") else ""
+                # 存回 roi
             # 建立 ROI 记录
             roi = LinkROI(
                 link_name=link_name,
                 asin=asin,
                 product_name=product_name,
+                created_date=created_date,
                 archer_clicks=archer_clicks,
                 archer_sales=float(sales) if sales else 0.0,
                 archer_units=int(units) if units else 0,
                 archer_commission=float(commission) if commission else 0.0,
                 date_range=date_range
             )
-            
-            # 关联 Google Ads 数据
-            # 尝试通过 link_name 匹配 campaign，或通过 asin 匹配
             matched_gads = False
             
             for gads_rec in gads_records:
