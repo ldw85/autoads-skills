@@ -726,15 +726,92 @@ function scoreOpportunities(opportunities) {
     return scored;
 }
 
-// 翻译趋势词
+// 翻译趋势词 - 带搜索意图分析
 function translateTrend(trendText) {
     const lower = trendText.toLowerCase();
+    
+    // 先精确匹配
     for (const [keyword, translation] of Object.entries(trendTranslations)) {
         if (lower.includes(keyword)) {
             return translation;
         }
     }
+    
+    // 未知趋势词，返回null，让调用方决定如何显示
     return null;
+}
+
+// 获取趋势的中文解释或搜索链接
+function getTrendExplanation(trendText) {
+    const cn = translateTrend(trendText);
+    if (cn) return cn;
+    
+    // 未知趋势词，生成简洁的Google搜索提示
+    const encoded = encodeURIComponent(trendText);
+    return `[Google搜索了解](https://www.google.com/search?q=${encoded}&hl=en)`;
+}
+
+// 获取趋势的搜索意图
+function getSearchIntent(trendText) {
+    const lower = trendText.toLowerCase();
+    
+    // 交易型搜索 - 购买意图
+    const transactional = [
+        'buy', 'price', 'deal', 'discount', 'coupon', 'sale', 'amazon', 
+        'best', 'top', 'review', 'comparison', 'vs', 'versus', 'alternative',
+        'cheap', 'affordable', 'budget', 'free', 'trial'
+    ];
+    
+    // 信息型搜索 - 了解意图
+    const informational = [
+        'what is', 'how to', 'why', 'meaning', 'definition', 'explain',
+        'difference between', 'vs', 'tutorial', 'guide', 'tips', 'ways',
+        'news', 'update', 'release', 'announcement', 'announces'
+    ];
+    
+    // 品牌型搜索
+    const brand = [
+        'apple', 'samsung', 'google', 'microsoft', 'amazon', 'nvidia', 
+        'intel', 'amd', 'sony', 'lg', 'dyson', 'bose', 'jbl'
+    ];
+    
+    // 产品型搜索
+    const product = [
+        'iphone', 'ipad', 'macbook', 'airpods', 'watch', 'galaxy', 
+        'pixel', 'surface', 'echo', 'nest', 'ps5', 'xbox', 'switch'
+    ];
+    
+    let intent = '🔍 信息型 - 了解/研究';
+    let detail = '';
+    
+    // 检测搜索意图
+    for (const t of transactional) {
+        if (lower.includes(t)) {
+            intent = '🛒 交易型 - 购买/比价';
+            break;
+        }
+    }
+    
+    if (!informational.every(i => !lower.includes(i))) {
+        intent = '📚 信息型 - 教程/指南';
+    }
+    
+    // 检测品牌
+    const foundBrands = brand.filter(b => lower.includes(b));
+    if (foundBrands.length > 0) {
+        detail += `品牌: ${foundBrands.join(', ')} | `;
+    }
+    
+    // 检测产品类别
+    const foundProducts = product.filter(p => lower.includes(p));
+    if (foundProducts.length > 0) {
+        detail += `产品: ${foundProducts.join(', ')}`;
+    }
+    
+    if (detail) {
+        return `${intent} | ${detail}`;
+    }
+    return intent;
 }
 
 // 翻译产品
@@ -765,14 +842,20 @@ function formatReport(trends, opportunities) {
     msg += `• 匹配产品机会: ${opportunities.length}\n`;
     msg += `• 覆盖品类: ${Object.keys(byCategory).length}\n\n`;
     
-    // Hot trends with Chinese explanations
+    // Hot trends with Chinese explanations and search intent
     if (trends.length > 0) {
         msg += `🔥 **今日热门趋势 TOP 10 (中英对照)**\n`;
         msg += `━━━━━━━━━━━━━━━━━━━━\n`;
         for (const t of trends.slice(0, 10)) {
             const cn = translateTrend(t.title);
+            const intent = getSearchIntent(t.title);
             msg += `【${t.title}】\n`;
-            if (cn) msg += `   📖 中文: ${cn}\n`;
+            if (cn) {
+                msg += `   📖 含义: ${cn}\n`;
+            } else {
+                msg += `   🔗 ${getTrendExplanation(t.title)}\n`;
+            }
+            msg += `   🎯 意图: ${intent}\n`;
             if (t.traffic) msg += `   📊 热度: ${t.traffic}\n`;
             msg += `\n`;
         }
@@ -788,13 +871,19 @@ function formatReport(trends, opportunities) {
             const o = topOpps[i];
             const topProduct = o.products[0];
             const cnProduct = translateProduct(topProduct);
+            const intent = getSearchIntent(o.trend);
+            const cnTrend = translateTrend(o.trend);
             
             msg += `${i + 1}. ${o.category}\n`;
             msg += `   📦 产品: ${topProduct}\n`;
             if (cnProduct) msg += `   📖 解释: ${cnProduct}\n`;
             msg += `   🔥 趋势: ${o.trend}\n`;
-            const cnTrend = translateTrend(o.trend);
-            if (cnTrend) msg += `   📖 趋势含义: ${cnTrend}\n`;
+            if (cnTrend) {
+                msg += `   📖 含义: ${cnTrend}\n`;
+            } else {
+                msg += `   🔗 ${getTrendExplanation(o.trend)}\n`;
+            }
+            msg += `   🎯 意图: ${intent}\n`;
             if (o.traffic) msg += `   📊 热度: ${o.traffic}\n`;
             msg += `\n`;
         }
@@ -824,8 +913,14 @@ function formatReport(trends, opportunities) {
             const topOpp = opps[0];
             if (topOpp && topOpp.trend) {
                 const cnTrend = translateTrend(topOpp.trend);
+                const intent = getSearchIntent(topOpp.trend);
                 msg += `  📈 趋势: ${topOpp.trend}\n`;
-                if (cnTrend) msg += `  📖 含义: ${cnTrend}\n`;
+                if (cnTrend) {
+                    msg += `  📖 含义: ${cnTrend}\n`;
+                } else {
+                    msg += `  🔗 ${getTrendExplanation(topOpp.trend)}\n`;
+                }
+                msg += `  🎯 意图: ${intent}\n`;
             }
             
             msg += `\n`;
