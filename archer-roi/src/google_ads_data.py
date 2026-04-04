@@ -6,7 +6,7 @@ Google Ads 数据拉取模块
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from urllib.parse import parse_qs
@@ -264,9 +264,15 @@ class GoogleAdsDataFetcher:
 
         for customer_id in self._customer_ids:
             try:
-                # Step 1: Get all ads with their final_urls
+                # Step 1: Get all ENABLED campaign IDs first
+                enabled_campaign_ids: Set[int] = set()
+                query_camp = "SELECT campaign.id FROM campaign WHERE campaign.status = 'ENABLED' LIMIT 2000"
+                for row in self._client.search(query_camp, customer_id=customer_id):
+                    enabled_campaign_ids.add(row.campaign.id)
+
+                # Step 2: Get all ads with their final_urls
                 ad_url_map: Dict[int, List[str]] = {}  # ad_id → list of URLs
-                query1 = "SELECT ad.id, ad.final_urls FROM ad LIMIT 1000"
+                query1 = "SELECT ad.id, ad.final_urls FROM ad LIMIT 2000"
                 for row in self._client.search(query1, customer_id=customer_id):
                     urls = list(row.ad.final_urls) if row.ad.final_urls else []
                     ad_url_map[row.ad.id] = urls
@@ -302,16 +308,20 @@ class GoogleAdsDataFetcher:
                         if ad_group_res:
                             ag_id = int(ad_group_res.split('/')[-1])
                             info = ag_info.get(ag_id, {})
-                            camp_id = info.get('campaign_id', '')
+                            camp_id_str = info.get('campaign_id', '')
                             ag_name = info.get('ad_group_name', '')
                         else:
-                            camp_id = ''
+                            camp_id_str = ''
                             ag_name = ''
+
+                        # Skip if campaign is not ENABLED
+                        if camp_id_str and int(camp_id_str) not in enabled_campaign_ids:
+                            continue
 
                         record = AdRecord(
                             customer_id=customer_id,
-                            campaign_id=camp_id,
-                            campaign_name='',  # will be resolved separately
+                            campaign_id=camp_id_str,
+                            campaign_name='',
                             ad_group_id=str(ag_id) if ad_group_res else '',
                             ad_group_name=ag_name,
                             ad_id=str(ad_id),
