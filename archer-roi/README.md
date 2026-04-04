@@ -1,7 +1,8 @@
 # Archer × Google Ads ROI 计算器
 
 ## 功能
-计算 Google Ads 广告系列在 Archer 联盟平台上的收益率（ROI / ROAS）
+- **ROI 报告**：计算 Google Ads 广告系列在 Archer 联盟平台上的收益率
+- **产品监控**：每隔2小时检测 Archer 中的被删产品，自动暂停对应广告系列
 
 ## 工作原理
 
@@ -117,3 +118,43 @@ python3 main.py --report --format json --output /path/to/report.json
 
 如果关联不上（某些链接在 Archer 中没有对应数据），
 会单独显示 Archer 数据，不显示 Google Ads 花费。
+
+---
+
+## 产品监控（自动暂停已删产品）
+
+### 背景
+当产品在 Archer 联盟被删除或下架后，如果广告还在继续投放，会造成无效花费。
+本监控每2小时自动检测并暂停对应广告系列。
+
+### 工作流程
+1. 从 Archer 获取当前所有有效 ASIN
+2. 对比本地快照，找出新增被删的 ASIN
+3. 在 Google Ads 中搜索 final_url 包含该 ASIN 的广告
+4. 自动暂停对应的广告系列
+
+### 定时任务
+```bash
+# 已配置：每2小时自动运行
+0 */2 * * * cd /root/.openclaw/workspace/archer-roi && bash scripts/run-monitor.sh >> logs/monitor_cron.log 2>&1
+```
+
+### 手动命令
+```bash
+# 执行一次监控
+python3 monitor_main.py --run
+
+# 查看监控状态
+python3 monitor_main.py --status
+
+# 列出所有被删产品
+python3 monitor_main.py --list-removed
+
+# 手动暂停指定 ASIN 的广告
+python3 monitor_main.py --pause-asin B08DL8WH9V B09XXXXXX
+```
+
+### 数据文件
+- 快照：`data/snapshot_asins.json`（当前有效 ASIN）
+- 删除记录：`logs/removed_products.json`（历史被删 ASIN）
+- 日志：`logs/monitor_result_YYYYMMDD_HHMMSS.json`（每次执行结果）

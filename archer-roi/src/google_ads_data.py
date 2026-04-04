@@ -17,17 +17,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AdRecord:
     """单条广告记录"""
-    campaign_id: str
-    campaign_name: str
-    ad_group_id: str
-    ad_group_name: str
-    ad_id: str
-    final_url: str
-    url_suffix: str          # 追踪参数（包含 aa_campaignid 等）
-    clicks: int
-    impressions: int
-    cost: float             # 花费（微克朗，即最小的货币单位）
-    conversions: float
+    customer_id: str = ""     # Google Ads Customer ID
+    campaign_id: str = ""
+    campaign_name: str = ""
+    ad_group_id: str = ""
+    ad_group_name: str = ""
+    ad_id: str = ""
+    final_url: str = ""
+    url_suffix: str = ""       # 追踪参数（包含 aa_campaignid 等）
+    clicks: int = 0
+    impressions: int = 0
+    cost: float = 0.0         # 花费（微克朗）
+    conversions: float = 0.0
     
     # 从 suffix 解析出的关键字段
     aa_campaignid: str = ""
@@ -35,6 +36,9 @@ class AdRecord:
     aa_creativeid: str = ""
     affiliate_tag: str = ""
     asin: str = ""
+    
+    # 非构造参数（仅用于引用）
+    _initialized: bool = False
     
     def parse_suffix(self):
         """从 url_suffix 中解析出各追踪参数"""
@@ -149,6 +153,7 @@ class GoogleAdsDataFetcher:
             records = []
             for row in results:
                 record = AdRecord(
+                    customer_id=customer_id,
                     campaign_id=str(row.campaign.id),
                     campaign_name=row.campaign.name,
                     ad_group_id=str(row.ad_group.id),
