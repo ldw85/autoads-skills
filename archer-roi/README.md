@@ -128,9 +128,9 @@ python3 main.py --report --format json --output /path/to/report.json
 本监控每2小时自动检测并暂停对应广告系列。
 
 ### 工作流程
-1. 从 Archer 获取当前所有有效 ASIN
-2. 对比本地快照，找出新增被删的 ASIN
-3. 在 Google Ads 中搜索 final_url 包含该 ASIN 的广告
+1. 从 `/get_all_links` 获取当前所有已创建的 ASIN
+2. 对每个 ASIN 调用 `/check_product` 实时验证是否仍然有效
+3. 无效的 ASIN → 在 Google Ads 中搜索 `final_url` 包含该 ASIN 的广告
 4. 自动暂停对应的广告系列
 
 ### 定时任务
@@ -141,13 +141,13 @@ python3 main.py --report --format json --output /path/to/report.json
 
 ### 手动命令
 ```bash
-# 执行一次监控
+# 执行一次监控（实时验证所有 ASIN）
 python3 monitor_main.py --run
 
 # 查看监控状态
 python3 monitor_main.py --status
 
-# 列出所有被删产品
+# 列出所有无效产品
 python3 monitor_main.py --list-removed
 
 # 手动暂停指定 ASIN 的广告
@@ -155,6 +155,5 @@ python3 monitor_main.py --pause-asin B08DL8WH9V B09XXXXXX
 ```
 
 ### 数据文件
-- 快照：`data/snapshot_asins.json`（当前有效 ASIN）
-- 删除记录：`logs/removed_products.json`（历史被删 ASIN）
+- 无效记录：`logs/removed_products.json`（历史无效 ASIN）
 - 日志：`logs/monitor_result_YYYYMMDD_HHMMSS.json`（每次执行结果）
