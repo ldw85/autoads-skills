@@ -26,7 +26,8 @@ class LinkROI:
     # 关联 key
     link_name: str
     asin: str
-    
+    product_name: str = ""   # 产品名称
+
     # Google Ads 花费数据
     campaign_id: str = ""
     campaign_name: str = ""
@@ -79,7 +80,7 @@ class ROIReport:
                 "total_sales_usd": round(total_sales, 2),
                 "total_commission_usd": round(total_commission, 2),
                 "overall_roas": round(total_sales / total_cost, 2) if total_cost > 0 else 0,
-                "overall_roi_pct": round((total_sales - total_cost) / total_cost * 100, 2) if total_cost > 0 else 0,
+                "overall_roi_pct": round((total_commission - total_cost) / total_cost * 100, 2) if total_cost > 0 else 0,
                 "total_ads_clicks": total_clicks_gads,
                 "total_archer_clicks": total_clicks_archer,
                 "link_count": len(self.links)
@@ -88,41 +89,76 @@ class ROIReport:
         }
     
     def print_summary(self):
-        """打印格式化报告"""
+        """打印格式化报告 - 按产品(ASIN)汇总"""
         d = self.to_dict()
         s = d["summary"]
-        
-        print("\n" + "=" * 70)
+
+        print("\n" + "=" * 80)
         print(f"  Archer × Google Ads ROI 报告  |  {d['date_range']}")
-        print("=" * 70)
+        print("=" * 80)
         print(f"  总广告花费:     ${s['total_cost_usd']:.2f}")
         print(f"  总销售额:       ${s['total_sales_usd']:.2f}")
         print(f"  总佣金:         ${s['total_commission_usd']:.2f}")
         print(f"  整体 ROAS:      {s['overall_roas']:.2f}x")
+        active_count = sum(1 for l in self.links if l.cost_usd > 0 or l.archer_commission > 0)
         print(f"  整体 ROI:       {s['overall_roi_pct']:.1f}%")
-        print(f"  链接数量:       {s['link_count']}")
-        print("-" * 70)
-        
+        print(f"  有数据产品:     {active_count} 个")
+        print("-" * 80)
+
         if not self.links:
             print("  无数据")
             return
-        
+
+        # ── 按 ASIN 汇总 ──────────────────────────────
+        asins: Dict[str, Dict[str, Any]] = {}
+        for link in self.links:
+            asin = link.asin or "Unknown"
+            if asin not in asins:
+                asins[asin] = {
+                    "cost": 0.0,
+                    "sales": 0.0,
+                    "commission": 0.0,
+                    "clicks": 0,
+                    "campaigns": set(),
+                    "product_name": link.product_name or "",
+                }
+            asins[asin]["cost"] += link.cost_usd
+            asins[asin]["sales"] += link.archer_sales
+            asins[asin]["commission"] += link.archer_commission
+            asins[asin]["clicks"] += link.clicks
+            if link.campaign_id:
+                asins[asin]["campaigns"].add(link.campaign_id)
+
         # 按佣金降序排列
-        sorted_links = sorted(self.links, key=lambda x: x.archer_commission, reverse=True)
-        
-        print(f"  {'链接名称':<35} {'花费':>8} {'佣金':>8} {'ROAS':>6} {'ROI%':>8}")
-        print("-" * 70)
-        
-        for link in sorted_links[:20]:  # 最多显示20条
-            name = link.link_name[:33] + ".." if len(link.link_name) > 35 else link.link_name
-            roas = f"{link.ROAS:.2f}x" if link.ROAS > 0 else "N/A"
-            roi = f"{((link.archer_sales - link.cost_usd) / link.cost_usd * 100):.0f}%" if link.cost_usd > 0 else "N/A"
-            print(f"  {name:<35} ${link.cost_usd:>7.2f} ${link.archer_commission:>7.2f} {roas:>6} {roi:>8}")
-        
-        if len(sorted_links) > 20:
-            print(f"  ... 还有 {len(sorted_links) - 20} 条链接")
-        
-        print("=" * 70)
+        sorted_asins = sorted(asins.items(), key=lambda x: x[1]["commission"], reverse=True)
+
+        print(f"  {'ASIN':<14} {'产品名称':<26} {'广告费':>8} {'佣金':>8} {'ROI%':>8}")
+        print("-" * 80)
+
+        active = [(a, d) for a, d in sorted_asins if d["cost"] > 0 or d["commission"] > 0]
+        inactive = [(a, d) for a, d in sorted_asins if d["cost"] == 0 and d["commission"] == 0]
+
+        for asin, data in active:
+            name = (data.get("product_name") or asin or "Unknown")[:24]
+            name = name + " " * (24 - len(name)) if len(name) < 24 else name[:24] + ".."
+
+            if data["cost"] > 0:
+                roi_pct = (data["commission"] - data["cost"]) / data["cost"] * 100
+                roi_str = f"{roi_pct:+.0f}%"
+                if roi_pct > 0:
+                    roi_str += " 💰"
+                elif roi_pct < 0:
+                    roi_str += " ⬇"
+            else:
+                roi_str = "+∞ 💰"
+
+            print(f"  {asin:<14} {name:<26} ${data['cost']:>7.2f} ${data['commission']:>7.2f} {roi_str:>10}")
+
+        if inactive:
+            print(f"  ... 另有 {len(inactive)} 个产品无广告费也无佣金")
+
+        print("=" * 80)
+        print()
 
 
 class ROICalculator:
@@ -356,10 +392,16 @@ class ROICalculator:
             archer_clicks = archer_item.get("totalClickThroughs", 0)
             attributed_purchases = archer_item.get("totalAttributedTotalPurchases14d", 0)
             
+            # 从 archer_links_map 获取产品名称
+            product_name = ""
+            if link_name in archer_links_map:
+                product_name = archer_links_map[link_name].get("product_name", "")
+
             # 建立 ROI 记录
             roi = LinkROI(
                 link_name=link_name,
                 asin=asin,
+                product_name=product_name,
                 archer_clicks=archer_clicks,
                 archer_sales=float(sales) if sales else 0.0,
                 archer_units=int(units) if units else 0,

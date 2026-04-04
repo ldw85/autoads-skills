@@ -111,74 +111,98 @@ class GoogleAdsDataFetcher:
     ) -> List[AdRecord]:
         """
         拉取指定时间范围内所有 Amazon 广告的花费数据
-        
-        Args:
-            customer_id: Google Ads Customer ID
-            start_date: 开始日期 YYYYMMDD
-            end_date: 结束日期 YYYYMMDD
-            campaign_ids: 可选，只拉取这些 campaign
-            
-        Returns:
-            AdRecord 列表
+
+        Google Ads API v23 限制：FROM ad 时不能直接 SELECT campaign/ad_group 字段，
+        因此需要三个分离查询 + Python 端关联。
         """
         logger.info(f"正在拉取 Google Ads 数据: Customer={customer_id}, 日期={start_date}~{end_date}")
-        
-        # Note: ad.final_url is not accessible in v23, use ad.final_urls (list) and filter in Python
-        query = f"""
-            SELECT
-                campaign.id,
-                campaign.name,
-                ad_group.id,
-                ad_group.name,
-                ad.id,
-                ad.final_urls,
-                ad.final_url_suffix,
-                metrics.clicks,
-                metrics.impressions,
-                metrics.cost_micros,
-                metrics.conversions
-            FROM ad
-            WHERE
-                campaign.status = 'ENABLED'
-                AND segments.date BETWEEN '{start_date}' AND '{end_date}'
-        """
-
-        if campaign_ids:
-            campaign_id_list = ", ".join(campaign_ids)
-            query += f" AND campaign.id IN ({campaign_id_list})"
 
         try:
-            results = self._client.search(query, customer_id=customer_id)
+            # Step 1: 获取 ENABLED campaign 及其名称
+            enabled_campaigns: Dict[int, str] = {}  # campaign_id → campaign_name
+            q1 = "SELECT campaign.id, campaign.name FROM campaign WHERE campaign.status = 'ENABLED' LIMIT 2000"
+            for row in self._client.search(q1, customer_id=customer_id):
+                enabled_campaigns[row.campaign.id] = row.campaign.name or ''
 
-            records = []
-            for row in results:
-                # ad.final_urls is a list of strings; filter for amazon.com URLs in Python
-                urls = list(row.ad.final_urls) if row.ad.final_urls else []
+            if campaign_ids:
+                cid_filter = {int(c) for c in campaign_ids}
+                enabled_campaigns = {k: v for k, v in enabled_campaigns.items() if k in cid_filter}
+
+            # Step 2: 获取 ad_group → campaign 映射及 ad_group 名称
+            ad_group_info: Dict[int, Dict[str, Any]] = {}  # ad_group_id → {campaign_id, name}
+            q2 = "SELECT ad_group.id, ad_group.name, ad_group.campaign FROM ad_group LIMIT 2000"
+            for row in self._client.search(q2, customer_id=customer_id):
+                camp_res = row.ad_group.campaign
+                camp_id = int(camp_res.split('/')[-1]) if camp_res else 0
+                ad_group_info[row.ad_group.id] = {
+                    'campaign_id': camp_id,
+                    'campaign_name': enabled_campaigns.get(camp_id, ''),
+                    'ad_group_name': row.ad_group.name or ''
+                }
+
+            # Step 3: 获取 ad → ad_group 映射 + metrics + final_urls（FROM ad_group_ad）
+            # FROM ad_group_ad 允许同时 SELECT ad 和 ad_group 字段
+            ad_records: Dict[int, Dict[str, Any]] = {}  # ad_id → record data
+            q3 = f"""
+                SELECT
+                    ad_group_ad.ad.id,
+                    ad_group_ad.ad_group,
+                    ad_group_ad.ad.final_urls,
+                    ad_group_ad.ad.final_url_suffix,
+                    metrics.clicks,
+                    metrics.impressions,
+                    metrics.cost_micros,
+                    metrics.conversions
+                FROM ad_group_ad
+                WHERE
+                    ad_group_ad.status IN ('ENABLED', 'PAUSED')
+                    AND segments.date BETWEEN '{start_date}' AND '{end_date}'
+            """
+            for row in self._client.search(q3, customer_id=customer_id):
+                ad_id = row.ad_group_ad.ad.id
+                ag_res = row.ad_group_ad.ad_group
+                ag_id = int(ag_res.split('/')[-1]) if ag_res else 0
+                ag_info = ad_group_info.get(ag_id, {})
+                camp_id = ag_info.get('campaign_id', 0)
+
+                # 过滤 campaign
+                if campaign_ids and str(camp_id) not in campaign_ids:
+                    continue
+                if camp_id not in enabled_campaigns:
+                    continue
+
+                urls = list(row.ad_group_ad.ad.final_urls) if row.ad_group_ad.ad.final_urls else []
                 amazon_url = next((u for u in urls if 'amazon.com/dp/' in u), None)
-
                 if not amazon_url:
                     continue
 
+                ad_records[ad_id] = {
+                    'campaign_id': str(camp_id),
+                    'campaign_name': ag_info.get('campaign_name', ''),
+                    'ad_group_id': str(ag_id),
+                    'ad_group_name': ag_info.get('ad_group_name', ''),
+                    'ad_id': str(ad_id),
+                    'final_url': amazon_url,
+                    'url_suffix': row.ad_group_ad.ad.final_url_suffix or '',
+                    'clicks': row.metrics.clicks or 0,
+                    'impressions': row.metrics.impressions or 0,
+                    'cost': row.metrics.cost_micros or 0,
+                    'conversions': row.metrics.conversions or 0.0
+                }
+
+            # Step 4: 构建 AdRecord 对象
+            records = []
+            for ad_id, data in ad_records.items():
                 record = AdRecord(
                     customer_id=customer_id,
-                    campaign_id=str(row.campaign.id),
-                    campaign_name=row.campaign.name,
-                    ad_group_id=str(row.ad_group.id),
-                    ad_group_name=row.ad_group.name,
-                    ad_id=str(row.ad.id),
-                    final_url=amazon_url,
-                    url_suffix=row.ad.final_url_suffix or "",
-                    clicks=row.metrics.clicks,
-                    impressions=row.metrics.impressions,
-                    cost=row.metrics.cost_micros or 0,
-                    conversions=row.metrics.conversions or 0.0
+                    **data
                 )
                 record.parse_suffix()
                 records.append(record)
 
             logger.info(f"拉取到 {len(records)} 条广告记录")
             return records
-            
+
         except Exception as e:
             logger.error(f"拉取 Google Ads 数据失败: {e}")
             return []
