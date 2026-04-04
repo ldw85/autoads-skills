@@ -238,6 +238,15 @@ python3 -m src.main --command research \
 - **流程**: URL + 佣金率 → Decodo提取 → 自动构建product_description → 创建广告
 - **校验**: 创建广告后自动执行广告校验（使用verify_ads.py）
 
+### ⚠️ URL Suffix 处理规则 (2026-04-04)
+**【重要】用户提供完整Amazon URL时，程序应自动从?后提取suffix**
+- **完整URL示例**: `https://www.amazon.com/dp/B00SU0QSZ8?maas=xxx&tag=xxx&aa_campaignid=...`
+- **final_url**: `https://www.amazon.com/dp/B00SU0QSZ8`（?前面的部分）
+- **suffix**: `maas=xxx&tag=xxx&aa_campaignid=...`（?后面的部分）
+- **联盟名称 ≠ suffix**: suffix是URL参数，不是联盟名称
+- **处理方式**: 直接传完整URL给autoads，程序会自动解析
+- **错误做法**: 把suffix当作联盟名称传入，或把完整URL当作tracking_template
+
 ### ⚠️ 重要教训 (2026-03-31)
 **跟踪模板URL处理规则：**
 - **不要**把用户输入的完整Amazon URL设置为跟踪模板
