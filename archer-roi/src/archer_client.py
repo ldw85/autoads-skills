@@ -431,3 +431,29 @@ class ArcherClient:
         if brand_id:
             params["brand_id"] = brand_id
         return self._get("/brands", params=params)
+
+    def check_product(self, asin: str) -> Dict[str, Any]:
+        """
+        检查 ASIN 是否在 Archer 联盟目录中有效
+
+        Args:
+            asin: Amazon ASIN
+
+        Returns:
+            有效时: {"success": "ASIN passed all checks"}
+            无效时: {"detail": "ASIN not available for advertising"}
+        """
+        return self._get("/check_product", params={"asin": asin})
+
+    def is_product_available(self, asin: str) -> bool:
+        """
+        检查 ASIN 是否可用（布尔值）
+
+        Returns:
+            True = 有效, False = 无效或错误
+        """
+        try:
+            resp = self.check_product(asin)
+            return "success" in resp
+        except Exception:
+            return False

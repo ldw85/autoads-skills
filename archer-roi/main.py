@@ -137,22 +137,9 @@ def init_google_ads_client():
     if not os.path.exists(autoads_config):
         raise FileNotFoundError(f"Google Ads 配置不存在: {autoads_config}")
     
-    # 动态导入以避免不必要的依赖
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "google_ads_client", 
-        "/root/.openclaw/workspace/autoads/src/google_ads_client.py"
-    )
-    google_ads_module = importlib.util.module_from_spec(spec)
-    
-    # 需要先设置路径
-    sys.path.insert(0, "/root/.openclaw/workspace/autoads/src")
-    spec.loader.exec_module(google_ads_module)
-    
-    GoogleAdsClient = google_ads_module.GoogleAdsClient
-    config_path = autoads_config
-    
-    return GoogleAdsClient(config_path=config_path)
+    sys.path.insert(0, "/root/.openclaw/workspace")
+    from autoads.src.google_ads_client import create_google_ads_client
+    return create_google_ads_client()
 
 
 # ─────────────────────────────────────────────

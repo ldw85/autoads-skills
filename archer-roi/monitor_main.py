@@ -49,17 +49,9 @@ def init_clients():
         sys.exit(1)
 
     # 初始化 Google Ads
-    from importlib.util import spec_from_file_location, module_from_spec
-    sys.path.insert(0, "/root/.openclaw/workspace/autoads/src")
-    spec = spec_from_file_location(
-        "google_ads_client",
-        "/root/.openclaw/workspace/autoads/src/google_ads_client.py"
-    )
-    google_ads_module = module_from_spec(spec)
-    spec.loader.exec_module(google_ads_module)
-
-    config_path = "/root/.openclaw/workspace/autoads/awesome-ridge-478918-t7-bc818468b332.json"
-    gads_client = google_ads_module.GoogleAdsClient(config_path=config_path)
+    sys.path.insert(0, "/root/.openclaw/workspace")
+    from autoads.src.google_ads_client import create_google_ads_client
+    gads_client = create_google_ads_client()
     gads_fetcher = GoogleAdsDataFetcher(gads_client)
 
     return archer, gads_fetcher
