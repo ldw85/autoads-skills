@@ -441,28 +441,33 @@ class ArcherClient:
             params["brand_id"] = brand_id
         return self._get("/brands", params=params)
 
-    def check_product(self, asin: str) -> Dict[str, Any]:
+    def get_single_product(self, asin: str) -> Dict[str, Any]:
         """
-        检查 ASIN 是否在 Archer 联盟目录中有效
+        获取单个产品信息（通过 ASIN）
 
         Args:
             asin: Amazon ASIN
 
         Returns:
-            有效时: {"success": "ASIN passed all checks"}
-            无效时: {"detail": "ASIN not available for advertising"}
+            产品信息 dict，包含 product_status 等字段
+            无效时抛出异常
         """
-        return self._get("/check_product", params={"asin": asin})
+        resp = self._get("/get_single_product", params={"asin": asin})
+        return resp
 
     def is_product_available(self, asin: str) -> bool:
         """
-        检查 ASIN 是否可用（布尔值）
+        检查 ASIN 是否在 Archer 联盟目录中可用
+
+        判断逻辑：
+        - 返回 200 且 product_status == "AVAILABLE" → 有效
+        - 其他情况（404/500/非AVAILABLE）→ 无效
 
         Returns:
             True = 有效, False = 无效或错误
         """
         try:
-            resp = self.check_product(asin)
-            return "success" in resp
+            resp = self.get_single_product(asin)
+            return resp.get("product_status") == "AVAILABLE"
         except Exception:
             return False

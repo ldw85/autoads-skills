@@ -4,3 +4,9 @@
 ❌ 缺少 Archer 凭证，请先配置：
    export ARCHER_USERNAME=你的用户名
    export ARCHER_PASSWORD=你的密码
+[2026-04-04 22:00:01] 开始产品监控...
+
+🚀 启动产品监控...
+❌ 缺少 Archer 凭证，请先配置：
+   export ARCHER_USERNAME=你的用户名
+   export ARCHER_PASSWORD=你的密码
