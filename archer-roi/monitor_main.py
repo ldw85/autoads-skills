@@ -18,7 +18,7 @@ import argparse
 from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-from src.product_monitor import ProductMonitor, SNAPSHOT_FILE, REMOVED_LOG
+from src.product_monitor import ProductMonitor, REMOVED_LOG
 from src.archer_client import ArcherClient, ArcherAuthError
 from src.google_ads_data import GoogleAdsDataFetcher
 
@@ -71,27 +71,18 @@ def cmd_status():
     print("\n📊 监控状态")
     print("=" * 50)
 
-    # 快照状态
-    if os.path.exists(SNAPSHOT_FILE):
-        with open(SNAPSHOT_FILE, "r") as f:
-            snapshot = json.load(f)
-        print(f"  快照 ASIN 数量: {len(snapshot)}")
-        print(f"  快照文件: {SNAPSHOT_FILE}")
-    else:
-        print("  快照文件: 不存在（首次运行）")
-
-    # 删除记录
+    # 无效记录
     if os.path.exists(REMOVED_LOG):
         with open(REMOVED_LOG, "r") as f:
             removed = json.load(f)
-        print(f"\n  已删除产品数: {len(removed)}")
+        print(f"  累计无效产品数: {len(removed)}")
         for asin, info in list(removed.items())[:5]:
             print(f"    - {asin}: 检测于 {info['detected_at']}, "
                   f"关联广告 {len(info.get('linked_campaigns', []))} 个")
         if len(removed) > 5:
             print(f"    ... 还有 {len(removed) - 5} 个")
     else:
-        print(f"\n  已删除产品数: 0")
+        print("  累计无效产品数: 0")
 
     print("=" * 50)
 

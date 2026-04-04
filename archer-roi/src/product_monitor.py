@@ -132,10 +132,13 @@ class ProductMonitor:
         for asin in asin_list:
             try:
                 resp = self.archer.check_product(asin)
-                results[asin] = "success" in resp
+                # 有效时返回 {"success": "ASIN passed all checks"}
+                # 无效时返回 {"detail": "ASIN not available for advertising"}
+                is_available = "success" in resp
+                results[asin] = is_available
             except Exception as e:
                 logger.warning(f"检查 ASIN {asin} 失败: {e}")
-                results[asin] = False  # 检查失败默认为无效
+                results[asin] = False
 
             if results[asin]:
                 logger.info(f"  ✅ {asin} 有效")

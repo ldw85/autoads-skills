@@ -144,7 +144,7 @@ class ArcherClient:
             params: 查询参数
             
         Returns:
-            API 响应的 JSON 数据
+            API 响应的 JSON 数据（任何状态码的响应体都会返回）
         """
         self._ensure_valid_token()
         
@@ -157,17 +157,26 @@ class ArcherClient:
                 timeout=30
             )
             
+            # 所有状态码都尝试解析响应体
+            try:
+                body = response.json()
+            except ValueError:
+                body = {"raw_text": response.text}
+            
             if response.status_code == 200:
-                return response.json()
+                return body
             elif response.status_code == 401:
                 # Token 失效，重新认证后重试
                 self.authenticate()
                 response = requests.get(url, headers=self.headers, params=params, timeout=30)
+                body = response.json()
                 if response.status_code == 200:
-                    return response.json()
-                raise ArcherAPIError(f"API 请求失败（重试后）: HTTP {response.status_code}")
+                    return body
+                # 重试后仍失败，返回响应体（供调用方判断）
+                return body
             else:
-                raise ArcherAPIError(f"API 请求失败: HTTP {response.status_code}, Response: {response.text[:500]}")
+                # 非200也返回响应体，由调用方判断
+                return body
                 
         except requests.RequestException as e:
             raise ArcherAPIError(f"API 请求异常: {e}")
