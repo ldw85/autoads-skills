@@ -198,19 +198,22 @@ class ROICalculator:
             try:
                 response = self.archer._get("/link_data", params=params)
                 
-                # 解析响应结构 - 实际字段名需要根据 API 返回确定
-                links = response.get("links", []) or response.get("data", []) or []
+                # 解析响应结构 - 实际字段：Links_Data（首字母大写）
+                links = response.get("Links_Data", []) or response.get("links", []) or []
+                
+                # 分页信息
+                pagination = response.get("pagination_info", {})
+                total_pages = pagination.get("total_pages", 1)
                 
                 if not links:
-                    # 尝试直接从响应获取
                     break
                 
                 all_links.extend(links)
                 
                 # 检查是否有更多页
-                if len(links) < limit:
+                if page >= total_pages:
                     break
-                    
+                
                 page += 1
                 
             except Exception as e:
@@ -341,37 +344,17 @@ class ROICalculator:
         # commission 需要根据响应确定字段名
         
         for archer_item in archer_data:
-            link_name = archer_item.get("link_name", "")
-            asin = archer_item.get("asin", "")
+            # link_info 包含 link_name 和 asin
+            link_info = archer_item.get("link_info", {})
+            link_name = link_info.get("link_name", "") or archer_item.get("link_name", "")
+            asin = link_info.get("asin", "") or archer_item.get("asin", "")
             
-            # 尝试多种可能的佣金字段名
-            commission = (
-                archer_item.get("totalCommission") or
-                archer_item.get("commission") or
-                archer_item.get("earnings") or
-                archer_item.get("total_commission") or
-                archer_item.get("totalEarnings") or
-                0
-            )
-            
-            sales = (
-                archer_item.get("totalAttributedSales14d") or
-                archer_item.get("totalSales") or
-                archer_item.get("sales") or
-                0
-            )
-            
-            units = (
-                archer_item.get("totalUnitsSold14d") or
-                archer_item.get("units") or
-                0
-            )
-            
-            archer_clicks = (
-                archer_item.get("totalClickThroughs") or
-                archer_item.get("clicks") or
-                0
-            )
+            # commission_amount 是实际字段名（来自 API 响应示例）
+            commission = archer_item.get("commission_amount", 0)
+            sales = archer_item.get("totalAttributedSales14d", 0)
+            units = archer_item.get("totalUnitsSold14d", 0)
+            archer_clicks = archer_item.get("totalClickThroughs", 0)
+            attributed_purchases = archer_item.get("totalAttributedTotalPurchases14d", 0)
             
             # 建立 ROI 记录
             roi = LinkROI(

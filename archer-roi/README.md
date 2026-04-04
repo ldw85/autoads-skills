@@ -68,6 +68,29 @@ python3 main.py --report --format json --output /path/to/report.json
 | RPC | 每次点击收入 = 销售额 / 点击数 |
 | 佣金率 | Archer 佣金 / 销售额 |
 
+## Archer API 字段映射
+
+`/link_data` 接口返回的实际字段（来自 API 响应示例）：
+
+```json
+{
+  "pagination_info": { "total_pages": 1, "current_page": 1, ... },
+  "Links_Data": [
+    {
+      "totalClickThroughs": 123,
+      "totalAttributedSales14d": 456.78,
+      "totalUnitsSold14d": 5,
+      "totalAttributedTotalPurchases14d": 4,
+      "commission_amount": 25.00,
+      "link_info": {
+        "link_name": "...",
+        "asin": "B08DL8WH9V"
+      }
+    }
+  ]
+}
+```
+
 ## 关联逻辑说明
 
 由于 Archer API 返回的 `link_data` 按 `link_name` 组织，

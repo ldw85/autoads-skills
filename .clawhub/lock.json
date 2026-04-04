@@ -132,6 +132,10 @@
     "review-analysis": {
       "version": "1.0.0",
       "installedAt": 1774090972011
+    },
+    "web-tools-guide": {
+      "version": "1.0.0",
+      "installedAt": 1775297571230
     }
   }
 }
