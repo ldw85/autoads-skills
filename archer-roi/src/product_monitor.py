@@ -154,10 +154,8 @@ class ProductMonitor:
         logger.info(f"正在搜索包含 ASIN={asin} 的广告...")
 
         paused = []
-        all_records = self.gads.fetch_all_customers_ads(
-            start_date="20200101",
-            end_date=datetime.now().strftime("%Y%m%d")
-        )
+        asin_records = self.gads.search_ads_by_asin([asin])
+        all_records = asin_records.get(asin, [])
 
         # 按 campaign 聚合
         campaign_ads: Dict[str, List] = {}

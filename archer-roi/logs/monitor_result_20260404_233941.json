@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-04-04T23:39:41",
+  "total_checked_asins": 65,
+  "newly_unavailable": [
+    "B0F8N7N2GZ",
+    "B0013AC28Y",
+    "B07MTFPXZ4",
+    "B000MBUOOO",
+    "B076VVFRVJ",
+    "B004EWLCUW"
+  ],
+  "all_unavailable_asins": [
+    "B0F8N7N2GZ",
+    "B0013AC28Y",
+    "B07MTFPXZ4",
+    "B000MBUOOO",
+    "B076VVFRVJ",
+    "B004EWLCUW"
+  ],
+  "paused_campaigns": []
+}
