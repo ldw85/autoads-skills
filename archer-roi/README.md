@@ -73,6 +73,7 @@ python3 main.py --report --format json --output /path/to/report.json
 `/link_data` 接口返回的实际字段（来自 API 响应示例）：
 
 ```json
+// /link_data
 {
   "pagination_info": { "total_pages": 1, "current_page": 1, ... },
   "Links_Data": [
@@ -88,6 +89,20 @@ python3 main.py --report --format json --output /path/to/report.json
       }
     }
   ]
+}
+
+// /get_all_links
+{
+  "all_links": [
+    {
+      "url": "https://...",
+      "asin": "B08DL8WH9V",
+      "product_name": "...",
+      "created_date_time": "2026-01-01T00:00:00",
+      "link_name": "..."
+    }
+  ],
+  "pagination_info": { "total_pages": 1, "items_start": 0, "items_end": 100, ... }
 }
 ```
 

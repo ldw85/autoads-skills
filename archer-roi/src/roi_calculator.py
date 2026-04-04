@@ -238,7 +238,7 @@ class ROICalculator:
             
             try:
                 response = self.archer.get_all_links(page=page, limit=limit)
-                links = response.get("links", []) or response.get("data", []) or []
+                links = response.get("all_links", []) or response.get("links", []) or []
                 
                 if not links:
                     break
