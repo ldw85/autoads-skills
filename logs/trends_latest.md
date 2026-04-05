@@ -1,22 +1,17 @@
-📈 **每日趋势简报** - 2026-04-04
-筛选了 7 条相关内容
-
-💼 商业/创业
-• mariners vs angels (1000+)
-  → Cool Breeze: Mariners at Angels Series Preview
+📈 **每日趋势简报** - 2026-04-05
+筛选了 5 条相关内容
 
 📰 其他科技
-• apex servers (200+)
-  → ARC Raiders: Server-Probleme plagen Spieler - Was ist da los...
-• tung tung tung sahur fortnite (500+)
-  → Fortnite's brainrot characters have started a fan revolt
-• blanca quiñonez (1000+)
-  → UConn’s Blanca Quiñonez Made History as the Program’s First ...
-• avatar fire and ash (2000+)
-  → Netflix top 10 movies — here’s the 3 worth watching right no...
-• flyers (5000+)
-  → Flyers lose a tough one and second straight in regulation
-  +1 more
+• caitlin clark (1000+)
+  → Caitlin Clark has changed her opinion of Indiana Fever fan D...
+• john wooden (500+)
+  → How many of the best ever college basketball teams belong to...
+• diana taurasi (500+)
+  → UConn enjoys added day off before Final Four with practice a...
+• bill murray (10000+)
+  → Why is Bill Murray, who loves Illinois basketball, rooting f...
+• logan henderson (2000+)
+  → Brewers-Royals game postponed due to rain; split DH Saturday
 
 ---
 💡 过滤掉了娱乐/体育/政治内容
@@ -28,4 +23,4 @@
 💡 工作日通常有更多 AI/科技 相关趋势
 
 
-🕐 2026/4/4 09:00:12
+🕐 2026/4/5 08:01:07

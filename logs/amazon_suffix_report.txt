@@ -1,34 +1,90 @@
 ================================================================================
-🔍 Amazon广告 final_url_suffix 检查
+🔍 广告 final_url_suffix 检查
+检查范围：所有启用/待发布状态的广告（Amazon + 站内链接）
+检查账户：3674729801, 6052559425
 ================================================================================
 
-🚨 发现 5 个Amazon广告缺少final_url_suffix！
-
-⏸️ 广告系列 23656456730: PowerStep Pinnacle Insoles - 1773543421
-   状态: PAUSED, 问题广告数: 1
-   - Ad ID: 800381888869
-     URL: ['https://www.amazon.com/dp/B000KPOMZY']
-
-⏸️ 广告系列 23674236672: Amazon Product - US - amazon.com - car-iPad-holder-1774176670
-   状态: PAUSED, 问题广告数: 1
-   - Ad ID: 801434359095
-     URL: ['https://www.amazon.com/dp/B0CLLSC4BF']
-
-⏸️ 广告系列 23706296151: archer - GROWNSY Baby Instant Warmer, Glass Water Boiler wi... - US - 1775018554
-   状态: PAUSED, 问题广告数: 1
-   - Ad ID: 803301980863
-     URL: ['https://www.amazon.com/dp/B088D839T5']
-
-⏸️ 广告系列 23711706899: archer - Baby Car Camera, HD Display Baby Car Mirror with N... - US - 1775018840
-   状态: PAUSED, 问题广告数: 1
-   - Ad ID: 803303835100
-     URL: ['https://www.amazon.com/dp/B0C39QS3D9']
-
-⏸️ 广告系列 23715941245: atcher - DC HOUSE 48V 100Ah Lithium Golf Cart Battery w/Swi... - US - 1775008342
-   状态: PAUSED, 问题广告数: 1
-   - Ad ID: 803212709247
-     URL: ['https://www.amazon.com/dp/B0DBHKHPDX']
+📂 正在检查账户: 3674729801...
+   ⚠️ 发现 14 个问题广告
+📂 正在检查账户: 6052559425...
+   ✅ 无问题广告
 
 ================================================================================
-⚠️ 这些广告正在白白支出广告费但无法获得佣金！
-需要添加 affiliate tag 到 final_url_suffix
+🚨 共发现 14 个广告缺少 final_url_suffix
+
+📁 广告账户: 3674729801
+------------------------------------------------------------
+▶️ 广告系列 23648919813: Luxury Accessories - US
+   状态: ENABLED, 问题: 站内链接×1
+   - 🟡 站内链接 | Ad ID: 800236067940
+     URL: https://techruling.com/product/luxury-accessories/
+
+▶️ 广告系列 23672772843: LISEN Car Charger - US - 1774110910
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 801348811839
+     URL: https://www.amazon.com/dp/B0CX1W5W41
+
+▶️ 广告系列 23674030059: Amazon Product - US -indoor compost bin - 1774170226
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 801422444562
+     URL: https://www.amazon.com/dp/B00AMNCYNQ
+
+▶️ 广告系列 23678170709: ROVE Dash Cam - US v2 - 1774110006
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 801383527804
+     URL: https://www.amazon.com/dp/B0BZRKRBHP
+
+▶️ 广告系列 23684131135: Amazon Product - US - amazon.com - dog-nail-caliper-1774170631
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 801460715512
+     URL: https://www.amazon.com/dp/B00FU6PDLU
+
+▶️ 广告系列 23687532165: Apple MacBook Neo - amazon - US - 1774504657
+   状态: ENABLED, 问题: 站内链接×1
+   - 🟡 站内链接 | Ad ID: 802151025576
+     URL: https://techruling.com/product/macbook-neo/
+
+▶️ 广告系列 23690225201: Archer - Amazon Product - US - mouse-pad-1774442177
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 802064956768
+     URL: https://www.amazon.com/dp/B0D1T1HZCC
+
+▶️ 广告系列 23696873721: Samsung Galaxy Tab A11 Plus - US - 1774758487
+   状态: ENABLED, 问题: 站内链接×1
+   - 🟡 站内链接 | Ad ID: 802645505430
+     URL: https://techruling.com/product/samsung-galaxy-tab-a11/
+
+▶️ 广告系列 23697562743: RENPHO Massage Gun - US - 1774788994
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 802724729752
+     URL: https://www.amazon.com/dp/B0F18TSMNR
+
+▶️ 广告系列 23698684739: Mary_Jane_Sneakers_Women - 1774630002
+   状态: ENABLED, 问题: 站内链接×1
+   - 🟡 站内链接 | Ad ID: 802574913740
+     URL: https://techruling.com/product/mary-jane-sneakers/
+
+▶️ 广告系列 23705219457: Archer - Amazon Product - US - bedmettress-1774983425
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 803121584770
+     URL: https://www.amazon.com/dp/B082LV2VH6
+
+▶️ 广告系列 23708982958: TOYLife_Easter_Eggs_US - 1774849498
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 802758018945
+     URL: https://www.amazon.com/dp/B0BP29WNLZ
+
+▶️ 广告系列 23710642738: Wahl_MagicClip_US - 1774881993
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 802968199397
+     URL: https://www.amazon.com/dp/B00UK8WFQO
+
+▶️ 广告系列 23715145390: Amazon Product - US - amazon.com - Icemacker - archer- 1774981737
+   状态: ENABLED, 问题: Amazon×1
+   - 🔴 Amazon | Ad ID: 803067260583
+     URL: https://www.amazon.com/dp/B0FT33CDN8
+
+================================================================================
+🔴 Amazon广告: 10 个缺少 affiliate tag（佣金无法追踪）
+🟡 站内链接: 4 个缺少 tracking suffix（流量追踪不完整）
+建议：所有广告的 final_url_suffix 都应设置，以便完整追踪广告效果

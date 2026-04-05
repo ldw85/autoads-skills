@@ -120,7 +120,7 @@ class ROIReport:
                     "sales": 0.0,
                     "commission": 0.0,
                     "clicks": 0,
-                    "campaigns": set(),
+                    "campaigns": {},      # {campaign_id: campaign_name}
                     "product_name": link.product_name or "",
                     "created_date": link.created_date or "",
                 }
@@ -129,26 +129,41 @@ class ROIReport:
             cd = link.created_date or ""
             if cd and (not asins[asin]["created_date"] or cd < asins[asin]["created_date"]):
                 asins[asin]["created_date"] = cd
+
+            # 记录 campaign 信息
+            if link.campaign_id:
+                asins[asin]["campaigns"][link.campaign_id] = link.campaign_name or ""
             asins[asin]["cost"] += link.cost_usd
             asins[asin]["sales"] += link.archer_sales
             asins[asin]["commission"] += link.archer_commission
             asins[asin]["clicks"] += link.clicks
-            if link.campaign_id:
-                asins[asin]["campaigns"].add(link.campaign_id)
 
         # 按佣金降序排列
         sorted_asins = sorted(asins.items(), key=lambda x: x[1]["commission"], reverse=True)
 
-        print(f"  {'ASIN':<14} {'产品名称':<24} {'创建日期':<12} {'广告费':>8} {'佣金':>8} {'ROI%':>8}")
-        print("-" * 95)
+        print(f"  {'ASIN':<14} {'产品名称':<22} {'创建日期':<10} {'ROI%':>8}  {'广告系列'}")
+        print("-" * 105)
 
         active = [(a, d) for a, d in sorted_asins if d["cost"] > 0 or d["commission"] > 0]
         inactive = [(a, d) for a, d in sorted_asins if d["cost"] == 0 and d["commission"] == 0]
 
         for asin, data in active:
-            name = (data.get("product_name") or asin or "Unknown")[:22]
-            name = name + " " * (22 - len(name)) if len(name) < 22 else name[:22] + ".."
+            name = (data.get("product_name") or asin or "Unknown")[:20]
+            name = name + " " * (20 - len(name)) if len(name) < 20 else name[:20] + ".."
             created = data.get("created_date", "—")
+
+            # Campaign 信息
+            campaigns = data.get("campaigns", {})
+            if campaigns:
+                camp_parts = []
+                for cid, cname in list(campaigns.items())[:3]:
+                    short_name = (cname or "unknown")[:15]
+                    camp_parts.append(f"{cid}({short_name})")
+                if len(campaigns) > 3:
+                    camp_parts.append(f"+{len(campaigns)-3}")
+                camp_str = ", ".join(camp_parts)
+            else:
+                camp_str = "—"
 
             if data["cost"] > 0:
                 roi_pct = (data["commission"] - data["cost"]) / data["cost"] * 100
@@ -160,7 +175,7 @@ class ROIReport:
             else:
                 roi_str = "+∞ 💰"
 
-            print(f"  {asin:<14} {name:<24} {created:<12} ${data['cost']:>6.2f} ${data['commission']:>6.2f} {roi_str}")
+            print(f"  {asin:<14} {name:<22} {created:<10} {roi_str:>10}  {camp_str}")
 
         if inactive:
             print(f"  ... 另有 {len(inactive)} 个产品无广告费也无佣金")

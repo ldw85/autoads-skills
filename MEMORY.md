@@ -86,18 +86,19 @@
 - **Customer ID**: 3674729801
 - **状态**: ✅ 已配置
 
-### Amazon URL Suffix检查定时任务 (2026-04-03)
-- **Cron Job ID**: `f9d450e9-b933-4dc5-ac8e-1523c352d982`
-- **运行时间**: 每天 20:00 (Asia/Shanghai)
+### Amazon URL Suffix检查定时任务 (2026-04-05 更新)
+- **Cron Job ID (12:00)**: `65f81bc0-e3dd-4e4a-a502-dd8299a66de1`
+- **Cron Job ID (20:00)**: `db1d599f-ed97-4c50-8011-cbd2582782d5`
+- **运行时间**: 每天 12:00 和 20:00 (Asia/Shanghai)
 - **目标**: isolated session，执行检查脚本并发送飞书
 - **执行脚本**: `/root/.openclaw/workspace/autoads/scripts/check_amazon_suffix.py`
-- **包装脚本**: `/root/.openclaw/workspace/scripts/run-amazon-suffix-check.sh`
 - **检查账户**: 3674729801, 6052559425
-- **功能**: 检查所有Amazon广告 + 站内链接广告的final_url_suffix是否为空
+- **功能**: 
+  - 检查所有Amazon广告 + 站内链接广告的final_url_suffix是否为空
+  - **自动暂停**：如果发现Amazon广告缺少suffix，自动暂停该广告系列
+  - 通过飞书发送检查报告
 - **严重性**: 🔴 CRITICAL - Amazon缺少tag会丢失佣金，站内链接缺少suffix追踪不完整
-- **输出文件**: `/root/.openclaw/workspace/logs/amazon_suffix_report.txt`
-- **状态**: ⚠️ 已配置但需要调试（isolated session初始化较慢）
-- **注意**: 发现问题广告会通过飞书通知用户
+- **状态**: ✅ 已配置
 
 ### 商机分析支持的品类
 - 🤖 AI/科技产品 (AI工具订阅、Claude Pro、ChatGPT Plus等)

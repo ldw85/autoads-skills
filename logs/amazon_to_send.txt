@@ -1,4 +1,4 @@
-🛒 **每日亚马逊产品机会简报** - 2026/04/04
+🛒 **每日亚马逊产品机会简报** - 2026/04/05
 📊 基于 Google Trends 全品类分析 | Bilingual Report
 
 📈 **趋势概况 | Summary**
@@ -8,153 +8,135 @@
 
 🔥 **今日热门趋势 TOP 10 (中英对照)**
 ━━━━━━━━━━━━━━━━━━━━
-【sixers】
-   🔗 [Google搜索了解](https://www.google.com/search?q=sixers&hl=en)
+【billy donovan】
+   🔗 [Google搜索了解](https://www.google.com/search?q=billy%20donovan&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 2000+
 
-【chris hemsworth】
-   🔗 [Google搜索了解](https://www.google.com/search?q=chris%20hemsworth&hl=en)
+【caitlin clark】
+   📖 含义: 人工智能/AI
    🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 2000+
+   📊 热度: 1000+
 
-【the pitt season 2 finale】
-   🔗 [Google搜索了解](https://www.google.com/search?q=the%20pitt%20season%202%20finale&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 20000+
-
-【vj edgecombe】
-   🔗 [Google搜索了解](https://www.google.com/search?q=vj%20edgecombe&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 200+
-
-【mariners vs angels】
-   🔗 [Google搜索了解](https://www.google.com/search?q=mariners%20vs%20angels&hl=en)
-   🎯 意图: 📚 信息型 - 教程/指南
-   📊 热度: 2000+
-
-【astros vs athletics】
-   🔗 [Google搜索了解](https://www.google.com/search?q=astros%20vs%20athletics&hl=en)
-   🎯 意图: 📚 信息型 - 教程/指南
-   📊 热度: 2000+
-
-【apex servers】
-   🔗 [Google搜索了解](https://www.google.com/search?q=apex%20servers&hl=en)
+【john wooden】
+   🔗 [Google搜索了解](https://www.google.com/search?q=john%20wooden&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 500+
 
-【tung tung tung sahur fortnite】
-   📖 含义: Fortnite - 热门游戏
+【harry potter movies】
+   🔗 [Google搜索了解](https://www.google.com/search?q=harry%20potter%20movies&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 500+
 
-【neemias queta】
-   🔗 [Google搜索了解](https://www.google.com/search?q=neemias%20queta&hl=en)
+【diana taurasi】
+   🔗 [Google搜索了解](https://www.google.com/search?q=diana%20taurasi&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 500+
+
+【macaulay culkin】
+   🔗 [Google搜索了解](https://www.google.com/search?q=macaulay%20culkin&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 200+
 
-【flyers score】
-   🔗 [Google搜索了解](https://www.google.com/search?q=flyers%20score&hl=en)
+【bill murray】
+   🔗 [Google搜索了解](https://www.google.com/search?q=bill%20murray&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 10000+
+
+【lola vice】
+   🔗 [Google搜索了解](https://www.google.com/search?q=lola%20vice&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 500+
+
+【terry mclaurin】
+   🔗 [Google搜索了解](https://www.google.com/search?q=terry%20mclaurin&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 500+
+
+【logan henderson】
+   🔗 [Google搜索了解](https://www.google.com/search?q=logan%20henderson&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 2000+
 
 
 ⭐ **重点推荐产品 (TOP 10)**
 ━━━━━━━━━━━━━━━━━━━━
-1. 📸 摄影摄像
-   📦 产品: Canon EOS R50
-   📖 解释: 佳能 EOS R50 - APS-C微单相机
-   🔥 趋势: chris hemsworth
-   🔗 [Google搜索了解](https://www.google.com/search?q=chris%20hemsworth&hl=en)
+1. 🤖 AI/科技产品
+   📦 产品: AI Tool Subscriptions
+   🔥 趋势: caitlin clark
+   📖 含义: 人工智能/AI
    🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 2000+
+   📊 热度: 1000+
 
 2. 🤖 AI/科技产品
    📦 产品: AI Tool Subscriptions
-   🔥 趋势: neemias queta
-   🔗 [Google搜索了解](https://www.google.com/search?q=neemias%20queta&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 200+
-
-3. 🔍 通用产品
-   📦 产品: Amazon Bestsellers
-   🔥 趋势: the pitt season 2 finale
-   🔗 [Google搜索了解](https://www.google.com/search?q=the%20pitt%20season%202%20finale&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 20000+
-
-4. 🔍 通用产品
-   📦 产品: Amazon Bestsellers
-   🔥 趋势: sixers
-   🔗 [Google搜索了解](https://www.google.com/search?q=sixers&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 2000+
-
-5. 🏆 体育赛事及用品
-   📦 产品: NBA Jersey
-   📖 解释: NBA球衣 - 各球队官方球衣
-   🔥 趋势: vj edgecombe
-   🔗 [Google搜索了解](https://www.google.com/search?q=vj%20edgecombe&hl=en)
-   🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 200+
-
-6. 🏆 体育赛事及用品
-   📦 产品: NBA Jersey
-   📖 解释: NBA球衣 - 各球队官方球衣
-   🔥 趋势: mariners vs angels
-   🔗 [Google搜索了解](https://www.google.com/search?q=mariners%20vs%20angels&hl=en)
-   🎯 意图: 📚 信息型 - 教程/指南
-   📊 热度: 2000+
-
-7. 🧸 玩具游戏
-   📦 产品: LEGO Sets
-   🔥 趋势: astros vs athletics
-   🔗 [Google搜索了解](https://www.google.com/search?q=astros%20vs%20athletics&hl=en)
-   🎯 意图: 📚 信息型 - 教程/指南
-   📊 热度: 2000+
-
-8. 🎮 游戏设备
-   📦 产品: PlayStation 5
-   📖 解释: PS5 游戏机 - 索尼次世代主机
-   🔥 趋势: apex servers
-   🔗 [Google搜索了解](https://www.google.com/search?q=apex%20servers&hl=en)
+   🔥 趋势: lola vice
+   🔗 [Google搜索了解](https://www.google.com/search?q=lola%20vice&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 500+
 
-9. 🎮 游戏设备
-   📦 产品: PlayStation 5
-   📖 解释: PS5 游戏机 - 索尼次世代主机
-   🔥 趋势: tung tung tung sahur fortnite
-   📖 含义: Fortnite - 热门游戏
+3. 🤖 AI/科技产品
+   📦 产品: AI Tool Subscriptions
+   🔥 趋势: logan henderson
+   🔗 [Google搜索了解](https://www.google.com/search?q=logan%20henderson&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 2000+
+
+4. 🏆 体育赛事及用品
+   📦 产品: NBA Jersey
+   📖 解释: NBA球衣 - 各球队官方球衣
+   🔥 趋势: bill murray
+   🔗 [Google搜索了解](https://www.google.com/search?q=bill%20murray&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 10000+
+
+5. 🏕️ 户外运动
+   📦 产品: Camping Tent
+   🔥 趋势: billy donovan
+   🔗 [Google搜索了解](https://www.google.com/search?q=billy%20donovan&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 2000+
+
+6. ☕ 生活品质
+   📦 产品: Nespresso Vertuo
+   📖 解释: Nespresso Vertuo - 胶囊咖啡机
+   🔥 趋势: john wooden
+   🔗 [Google搜索了解](https://www.google.com/search?q=john%20wooden&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
    📊 热度: 500+
 
-10. 🧸 玩具游戏
-   📦 产品: LEGO Sets
-   🔥 趋势: flyers score
-   🔗 [Google搜索了解](https://www.google.com/search?q=flyers%20score&hl=en)
+7. 👗 时尚服饰
+   📦 产品: Nike Sneakers
+   🔥 趋势: harry potter movies
+   🔗 [Google搜索了解](https://www.google.com/search?q=harry%20potter%20movies&hl=en)
    🎯 意图: 🔍 信息型 - 了解/研究
-   📊 热度: 2000+
+   📊 热度: 500+
+
+8. 🔍 通用产品
+   📦 产品: Amazon Bestsellers
+   🔥 趋势: diana taurasi
+   🔗 [Google搜索了解](https://www.google.com/search?q=diana%20taurasi&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 500+
+
+9. 🔍 通用产品
+   📦 产品: Amazon Bestsellers
+   🔥 趋势: macaulay culkin
+   🔗 [Google搜索了解](https://www.google.com/search?q=macaulay%20culkin&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 200+
+
+10. 🏆 体育赛事及用品
+   📦 产品: NBA Jersey
+   📖 解释: NBA球衣 - 各球队官方球衣
+   🔥 趋势: terry mclaurin
+   🔗 [Google搜索了解](https://www.google.com/search?q=terry%20mclaurin&hl=en)
+   🎯 意图: 🔍 信息型 - 了解/研究
+   📊 热度: 500+
 
 🛍️ **产品机会分类 | Category Breakdown**
 
-**📸 摄影摄像** (1个趋势)
-━━━━━━━━━━━━━━━━━━━━
-• Canon EOS R50
-  📖 佳能 EOS R50 - APS-C微单相机
-• Sony A6700
-  📖 索尼 A6700 - APS-C微单旗舰
-• DJI Osmo
-  📖 DJI Osmo - 手持云台相机
-• GoPro Hero 12
-  📖 GoPro Hero 12 - 运动相机
-• Elgato Camo
-  📖 Elgato Camo - 直播摄像头软件
-  📈 趋势: chris hemsworth
-  🔗 [Google搜索了解](https://www.google.com/search?q=chris%20hemsworth&hl=en)
-  🎯 意图: 🔍 信息型 - 了解/研究
-
-**🤖 AI/科技产品** (1个趋势)
+**🤖 AI/科技产品** (3个趋势)
 ━━━━━━━━━━━━━━━━━━━━
 • AI Tool Subscriptions
 • Anthropic Claude Pro
@@ -164,19 +146,8 @@
   📖 Midjourney - AI图像生成订阅
 • GitHub Copilot
   📖 GitHub Copilot - AI编程助手订阅
-  📈 趋势: neemias queta
-  🔗 [Google搜索了解](https://www.google.com/search?q=neemias%20queta&hl=en)
-  🎯 意图: 🔍 信息型 - 了解/研究
-
-**🔍 通用产品** (2个趋势)
-━━━━━━━━━━━━━━━━━━━━
-• Amazon Bestsellers
-• Top Rated Products
-• Trending Items
-• Gift Ideas
-• Popular Products
-  📈 趋势: the pitt season 2 finale
-  🔗 [Google搜索了解](https://www.google.com/search?q=the%20pitt%20season%202%20finale&hl=en)
+  📈 趋势: caitlin clark
+  📖 含义: 人工智能/AI
   🎯 意图: 🔍 信息型 - 了解/研究
 
 **🏆 体育赛事及用品** (2个趋势)
@@ -188,35 +159,57 @@
 • MLB Jersey
 • Soccer Jersey
 • Custom Jersey
-  📈 趋势: vj edgecombe
-  🔗 [Google搜索了解](https://www.google.com/search?q=vj%20edgecombe&hl=en)
+  📈 趋势: bill murray
+  🔗 [Google搜索了解](https://www.google.com/search?q=bill%20murray&hl=en)
   🎯 意图: 🔍 信息型 - 了解/研究
 
-**🧸 玩具游戏** (2个趋势)
+**🏕️ 户外运动** (1个趋势)
 ━━━━━━━━━━━━━━━━━━━━
-• LEGO Sets
-• Board Games
-• Play-Doh
-• Nerf Blaster
-• Melissa & Doug
-  📈 趋势: astros vs athletics
-  🔗 [Google搜索了解](https://www.google.com/search?q=astros%20vs%20athletics&hl=en)
-  🎯 意图: 📚 信息型 - 教程/指南
+• Camping Tent
+• Hiking Backpack
+• Portable Power Station
+• Solar Charger
+• Fishing Rod
+  📈 趋势: billy donovan
+  🔗 [Google搜索了解](https://www.google.com/search?q=billy%20donovan&hl=en)
+  🎯 意图: 🔍 信息型 - 了解/研究
 
-**🎮 游戏设备** (2个趋势)
+**☕ 生活品质** (1个趋势)
 ━━━━━━━━━━━━━━━━━━━━
-• PlayStation 5
-  📖 PS5 游戏机 - 索尼次世代主机
-• Xbox Series X
-  📖 Xbox Series X - 微软游戏主机
-• Nintendo Switch
-  📖 Nintendo Switch - 任天堂游戏机
-• Razer Gaming Headset
-  📖 Razer 北海巨妖 - 游戏耳机
-• Logitech G Pro Mouse
-  📖 罗技 G Pro - 电竞鼠标
-  📈 趋势: apex servers
-  🔗 [Google搜索了解](https://www.google.com/search?q=apex%20servers&hl=en)
+• Nespresso Vertuo
+  📖 Nespresso Vertuo - 胶囊咖啡机
+• Instant Pot Pro
+  📖 Instant Pot Pro - 多功能压力锅
+• Dyson V15
+  📖 Dyson V15 - 戴森最强吸尘器
+• Philips Airfryer
+  📖 飞利浦空气炸锅 XXL
+• iRobot Roomba
+  📖 iRobot Roomba - 扫地机器人
+  📈 趋势: john wooden
+  🔗 [Google搜索了解](https://www.google.com/search?q=john%20wooden&hl=en)
+  🎯 意图: 🔍 信息型 - 了解/研究
+
+**👗 时尚服饰** (1个趋势)
+━━━━━━━━━━━━━━━━━━━━
+• Nike Sneakers
+• Adidas Hoodie
+• Casio Watch
+• Ray-Ban Sunglasses
+• Levi's Jeans
+  📈 趋势: harry potter movies
+  🔗 [Google搜索了解](https://www.google.com/search?q=harry%20potter%20movies&hl=en)
+  🎯 意图: 🔍 信息型 - 了解/研究
+
+**🔍 通用产品** (2个趋势)
+━━━━━━━━━━━━━━━━━━━━
+• Amazon Bestsellers
+• Top Rated Products
+• Trending Items
+• Gift Ideas
+• Popular Products
+  📈 趋势: diana taurasi
+  🔗 [Google搜索了解](https://www.google.com/search?q=diana%20taurasi&hl=en)
   🎯 意图: 🔍 信息型 - 了解/研究
 
 💡 **行动建议 | Action Items**
@@ -227,6 +220,6 @@
 • **社交推广**: 在Reddit/Twitter分享趋势产品
 
 ---
-🕐 生成时间: 2026/4/4 09:09:42
+🕐 生成时间: 2026/4/5 08:01:11
 📡 数据来源: Google Trends (免费) + AI产品映射
 🔍 搜索建议: 复制英文产品在亚马逊搜索，获取精准结果
