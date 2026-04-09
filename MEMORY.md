@@ -93,7 +93,7 @@
 - **运行时间**: 每天 12:00 和 20:00 (Asia/Shanghai)
 - **目标**: isolated session，执行检查脚本并发送飞书
 - **超时设置**: 300秒（修复了原30秒超时导致的中断问题）
-- **执行脚本**: `/root/.openclaw/workspace/autoads/scripts/check_suffix.py`
+- **执行脚本**: `/root/.openclaw/workspace/autoads/archer-roi/check_suffix.py`
 - **检查账户**: 3674729801, 6052559425
 - **功能**: 
   - 检查所有Amazon广告 + 站内链接广告的final_url_suffix是否为空
