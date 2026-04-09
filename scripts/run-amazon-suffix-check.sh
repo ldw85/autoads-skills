@@ -2,7 +2,7 @@
 # Amazon URL Suffix Monitor - Wrapper Script
 # Checks all Amazon ads for missing final_url_suffix and reports to Feishu
 
-SCRIPT_DIR="/root/.openclaw/workspace/autoads/scripts"
+SCRIPT_DIR="/root/.openclaw/workspace/autoads/archer-roi"
 LOG_FILE="/root/.openclaw/workspace/logs/amazon_suffix_check.log"
 OUTPUT_FILE="/root/.openclaw/workspace/logs/amazon_suffix_report.txt"
 
