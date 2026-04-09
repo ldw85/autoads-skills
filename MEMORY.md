@@ -76,10 +76,11 @@
 - **状态**: ✅ 已配置
 - **注意**: Amazon直接爬取被封锁，使用趋势映射方案
 
-### Amazon库存检查定时任务 (2026-03-29)
-- **Cron Job ID**: `a02b17ee-3798-48e9-a7e9-10c94c64e967`
+### Amazon库存检查定时任务 (2026-04-07 重新启用)
+- **Cron Job ID**: `ec450839-69d8-46f6-b1de-9d07135ccd91`
 - **运行时间**: 每天 20:00 (Asia/Shanghai)
 - **目标**: isolated session，执行检查脚本并发送飞书
+- **超时设置**: 300秒（修复了原30秒超时导致的中断问题）
 - **执行脚本**: `/root/.openclaw/workspace/skills/amazon-inventory-monitor/check_inventory.py`
 - **功能**: 检查所有Google Ads启用状态广告系列中的亚马逊商品链接，验证商品是否仍有货
 - **数据来源**: Google Ads API + Decodo Amazon Scraper
@@ -91,7 +92,8 @@
 - **Cron Job ID (20:00)**: `db1d599f-ed97-4c50-8011-cbd2582782d5`
 - **运行时间**: 每天 12:00 和 20:00 (Asia/Shanghai)
 - **目标**: isolated session，执行检查脚本并发送飞书
-- **执行脚本**: `/root/.openclaw/workspace/autoads/scripts/check_amazon_suffix.py`
+- **超时设置**: 300秒（修复了原30秒超时导致的中断问题）
+- **执行脚本**: `/root/.openclaw/workspace/autoads/scripts/check_suffix.py`
 - **检查账户**: 3674729801, 6052559425
 - **功能**: 
   - 检查所有Amazon广告 + 站内链接广告的final_url_suffix是否为空

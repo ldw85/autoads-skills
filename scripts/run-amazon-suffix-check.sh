@@ -8,8 +8,8 @@ OUTPUT_FILE="/root/.openclaw/workspace/logs/amazon_suffix_report.txt"
 
 cd "$SCRIPT_DIR"
 
-# Run the check and save output
-python3 check_amazon_suffix.py 2>&1 | tee "$LOG_FILE" > "$OUTPUT_FILE"
+# Run the check and save output (with --pause to auto-pause problematic campaigns)
+python3 check_suffix.py --pause 2>&1 | tee "$LOG_FILE" > "$OUTPUT_FILE"
 
 EXIT_CODE=${PIPESTATUS[0]}
 
