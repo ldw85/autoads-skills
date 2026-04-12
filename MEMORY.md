@@ -267,6 +267,14 @@ python3 -m src.main --command research \
 
 ## 完成的工作
 
+### 2026-04-12
+- ✅ 修复Archer ROI报告中ASIN网络归属错误
+- **问题**: B008I4XFWU, B0BYS93PTL, B07DQVNSP8, B07DNYSJ8W 被错误归为Archer（实际是YeahPromos）
+- **原因**: 代码仅根据ASIN是否出现在Archer API来判断，没有检查广告系列名称
+- **修复**: 增加 `is_yeahpromos_campaign()` 函数，根据广告系列名称前缀判断网络
+- **匹配模式**: `yeahpromos -`, `- yeahpromos`, `yeahpromos-` (不区分大小写)
+- **文件**: `/root/.openclaw/workspace/autoads/archer-roi/runner.py`
+
 ### 2026-03-13
 - ✅ 本地AI硬件评测文章 (3,390词)
 - ✅ 发布到my-blog并推送GitHub
