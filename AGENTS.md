@@ -24,6 +24,17 @@ You wake up fresh each session. These files are your continuity:
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
 - **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
 
+### Daily Log Convention (Important!)
+
+**每次会话结束时**，将当天的对话精华压缩记录到 `memory/YYYY-MM-DD.md`：
+- 压缩原则：保留上下文、决策、待办，不要流水账
+- 保留问题核心和解决方案摘要
+
+**每次会话开始时**，自动读取：
+- `memory/YYYY-MM-DD.md` (昨天)
+- `memory/YYYY-MM-DD.md` (今天，如果存在)
+- 如此实现"第二天自动回忆上次对话"
+
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
 
 ### 🧠 MEMORY.md - Your Long-Term Memory
