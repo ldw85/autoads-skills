@@ -86,8 +86,13 @@ def is_amazon_url(url: str) -> bool:
     return "amazon.com" in parsed.netloc and ("/dp/" in url or "/gp/product/" in url)
 
 
-def get_google_ads_campaigns_with_urls(customer_id: str) -> List[Dict[str, Any]]:
+def get_google_ads_campaigns_with_urls(customer_id: str, require_spend: bool = True, spend_days: int = 7) -> List[Dict[str, Any]]:
     """Get all enabled campaigns with their ad destination URLs.
+    
+    Args:
+        customer_id: Google Ads customer ID
+        require_spend: If True, only return campaigns with spend in the last 7 days
+        spend_days: Number of days to look back for spend data (default: 7)
     
     Returns list of dicts with campaign info and URLs.
     """
@@ -104,8 +109,12 @@ def get_google_ads_campaigns_with_urls(customer_id: str) -> List[Dict[str, Any]]
         
         campaigns_data = []
         
+        # Determine date filter string
+        date_str = f"LAST_{spend_days}_DAYS"
+        
         # Query for all enabled campaigns
-        query = """
+        # We query with segments.date to get daily data, then aggregate
+        query = f"""
             SELECT
                 campaign.id,
                 campaign.name,
@@ -119,11 +128,15 @@ def get_google_ads_campaigns_with_urls(customer_id: str) -> List[Dict[str, Any]]
                 ad_group_ad.ad.final_urls,
                 ad_group_ad.ad.final_url_suffix,
                 ad_group_ad.ad.tracking_url_template,
-                ad_group_ad.status
+                ad_group_ad.status,
+                metrics.cost_micros,
+                metrics.clicks,
+                segments.date
             FROM ad_group_ad
             WHERE campaign.status = 'ENABLED'
             AND ad_group.status = 'ENABLED'
             AND ad_group_ad.status = 'ENABLED'
+            AND segments.date DURING {date_str}
         """
         
         ga_service = google_ads.client.get_service("GoogleAdsService")
@@ -133,33 +146,60 @@ def get_google_ads_campaigns_with_urls(customer_id: str) -> List[Dict[str, Any]]
         
         results = ga_service.search(request=search_request)
         
+        # Aggregate results by ad_id, summing clicks/cost across dates
+        ad_data = {}
         for row in results:
             campaign = row.campaign
             ad_group = row.ad_group
             ad = row.ad_group_ad.ad
             
-            # Extract final URLs (apply suffix if present)
-            final_urls = []
-            if ad.final_urls:
-                url_suffix = ad.final_url_suffix or ""
-                for base_url in ad.final_urls:
-                    if url_suffix and "?" not in base_url:
-                        final_url = f"{base_url}?{url_suffix}"
-                    else:
-                        final_url = base_url
-                    final_urls.append(final_url)
-            
-            # Only keep Amazon URLs
-            amazon_urls = [u for u in final_urls if is_amazon_url(u)]
-            
-            if amazon_urls:
-                campaigns_data.append({
+            ad_key = str(ad.id)
+            if ad_key not in ad_data:
+                ad_data[ad_key] = {
                     "campaign_id": str(campaign.id),
                     "campaign_name": campaign.name,
                     "campaign_status": campaign.status.name,
-                    "ad_id": str(ad.id),
-                    "final_urls": amazon_urls,
+                    "ad_id": ad_key,
+                    "total_clicks": 0,
+                    "total_cost": 0,
+                    "final_urls": [],
                     "headlines": [h.text for h in ad.responsive_search_ad.headlines] if ad.responsive_search_ad else [],
+                }
+            
+            # Accumulate metrics
+            ad_data[ad_key]["total_clicks"] += row.metrics.clicks or 0
+            ad_data[ad_key]["total_cost"] += (row.metrics.cost_micros or 0) / 1000000
+            
+            # Extract URLs (only once per ad)
+            if not ad_data[ad_key]["final_urls"]:
+                final_urls = []
+                if ad.final_urls:
+                    url_suffix = ad.final_url_suffix or ""
+                    for base_url in ad.final_urls:
+                        if url_suffix and "?" not in base_url:
+                            final_url = f"{base_url}?{url_suffix}"
+                        else:
+                            final_url = base_url
+                        final_urls.append(final_url)
+                
+                ad_data[ad_key]["final_urls"] = [u for u in final_urls if is_amazon_url(u)]
+        
+        # Filter for ads with recent spend and build final list
+        for ad_id, data in ad_data.items():
+            # Only include if has clicks in last 7 days (indicates recent activity)
+            if require_spend and data["total_clicks"] == 0:
+                continue
+            
+            if data["final_urls"]:
+                campaigns_data.append({
+                    "campaign_id": data["campaign_id"],
+                    "campaign_name": data["campaign_name"],
+                    "campaign_status": data["campaign_status"],
+                    "ad_id": data["ad_id"],
+                    "final_urls": data["final_urls"],
+                    "headlines": data["headlines"],
+                    "total_clicks": data["total_clicks"],
+                    "total_cost": data["total_cost"],
                 })
         
         return campaigns_data
@@ -288,17 +328,25 @@ def check_amazon_product_with_decodo(url: str) -> ProductCheck:
         )
 
 
-def check_all_campaigns(customer_id: str) -> List[CampaignInventoryReport]:
-    """Check inventory for all enabled campaigns."""
+def check_all_campaigns(customer_id: str, max_workers: int = 10, require_spend: bool = True) -> List[CampaignInventoryReport]:
+    """Check inventory for all enabled campaigns using parallel Decodo calls.
+    
+    Args:
+        customer_id: Google Ads customer ID
+        max_workers: Maximum number of parallel Decodo calls (default: 10)
+        require_spend: If True, only check ASINs with spend/clicks in last 7 days (default: True)
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     
     # Get all campaigns with URLs
-    campaigns = get_google_ads_campaigns_with_urls(customer_id)
+    campaigns = get_google_ads_campaigns_with_urls(customer_id, require_spend=require_spend)
     
     if not campaigns:
         logger.info("No enabled campaigns with Amazon URLs found")
         return []
     
     logger.info(f"Found {len(campaigns)} campaigns with Amazon URLs")
+    logger.info(f"Using {max_workers} parallel workers for Decodo calls")
     
     # Deduplicate URLs per campaign
     reports = []
@@ -310,6 +358,8 @@ def check_all_campaigns(customer_id: str) -> List[CampaignInventoryReport]:
         # Deduplicate URLs
         unique_urls = list(set(camp["final_urls"]))
         
+        logger.info(f"Processing campaign {camp_id}: {camp_name} ({len(unique_urls)} URLs)")
+        
         report = CampaignInventoryReport(
             campaign_id=camp_id,
             campaign_name=camp_name,
@@ -317,10 +367,28 @@ def check_all_campaigns(customer_id: str) -> List[CampaignInventoryReport]:
             products=[]
         )
         
-        for url in unique_urls:
-            logger.info(f"Checking {url}...")
-            product = check_amazon_product_with_decodo(url)
-            report.products.append(product)
+        # Use ThreadPoolExecutor for parallel Decodo calls
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all URL checks
+            future_to_url = {executor.submit(check_amazon_product_with_decodo, url): url for url in unique_urls}
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    product = future.result()
+                    report.products.append(product)
+                    status_str = "✅" if product.status == "in_stock" else "❌"
+                    logger.info(f"  {status_str} {product.asin}: {product.status}")
+                except Exception as e:
+                    logger.error(f"Error checking {url}: {e}")
+                    report.products.append(ProductCheck(
+                        url=url,
+                        asin=extract_asin_from_url(url) or "unknown",
+                        title="",
+                        status="error",
+                        error_message=str(e)
+                    ))
         
         reports.append(report)
     
@@ -408,12 +476,29 @@ def main():
         action="store_true",
         help="Output as JSON"
     )
+    parser.add_argument(
+        "--parallel",
+        type=int,
+        default=10,
+        help="Number of parallel Decodo calls (default: 10)"
+    )
+    parser.add_argument(
+        "--no-spend-filter",
+        action="store_true",
+        help="Don't filter by recent spend (check all Amazon URLs, even with no recent spend)"
+    )
     
     args = parser.parse_args()
     
-    logger.info(f"Starting inventory check for customer {args.customer_id}")
+    require_spend = not args.no_spend_filter
     
-    reports = check_all_campaigns(args.customer_id)
+    logger.info(f"Starting inventory check for customer {args.customer_id}")
+    if require_spend:
+        logger.info("Filtering to ASINs with spend/clicks in last 7 days")
+    else:
+        logger.info("Checking all ASINs (no spend filter)")
+    
+    reports = check_all_campaigns(args.customer_id, max_workers=args.parallel, require_spend=require_spend)
     
     if args.json:
         # Output as JSON
