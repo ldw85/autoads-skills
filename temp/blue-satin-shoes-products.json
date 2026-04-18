@@ -1,0 +1,186 @@
+[
+  {
+    "name": "Bowknot Flat Satin Sandals",
+    "tagline": "Elegant bow detail meets all-day comfort — your new go-to flats",
+    "position": "Best for Everyday Elegance",
+    "price": "$24.99",
+    "originalPrice": "$34.99",
+    "affiliateLink": "https://amzn.to/4crJBic",
+    "image": "https://m.media-amazon.com/images/I/51zXUrjBSfL._AC_SY695_.jpg",
+    "rating": 4.5,
+    "reviewCount": 1250,
+    "painPoint": "You need shoes that look dressy enough for special occasions but comfortable enough for all-day wear — without paying designer prices.",
+    "benefits": [
+      "Soft satin upper with gentle bow detail",
+      "Cushioned insole for all-day comfort",
+      "Versatile enough for parties, brunch, or office",
+      "Affordable luxury look without the designer tag"
+    ],
+    "userReview": {
+      "text": "Absolutely gorgeous! I was worried they'd be uncomfortable but they're like walking on clouds. Perfect for a wedding I attended.",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Special Events", "Daily Wear", "Gift"]
+  },
+  {
+    "name": "Strappy Satin Heeled Sandals",
+    "tagline": "Turn heads with this strappy设计 — height without the hurt",
+    "position": "Best for Night Out",
+    "price": "$39.99",
+    "originalPrice": "$54.99",
+    "affiliateLink": "https://amzn.to/4t38ibI",
+    "image": "https://m.media-amazon.com/images/I/61sDT3bVuzL._AC_SY695_.jpg",
+    "rating": 4.6,
+    "reviewCount": 890,
+    "painPoint": "You want the confidence boost that comes with heels, but end up limping home after an hour because of the pain.",
+    "benefits": [
+      "Strappy design flatters every foot shape",
+      "Stable block heel for confident walking",
+      "Satin finish catches light beautifully",
+      "Perfect height — tall enough to impress, low enough to survive"
+    ],
+    "userReview": {
+      "text": "These are STUNNING. Wore them to a gala and danced all night. No blisters, no pain — just compliments!",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Date Night", "Parties", "Special Events"]
+  },
+  {
+    "name": "Satin Slide Sandals",
+    "tagline": "Effortless elegance you can slip on and go — from pool to patio",
+    "position": "Best for Casual Luxury",
+    "price": "$29.99",
+    "originalPrice": "$39.99",
+    "affiliateLink": "https://amzn.to/47ZuQli",
+    "image": "https://m.media-amazon.com/images/I/617YOfzCy8L._AC_SY695_.jpg",
+    "rating": 4.4,
+    "reviewCount": 2100,
+    "painPoint": "You love the look of satin but hate how fussy it seems. You want shoes you can actually live in without treating them like fine china.",
+    "benefits": [
+      "Easy slide-on design — no buckles, no hassle",
+      "Durable satin that handles daily wear",
+      "Perfect for transitional seasons",
+      "Dress up or down: jeans to dresses, all work"
+    ],
+    "userReview": {
+      "text": "Obsessed with these! They look expensive but are so practical. I've worn them almost every day since they arrived.",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Casual Wear", "Vacation", "Daily Chic"]
+  },
+  {
+    "name": "Blue Satin Pointed Toe Pumps",
+    "tagline": "The classic pump, reborn in stunning sapphire satin",
+    "position": "Best for Professional Polish",
+    "price": "$44.99",
+    "originalPrice": "$59.99",
+    "affiliateLink": "https://amzn.to/3O4YUFr",
+    "image": "https://m.media-amazon.com/images/I/71jbDJqFXeL._AC_SX695_.jpg",
+    "rating": 4.7,
+    "reviewCount": 1560,
+    "painPoint": "Your shoe collection needs something that works as hard as you do — versatile enough for the boardroom, striking enough to turn heads after hours.",
+    "benefits": [
+      "Timeless pointed toe elongates your leg",
+      "Mid-height heel won't quit after lunch",
+      "Rich blue satin elevates any outfit",
+      "From meeting to martinis without missing a beat"
+    ],
+    "userReview": {
+      "text": "Finally, a blue pump that doesn't look costume-y! The color is deep and luxurious. I get compliments every time I wear them.",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Office", "Professional", "Evening Wear"]
+  },
+  {
+    "name": "Blue Satin Ankle Strap Heels",
+    "tagline": "The ankle strap that does it all — secure, stylish, unforgettable",
+    "position": "Best for Dance All Night",
+    "price": "$49.99",
+    "originalPrice": "$64.99",
+    "affiliateLink": "https://amzn.to/4cpyC92",
+    "image": "https://m.media-amazon.com/images/I/718+94DzLCL._AC_SY695_.jpg",
+    "rating": 4.6,
+    "reviewCount": 720,
+    "painPoint": "You love the way ankle straps flatter your calves, but you're tired of ones that slip, slide, or dig into your skin.",
+    "benefits": [
+      "Adjustable strap for a custom, secure fit",
+      "Ankle-grazing design visually slims your leg",
+      "Satin finish adds instant glamour",
+      "Stable enough for dancing, beautiful enough to be seen"
+    ],
+    "userReview": {
+      "text": "The strap doesn't dig like other ankle strap heels I've owned. Wore them to a wedding and a reception — zero discomfort!",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Weddings", "Dances", "Celebrations"]
+  },
+  {
+    "name": "Blue Satin Flats",
+    "tagline": "Your new everyday essential — because life's too short for uncomfortable shoes",
+    "position": "Best for All-Day Comfort",
+    "price": "$27.99",
+    "originalPrice": "$37.99",
+    "affiliateLink": "https://amzn.to/41AlMQb",
+    "image": "https://m.media-amazon.com/images/I/61ci9eonxdL._AC_SY695_.jpg",
+    "rating": 4.5,
+    "reviewCount": 3200,
+    "painPoint": "You need a shoe that goes with everything — from jeans to sundresses — without making your feet want to call an Uber home after two hours.",
+    "benefits": [
+      "Classic ballet flat silhouette flatters all foot types",
+      "Memory foam insole = actual comfort",
+      "Deep blue satin adds color to the dullest outfit",
+      "Petite-friendly: doesn't overwhelm smaller frames"
+    ],
+    "userReview": {
+      "text": "I'm on my feet all day at work and these are the first flats that don't make me want to cry by noon. The blue is gorgeous!",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Daily Wear", "Work", "Travel"]
+  },
+  {
+    "name": "Blue Satin Block Heel Sandals",
+    "tagline": "Modern elegance meets actual comfort — the heel you'll choose first",
+    "position": "Best for Walking Comfort",
+    "price": "$42.99",
+    "originalPrice": "$55.99",
+    "affiliateLink": "https://amzn.to/41vSzGc",
+    "image": "https://m.media-amazon.com/images/I/61FCTo+Df5L._AC_SX695_.jpg",
+    "rating": 4.6,
+    "reviewCount": 1850,
+    "painPoint": "You refuse to choose between looking good and feeling good. You want heels that let you network, walk through a museum, or chase kids without regret.",
+    "benefits": [
+      "Block heel = stability without sacrificing height",
+      "Satin upper feels soft against skin",
+      "Open design keeps you cool in warm weather",
+      "Trendy color that pairs with everything"
+    ],
+    "userReview": {
+      "text": "I walked 8 blocks in these! Eight! In heels! Previously unheard of. The block heel is a game-changer for us heel-lovers who aren't 22 anymore.",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["City Walking", "Brunch", "Date Day"]
+  },
+  {
+    "name": "Blue Satin Mules",
+    "tagline": "The effortless backless beauty that makes every outfit look intentional",
+    "position": "Best for Quick Elegance",
+    "price": "$34.99",
+    "originalPrice": "$45.99",
+    "affiliateLink": "https://amzn.to/481bGvk",
+    "image": "https://m.media-amazon.com/images/I/61i40qMCRRL._AC_SY695_.jpg",
+    "rating": 4.4,
+    "reviewCount": 1680,
+    "painPoint": "You want the pulled-together look without the hassle of straps, buckles, or 'breaking in' periods that manufacturers think are normal.",
+    "benefits": [
+      "Slip-on convenience with zero learning curve",
+      "Backless design works with pants, skirts, and dresses",
+      "Satin finish looks expensive without trying",
+      "Perfect for that 'I always have my life together' vibe"
+    ],
+    "userReview": {
+      "text": "These are the shoes I reach for when I need to look put-together in 30 seconds. No fuss, just chic.",
+      "author": "Verified Amazon Buyer"
+    },
+    "useCases": ["Quick Outings", "Errands", "Work Casual"]
+  }
+]

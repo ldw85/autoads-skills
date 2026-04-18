@@ -6,7 +6,7 @@ CUSTOMER_ID="3674729801"
 LOG_FILE="/root/.openclaw/workspace/logs/inventory_check.log"
 OUTPUT_FILE="/root/.openclaw/workspace/logs/inventory_report.txt"
 
-cd /root/.openclaw/workspace/skills/amazon-inventory-monitor
+cd /root/.openclaw/workspace/autoads/amazon-inventory
 
 # Run the check and save output
 python3 check_inventory.py --customer-id "$CUSTOMER_ID" 2>&1 | tee "$LOG_FILE" > "$OUTPUT_FILE"

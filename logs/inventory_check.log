@@ -50,3 +50,4 @@
 2026-04-05 01:29:45,193 - INFO - Looking for Decodo at: /root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py
 2026-04-05 01:29:50,350 - INFO - Checking https://www.amazon.com/dp/B07D528W98?maas=maas_adg_api_587354781662207752_static_9_129&ref_=aa_maas&tag=maas&aa_campaignid=lv_Hhx6298q7bWaKHgSXh&aa_adgroupid=lv_GTBAFbi0UQyUgkKV2I&aa_creativeid=lv_RG8TvfcmYHCqC5vS2A...
 2026-04-05 01:29:50,350 - INFO - Looking for Decodo at: /root/.openclaw/workspace/skills/decodo-scraper/tools/scrape.py
+[2026-04-08 20:17] Amazon库存检查完成 - 45个商品, 0个缺货, 1个状态未知

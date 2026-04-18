@@ -79,7 +79,7 @@ async function fetchTrends() {
 
 // 中英对照词典 - 趋势词中文解释
 const trendTranslations = {
-    // AI/科技
+    // ========== AI/科技 ==========
     'ai': '人工智能/AI',
     'chatgpt': 'ChatGPT - OpenAI开发的AI聊天机器人',
     'gpt': 'GPT - OpenAI的AI语言模型',
@@ -96,6 +96,175 @@ const trendTranslations = {
     'cursor': 'Cursor - AI代码编辑器',
     'windsurf': 'Windsurf - AI代码编辑器',
     'notion': 'Notion - 笔记/知识管理工具',
+    // ========== 股票/财经 ==========
+    'stock market': '股票市场 - 股市行情',
+    'stock price': '股票价格',
+    'stock': '股票 - stock',
+    'dow jones': '道琼斯指数 - 美国股市基准',
+    'nasdaq': '纳斯达克指数 - 科技股集中交易所',
+    's&p 500': '标普500指数 - 美国500强股票指数',
+    'nvidia': '英伟达 - AI芯片巨头 (NVDA)',
+    'nvidia stock': '英伟达股票 (NVDA) - AI芯片龙头',
+    'apple stock': '苹果股票 (AAPL)',
+    'amazon stock': '亚马逊股票 (AMZN)',
+    'tesla stock': '特斯拉股票 (TSLA)',
+    'google stock': '谷歌股票 (GOOGL)',
+    'microsoft stock': '微软股票 (MSFT)',
+    'meta stock': 'Meta/Facebook股票 (META)',
+    'netflix stock': 'Netflix股票 (NFLX)',
+    'amd stock': 'AMD股票 (AMD)',
+    'intel stock': '英特尔股票 (INTC)',
+    ' recession': '经济衰退',
+    'inflation': '通货膨胀',
+    'interest rate': '利率',
+    'federal reserve': '美联储',
+    'dollar': '美元',
+    'gold price': '黄金价格',
+    'oil price': '油价',
+    'gas price': '汽油价格',
+    'cryptocurrency': '加密货币',
+    'bitcoin': '比特币 (BTC)',
+    'ethereum': '以太坊 (ETH)',
+    // ========== 名人/明星 ==========
+    'kylie jenner': '凯莉·詹娜 - 卡戴珊家族成员/美妆大亨',
+    'taylor swift': '泰勒·斯威夫特 - 歌手/霉霉',
+    'kim kardashian': '金·卡戴珊 - 真人秀明星/商业巨头',
+    'elon musk': '埃隆·马斯克 - 特斯拉/SpaceX CEO',
+    'beyonce': '碧昂斯 - 歌手',
+    'rihanna': '蕾哈娜 - 歌手/美妆品牌',
+    'oprah': '奥普拉 - 脱口秀主持人',
+    'dwayne johnson': '道恩·强森/巨石强森 - WWE明星转行演员',
+    'john cena': '约翰·塞纳 - WWE摔角明星',
+    'dave grohl': 'Dave Grohl - Foo Fighters主唱',
+    'kurt cobain': '柯特·柯本 - Nirvana乐队主唱',
+    'beyonce tour': '碧昂斯巡回演唱会',
+    'taylor swift eras tour': '泰勒·斯威夫特时代巡回演唱会',
+    // ========== 电影/电视 ==========
+    'movie': '电影',
+    'netflix': 'Netflix流媒体平台',
+    'prime video': 'Amazon Prime Video',
+    'disney plus': 'Disney+流媒体',
+    'hulu': 'Hulu流媒体',
+    'box office': '票房',
+    '(movie) release': '电影上映',
+    '(tv) series': '电视剧',
+    'season finale': '季终集',
+    'streaming': '流媒体/直播',
+    // ========== 游戏 ==========
+    'video game': '电子游戏',
+    'gaming': '游戏/游戏相关',
+    'xbox': 'Xbox微软游戏机',
+    'playstation': 'PlayStation索尼游戏机',
+    'nintendo': 'Nintendo任天堂',
+    'ps5': 'PS5游戏机',
+    'xbox series': 'Xbox Series X游戏机',
+    'switch': 'Nintendo Switch游戏机',
+    'minecraft': 'Minecraft我的世界',
+    'fortnite': 'Fortnite堡垒之夜',
+    'call of duty': '使命召唤游戏',
+    'gta': '侠盗猎车手游戏',
+    'zelda': '塞尔达传说游戏',
+    'mario': '马里奥游戏',
+    'pokemon': '宝可梦/精灵宝可梦',
+    // ========== 音乐 ==========
+    'concert': '音乐会/演唱会',
+    'album': '专辑',
+    'song': '歌曲',
+    'music': '音乐',
+    'tour': '巡回演唱会',
+    'billboard': 'Billboard音乐排行榜',
+    'spotify': 'Spotify音乐流媒体',
+    'apple music': 'Apple Music音乐服务',
+    // ========== 体育 ==========
+    'nba': 'NBA美国职业篮球',
+    'nfl': 'NFL美国职业橄榄球',
+    'mlb': 'MLB美国职业棒球',
+    'nhl': 'NHL国家冰球联盟',
+    'super bowl': '超级碗 - NFL总决赛',
+    'world series': '世界大赛 - MLB总决赛',
+    'nba finals': 'NBA总决赛',
+    'nfl playoffs': 'NFL季后赛',
+    'march madness': 'NCAA疯狂三月篮球赛',
+    'olympics': '奥运会',
+    'world cup': '世界杯',
+    'us open': '美国网球公开赛',
+    'wimbledon': '温布尔登网球锦标赛',
+    'masters': '大师赛/高尔夫美国大师赛',
+    'lakers': '湖人队 - NBA',
+    'warriors': '勇士队 - NBA',
+    'celtics': '凯尔特人队 - NBA',
+    'yankees': '洋基队 - MLB',
+    'dodgers': '道奇队 - MLB',
+    'cowboys': '牛仔队 - NFL',
+    'chiefs': '酋长队 - NFL',
+    'lebron': '勒布朗·詹姆斯 - NBA球星',
+    'stephen curry': '斯蒂芬·库里 - NBA球星',
+    'messi': '梅西 - 足球巨星',
+    'ronaldo': 'C罗 - 足球巨星',
+    'mahomes': '帕特里克·马霍姆斯 - NFL球星',
+    // ========== 天气/自然灾害 ==========
+    'weather': '天气',
+    'hurricane': '飓风',
+    'tornado': '龙卷风',
+    'earthquake': '地震',
+    'flood': '洪水',
+    'storm': '暴风雨',
+    'snow': '降雪',
+    'blizzard': '暴风雪',
+    'heat wave': '热浪',
+    'california wildfire': '加州山火',
+    // ========== 新闻/事件 ==========
+    'trump': '特朗普 - 美国前总统',
+    'biden': '拜登 - 美国总统',
+    'election': '美国大选',
+    'congress': '美国国会',
+    'supreme court': '最高法院',
+    'ukraine': '乌克兰/俄乌战争',
+    'israel': '以色列/中东局势',
+    'iran': '伊朗/核问题',
+    'china': '中国/美中关系',
+    'north korea': '朝鲜/金正恩',
+    'russia': '俄罗斯/普京',
+    'breaking news': '突发新闻',
+    'shooting': '枪击事件',
+    'protest': '抗议活动',
+    // ========== 品牌/产品 ==========
+    'apple': '苹果公司 (AAPL)',
+    'samsung': '三星电子',
+    'google': '谷歌 (GOOGL)',
+    'amazon': '亚马逊 (AMZN)',
+    'microsoft': '微软 (MSFT)',
+    'dyson': '戴森 - 高端家电品牌',
+    'nike': '耐克 - 运动品牌',
+    'adidas': '阿迪达斯 - 运动品牌',
+    'lululemon': 'Lululemon - 瑜伽运动服',
+    'starbucks': '星巴克咖啡',
+    'mcdonald': '麦当劳',
+    // ========== 通用 ==========
+    'deals': '优惠/折扣',
+    'sale': '促销/打折',
+    'clearance': '清仓特卖',
+    'black friday': '黑色星期五购物节',
+    'cyber monday': '网络星期一',
+    'prime day': '亚马逊会员日',
+    'gift': '礼物',
+    'gift guide': '礼品指南',
+    'review': '评测/评论',
+    'best': '最佳/最好',
+    'top': '顶级/排行榜',
+    'cheap': '便宜/低价',
+    'free': '免费',
+    'how to': '如何做/教程',
+    'what is': '什么是',
+    'why': '为什么',
+    'recipe': '食谱/菜谱',
+    'diy': '自己动手/DIY',
+    'tutorial': '教程',
+    'tips': '技巧/小贴士',
+    'amazon': '亚马逊购物',
+    'best seller': '畅销产品',
+    'viral': '爆红/病毒式传播',
+    'trending': '热门/趋势',
     // 音频设备
     'headphone': '耳机',
     'earbud': '无线耳塞/耳麦',
@@ -410,6 +579,156 @@ const trendTranslations = {
     'max': 'Max - 最大版'
 };
 
+// ========== 用户偏好过滤 (2026-03-17) ==========
+// David 不感兴趣的领域
+const excludeCategories = [
+    // 体育 - David明确不感兴趣
+    'sports', 'nba', 'nfl', 'mlb', 'nhl', 'basketball', 'football', 'baseball', 'soccer', 'tennis', 'golf', 'boxing', 'ufc', 'mma', 'wwe', 'wrestling', 'volleyball', 'swimming',
+    'lakers', 'warriors', 'celtics', 'yankees', 'dodgers', 'cowboys', 'eagles', 'chiefs', 'packers', '49ers', 'raiders', 'bears', 'patriots', 'buccaneers', 'ravens', 'bengals',
+    'lebron', 'jordan', 'curry', 'messi', 'ronaldo', 'mahomes', 'ohtani', 'trede', 'wembanyama',
+    'march madness', 'super bowl', 'world series', 'nba finals', 'nfl playoffs', 'world cup', 'olympics', 'us open', 'wimbledon', 'masters', 'stanley cup',
+    // 娱乐/名人/综艺 - 扩展名单
+    'celebrity', 'famous', 'star', 'actor', 'actress', 'singer', 'rapper', 'musician', 'dancer', 'influencer',
+    'reality tv', '真人秀', '综艺', 'kardashian', 'jenner', 'j Bieber', 'swift', 'beyonce', 'rihanna', 'drake', 'kanye', 'taylor',
+    'movie star', 'hollywood', 'netflix show', 'tv series finale', 'season finale', 'breaking bad', 'stranger things',
+    // WWE/摔角 - David明确不感兴趣
+    'wwe', 'wrestling', 'roman reigns', 'randy orton', 'aj styles', 'seth rollins', 'brock lesnar', 'john cena', 'the rock', 'aew',
+    // 政治新闻 - David可能不感兴趣
+    'trump', 'biden', 'election', 'congress', 'supreme court', 'senate', 'democrat', 'republican', 'polling',
+    // 负面新闻/灾难
+    'shooting', 'murder', 'death', 'crash', 'accident', 'disaster', 'tragedy', 'terror', 'attack',
+    // 游戏相关
+    'esports', 'gaming tournament', 'twitch', 'streamer',
+    // 名人名字 - 扩展检测
+    'lauren conrad', 'dakota fanning', 'jennie garth', 'whitney leavitt', 'rob wright', 'konnor griffin', 'beirut',
+    'kim kardashian', 'kylie jenner', 'khloe kardashian', 'kourtney kardashian', 'kendall jenner',
+    'tom brady', 'selena gomez', 'ariana grande', 'justin bieber', 'lady gaga', 'brad pitt', 'angelina jo',
+    'jennifer lopez', 'beyonce', 'rihanna', 'kanye west', 'drake', 'eminem', 'taylor swift',
+    'dulux', 'nadine', 'bobby', 'emma stone', 'ryan reynolds', 'margot robbie',
+];
+
+// 额外的名人检测 - 常见名人名字模式
+const celebrityPatterns = [
+    /^lauren conrad$/i,
+    /^dakota fanning$/i,
+    /^jennie garth$/i,
+    /^whitney leavitt$/i,
+    /^rob wright$/i,
+    /^konnor griffin$/i,
+    /^beirut$/i,
+];
+
+// 检查趋势是否应该被过滤
+function shouldExclude(trendText) {
+    const lower = trendText.toLowerCase();
+    
+    // Check against exclude list
+    for (const keyword of excludeCategories) {
+        if (lower.includes(keyword.toLowerCase())) {
+            return true;
+        }
+    }
+    
+    // Check celebrity name patterns (two-word proper names that are likely celebrities)
+    for (const pattern of celebrityPatterns) {
+        if (pattern.test(trendText)) {
+            return true;
+        }
+    }
+    
+    // Additional heuristic: if it's a single name with spaces (Firstname Lastname format)
+    // and it's short, it might be a celebrity
+    const words = trendText.trim().split(/\s+/);
+    if (words.length === 2) {
+        // Two-word name that's not obviously a product/trend
+        // Common product patterns would have numbers, 'vs', 'review' etc
+        const hasProductSignal = lower.includes('review') || lower.includes('vs') || 
+                                 lower.includes('best') || lower.includes('top') ||
+                                 lower.includes('stock') || lower.includes('price') ||
+                                 lower.includes('deal') || lower.includes('sale');
+        if (!hasProductSignal && words[0].length > 2 && words[1].length > 2) {
+            // Likely a person's name - exclude
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// 获取趋势的背景解释
+function getTrendBackground(trendText) {
+    const lower = trendText.toLowerCase();
+    
+    // 股票财经 - 使用单词边界匹配
+    if (lower.includes('stock')) {
+        const stockMatch = lower.match(/\b(nvidia|apple|amazon|tesla|google|microsoft|meta|netflix|amd|intel)\b/);
+        if (stockMatch) {
+            const stockMap = {
+                'nvidia': '英伟达 (NVDA) - AI芯片龙头',
+                'apple': '苹果 (AAPL)',
+                'amazon': '亚马逊 (AMZN)',
+                'tesla': '特斯拉 (TSLA)',
+                'google': '谷歌 (GOOGL)',
+                'microsoft': '微软 (MSFT)',
+                'meta': 'Meta (META)',
+                'netflix': 'Netflix (NFLX)',
+                'amd': 'AMD',
+                'intel': '英特尔 (INTC)',
+            };
+            return stockMap[stockMatch[1].toLowerCase()];
+        }
+    }
+    
+    // AI科技 - 使用单词边界匹配
+    const aiMatch = lower.match(/\b(ai|chatgpt|gpt-|gemini|claude|openai|anthropic|midjourney|copilot)\b/);
+    if (aiMatch) {
+        const aiMap = {
+            'ai': 'AI人工智能',
+            'chatgpt': 'ChatGPT - OpenAI AI聊天',
+            'gpt-': 'GPT - OpenAI语言模型',
+            'gemini': 'Google Gemini - AI大模型',
+            'claude': 'Claude - Anthropic AI',
+            'openai': 'OpenAI - AI研究公司',
+            'anthropic': 'Anthropic - AI安全公司',
+            'midjourney': 'Midjourney - AI绘图',
+            'copilot': 'GitHub Copilot - AI编程',
+        };
+        return aiMap[aiMatch[1].toLowerCase()];
+    }
+    
+    // 天气相关
+    if (lower.includes('weather') || lower.includes('temperature') || lower.includes('forecast')) {
+        return '天气查询 - 季节性需求，可能带动相关产品'
+    }
+    
+    // 折扣优惠
+    if (lower.includes('deal') || lower.includes('steal') || lower.includes('sale') || lower.includes('coupon') || lower.includes('discount')) {
+        return '折扣优惠 - 消费者比价购物高峰'
+    }
+    
+    // 产品评测
+    if (lower.includes('review') || lower.includes('unboxing') || lower.includes('vs') || lower.includes('versus')) {
+        return '产品对比评测 - 用户研究购买决策'
+    }
+    
+    // 智能家居
+    if (lower.includes('smart home') || lower.includes('alexa') || lower.includes('echo') || lower.includes('google home') || lower.includes('nest')) {
+        return '智能家居 - Amazon Echo/Google Home类设备'
+    }
+    
+    // 消费电子
+    if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('macbook') || lower.includes('samsung') || lower.includes('pixel')) {
+        return '消费电子 - 手机/平板/电脑配件'
+    }
+    
+    // 游戏设备
+    if (lower.includes('ps5') || lower.includes('xbox') || lower.includes('switch') || lower.includes('steam deck')) {
+        return '游戏设备 - 索尼/微软/任天堂主机'
+    }
+    
+    return null;
+}
+
 // 产品中文解释
 const productTranslations = {
     // 音频
@@ -650,9 +969,22 @@ const categoryRules = [
 // Map ALL trends to product opportunities
 function mapTrendsToProducts(trends) {
     const opportunities = [];
+    const filteredOut = [];
     
     for (const trend of trends) {
+        // Check if trend should be excluded based on user preferences
+        if (shouldExclude(trend.title)) {
+            filteredOut.push({
+                trend: trend.title,
+                reason: '❌ 已过滤 - 不符合用户兴趣'
+            });
+            continue;
+        }
+        
         const trendText = `${trend.title} ${trend.newsItems.map(n => n.title + ' ' + n.snippet).join(' ')}`.toLowerCase();
+        
+        // Get background context for this trend
+        const background = getTrendBackground(trend.title) || getTrendBackground(trendText);
         
         // Find matching categories
         let matched = false;
@@ -665,7 +997,9 @@ function mapTrendsToProducts(trends) {
                         category: rule.category,
                         products: rule.products,
                         matchedKeyword: keyword,
-                        news: trend.newsItems[0]?.title || ''
+                        news: trend.newsItems[0]?.title || '',
+                        background: background,
+                        isUserInterested: ['🤖 AI/科技产品', '💻 电脑配件', '🎧 音频设备', '📸 摄影摄像', '🔐 网络安全'].includes(rule.category)
                     });
                     matched = true;
                     break;
@@ -682,12 +1016,13 @@ function mapTrendsToProducts(trends) {
                 category: '🔍 通用产品',
                 products: ['Amazon Bestsellers', 'Top Rated Products', 'Trending Items', 'Gift Ideas', 'Popular Products'],
                 matchedKeyword: 'general',
-                news: trend.newsItems[0]?.title || ''
+                news: trend.newsItems[0]?.title || '',
+                background: background
             });
         }
     }
     
-    return opportunities;
+    return { opportunities, filteredOut };
 }
 
 // Score opportunities by affiliate potential
@@ -706,9 +1041,19 @@ function scoreOpportunities(opportunities) {
             }
         }
         
-        // Higher-value categories
-        if (['🤖 AI/科技产品', '🎧 音频设备', '💻 电脑配件', '📸 摄影摄像'].includes(opp.category)) {
+        // Higher-value categories - David's interests
+        if (['🤖 AI/科技产品', '💻 电脑配件', '🎧 音频设备', '📸 摄影摄像', '🔐 网络安全'].includes(opp.category)) {
+            score += 25; // Boost for user's interests
+        }
+        
+        // User explicitly interested
+        if (opp.isUserInterested) {
             score += 15;
+        }
+        
+        // Has good background context
+        if (opp.background && !opp.background.includes('❌')) {
+            score += 10;
         }
         
         // Seasonal awareness
@@ -820,14 +1165,16 @@ function translateProduct(productName) {
 }
 
 // Format report - 中英双语版
-function formatReport(trends, opportunities) {
+function formatReport(trends, opportunities, filteredOut) {
     const dateStr = new Date().toLocaleDateString('zh-CN', { 
         timeZone: 'Asia/Shanghai',
         year: 'numeric', month: '2-digit', day: '2-digit'
     });
     
-    let msg = `🛒 **每日亚马逊产品机会简报** - ${dateStr}\n`;
-    msg += `📊 基于 Google Trends 全品类分析 | Bilingual Report\n\n`;
+    let msg = `🛒 **每日亚马逊产品机会简报** - ${dateStr}
+📊 基于 Google Trends | ⭐=用户兴趣领域
+
+`;
     
     // Group opportunities by category
     const byCategory = {};
@@ -837,109 +1184,132 @@ function formatReport(trends, opportunities) {
     }
     
     // Summary stats
-    msg += `📈 **趋势概况 | Summary**\n`;
-    msg += `• 热门趋势数: ${trends.length}\n`;
-    msg += `• 匹配产品机会: ${opportunities.length}\n`;
-    msg += `• 覆盖品类: ${Object.keys(byCategory).length}\n\n`;
+    msg += `📈 **趋势概况**
+• 热门趋势: ${trends.length}个
+• 匹配产品: ${opportunities.length}个
+• 覆盖品类: ${Object.keys(byCategory).length}个
+`;
+    if (filteredOut && filteredOut.length > 0) {
+        msg += `• 已过滤(体育/娱乐): ${filteredOut.length}个
+`;
+    }
+    msg += `
+`;
     
-    // Hot trends with Chinese explanations and search intent
-    if (trends.length > 0) {
-        msg += `🔥 **今日热门趋势 TOP 10 (中英对照)**\n`;
-        msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-        for (const t of trends.slice(0, 10)) {
-            const cn = translateTrend(t.title);
-            const intent = getSearchIntent(t.title);
-            msg += `【${t.title}】\n`;
-            if (cn) {
-                msg += `   📖 含义: ${cn}\n`;
-            } else {
-                msg += `   🔗 ${getTrendExplanation(t.title)}\n`;
-            }
-            msg += `   🎯 意图: ${intent}\n`;
-            if (t.traffic) msg += `   📊 热度: ${t.traffic}\n`;
-            msg += `\n`;
+    // Show filtered trends
+    if (filteredOut && filteredOut.length > 0) {
+        msg += `🚫 **已过滤趋势** (体育/娱乐/名人)
+`;
+        msg += `━━━━━━━━━━━━━━━━━━━━
+`;
+        for (const f of filteredOut.slice(0, 5)) {
+            msg += `• ${f.trend} - ${f.reason}
+`;
         }
-        msg += `\n`;
+        if (filteredOut.length > 5) {
+            msg += `... 还有${filteredOut.length - 5}个
+`;
+        }
+        msg += `
+`;
     }
     
-    // Top recommendations with bilingual explanations
-    const topOpps = opportunities.slice(0, 10);
-    if (topOpps.length > 0) {
-        msg += `⭐ **重点推荐产品 (TOP 10)**\n`;
-        msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-        for (let i = 0; i < topOpps.length && i < 10; i++) {
-            const o = topOpps[i];
-            const topProduct = o.products[0];
-            const cnProduct = translateProduct(topProduct);
+    // Hot trends with context
+    if (opportunities.length > 0) {
+        msg += `🔥 **今日趋势 TOP 10 (中英对照+背景)**
+`;
+        msg += `━━━━━━━━━━━━━━━━━━━━
+`;
+        
+        const topTrends = opportunities.slice(0, 10);
+        for (let i = 0; i < topTrends.length; i++) {
+            const o = topTrends[i];
+            const cn = translateTrend(o.trend);
             const intent = getSearchIntent(o.trend);
-            const cnTrend = translateTrend(o.trend);
+            const background = o.background || (cn ? cn : '📖 需搜索了解');
             
-            msg += `${i + 1}. ${o.category}\n`;
-            msg += `   📦 产品: ${topProduct}\n`;
-            if (cnProduct) msg += `   📖 解释: ${cnProduct}\n`;
-            msg += `   🔥 趋势: ${o.trend}\n`;
-            if (cnTrend) {
-                msg += `   📖 含义: ${cnTrend}\n`;
-            } else {
-                msg += `   🔗 ${getTrendExplanation(o.trend)}\n`;
+            const interestMarker = o.isUserInterested ? ' ⭐' : '';
+            
+            msg += `${i + 1}. 【${o.trend}】${interestMarker}
+`;
+            msg += `   📖 背景: ${background}
+`;
+            msg += `   🎯 意图: ${intent}
+`;
+            if (o.traffic) msg += `   📊 热度: ${o.traffic}
+`;
+            if (o.products && o.products[0]) {
+                const cnProduct = translateProduct(o.products[0]);
+                msg += `   📦 推荐: ${o.products[0]}${cnProduct ? ` (${cnProduct})` : ''}
+`;
             }
-            msg += `   🎯 意图: ${intent}\n`;
-            if (o.traffic) msg += `   📊 热度: ${o.traffic}\n`;
-            msg += `\n`;
+            msg += `
+`;
         }
     }
     
-    // Opportunities by category with bilingual
-    if (Object.keys(byCategory).length > 0) {
-        msg += `🛍️ **产品机会分类 | Category Breakdown**\n\n`;
+    // User-interested categories first
+    const userInterestedCategories = ['🤖 AI/科技产品', '💻 电脑配件', '🎧 音频设备', '📸 摄影摄像', '🔐 网络安全', '🏠 智能家居'];
+    const sortedCategories = Object.entries(byCategory).sort((a, b) => {
+        const aInterested = userInterestedCategories.includes(a[0]);
+        const bInterested = userInterestedCategories.includes(b[0]);
+        if (aInterested && !bInterested) return -1;
+        if (!aInterested && bInterested) return 1;
+        return b[1].length - a[1].length;
+    });
+    
+    if (sortedCategories.length > 0) {
+        msg += `⭐ **重点推荐 (用户兴趣优先)**
+`;
+        msg += `━━━━━━━━━━━━━━━━━━━━
+`;
         
         let rank = 1;
-        for (const [category, opps] of Object.entries(byCategory)) {
-            if (rank > 12) break;
+        for (const [category, opps] of sortedCategories) {
+            if (rank > 6) break;
             
-            msg += `**${category}** (${opps.length}个趋势)\n`;
-            msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+            const isUserInterested = userInterestedCategories.includes(category);
+            const marker = isUserInterested ? ' ⭐' : '';
             
-            // Get unique products for this category
-            const uniqueProducts = [...new Set(opps.flatMap(o => o.products))].slice(0, 5);
+            msg += `${rank}. ${category}${marker}
+`;
             
+            const uniqueProducts = [...new Set(opps.flatMap(o => o.products))].slice(0, 3);
             for (const product of uniqueProducts) {
                 const cnProduct = translateProduct(product);
-                msg += `• ${product}\n`;
-                if (cnProduct) msg += `  📖 ${cnProduct}\n`;
+                msg += `   • ${product}
+`;
+                if (cnProduct) msg += `     ${cnProduct}
+`;
             }
             
-            // Show top matching trend with explanation
             const topOpp = opps[0];
             if (topOpp && topOpp.trend) {
                 const cnTrend = translateTrend(topOpp.trend);
-                const intent = getSearchIntent(topOpp.trend);
-                msg += `  📈 趋势: ${topOpp.trend}\n`;
-                if (cnTrend) {
-                    msg += `  📖 含义: ${cnTrend}\n`;
-                } else {
-                    msg += `  🔗 ${getTrendExplanation(topOpp.trend)}\n`;
-                }
-                msg += `  🎯 意图: ${intent}\n`;
+                const background = topOpp.background || (cnTrend ? cnTrend : '需搜索');
+                msg += `   📈 趋势: ${topOpp.trend}
+`;
+                msg += `   ${background}
+`;
             }
             
-            msg += `\n`;
+            msg += `
+`;
             rank++;
         }
     }
     
     // Action items
-    msg += `💡 **行动建议 | Action Items**\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `• **内容创作**: 针对趋势写评测/对比文章\n`;
-    msg += `• **联盟营销**: 优先推广 ⭐TOP 推荐 相关产品\n`;
-    msg += `• **SEO优化**: 将高流量趋势词融入产品内容\n`;
-    msg += `• **社交推广**: 在Reddit/Twitter分享趋势产品\n\n`;
-    
-    msg += `---\n`;
-    msg += `🕐 生成时间: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n`;
-    msg += `📡 数据来源: Google Trends (免费) + AI产品映射\n`;
-    msg += `🔍 搜索建议: 复制英文产品在亚马逊搜索，获取精准结果\n`;
+    msg += `💡 **行动建议**
+━━━━━━━━━━━━━━━━━━━━
+• ⭐ = 符合你的兴趣(AI/科技/硬件)
+• **内容创作**: 针对⭐趋势写评测/对比文章
+• **联盟营销**: 优先推广⭐推荐产品
+
+---
+🕐 ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+📡 Google Trends + AI产品映射 | ❌已过滤体育/娱乐/名人
+`;
     
     return msg;
 }
@@ -953,13 +1323,13 @@ async function main() {
     log('Fetching all Google Trends...');
     const trends = await fetchTrends();
     
-    // Step 2: Map ALL trends to product opportunities
+    // Step 2: Map ALL trends to product opportunities (with filtering)
     log('Analyzing trends for product opportunities...');
-    const opportunities = mapTrendsToProducts(trends);
+    const { opportunities, filteredOut } = mapTrendsToProducts(trends);
     const scoredOpportunities = scoreOpportunities(opportunities);
     
-    // Step 3: Generate report
-    const report = formatReport(trends, scoredOpportunities);
+    // Step 3: Generate report with better context
+    const report = formatReport(trends, scoredOpportunities, filteredOut);
     
     // Save outputs
     const mdFile = `${WORKDIR}/logs/amazon_opportunities_latest.md`;

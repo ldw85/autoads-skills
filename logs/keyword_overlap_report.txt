@@ -1,0 +1,530 @@
+================================================================================
+GOOGLE ADS KEYWORD OVERLAP ANALYSIS REPORT
+================================================================================
+
+Account 1: 3674729801
+Account 2: 6052559425
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Account 1: 115 campaigns, 8029 keywords
+Account 2: 47 campaigns, 2442 keywords
+Identical keywords found: 55
+Similar keywords found (≥70% Jaccard similarity): 39
+
+--------------------------------------------------------------------------------
+🔴 IDENTICAL KEYWORDS (Highest Competition Risk)
+--------------------------------------------------------------------------------
+These keywords are exactly the same across accounts and will compete directly.
+
+1. Keyword: "home air purifier"
+   Match Type: PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+2. Keyword: "home air purifier"
+   Match Type: EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+3. Keyword: "quiet air purifier"
+   Match Type: EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+4. Keyword: "HEPA air purifier"
+   Match Type: PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+5. Keyword: "quiet air purifier"
+   Match Type: PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+6. Keyword: "air purifier for pet dander"
+   Match Type: PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+7. Keyword: "HEPA air purifier"
+   Match Type: EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+8. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Momcozy Stroller Organizer - US - 1774101428 / Momcozy Stroller Organizer - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+9. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rower - US - Final4 - 1774061702 / Merach Rower - US - Final4 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+10. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - 1774055409 / Merach Rowing Machine - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+11. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - Final - 1774058897 / Merach Rowing Machine - US - Final - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+12. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+13. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - Test3 - 1774058111 / Merach Rowing Machine - US - Test3 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+14. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Momcozy Stroller Organizer - US - 1774101428 / Momcozy Stroller Organizer - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+15. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Rowing Machine - US - 1774055409 / Merach Rowing Machine - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+16. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Rowing Machine - US - Final - 1774058897 / Merach Rowing Machine - US - Final - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+17. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+18. Keyword: "space saving home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rower - US - Final6 - 1774061968 / Merach Rower - US - Final6 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+19. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Momcozy Stroller Organizer - US - 1774101428 / Momcozy Stroller Organizer - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+20. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rower - US - Final4 - 1774061702 / Merach Rower - US - Final4 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+21. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - 1774055409 / Merach Rowing Machine - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+22. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - Final - 1774058897 / Merach Rowing Machine - US - Final - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+23. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+24. Keyword: "home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rowing Machine - US - Test3 - 1774058111 / Merach Rowing Machine - US - Test3 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+25. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Momcozy Stroller Organizer - US - 1774101428 / Momcozy Stroller Organizer - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+26. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Rowing Machine - US - 1774055409 / Merach Rowing Machine - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+27. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Rowing Machine - US - Final - 1774058897 / Merach Rowing Machine - US - Final - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+28. Keyword: "home gym equipment"
+   Match Type: PHRASE
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+29. Keyword: "space saving home gym equipment"
+   Match Type: EXACT
+   Account 1: Merach Rower - US - Final6 - 1774061968 / Merach Rower - US - Final6 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+30. Keyword: "Chefman air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+31. Keyword: "stainless steel air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+32. Keyword: "XL air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+33. Keyword: "Chefman air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+34. Keyword: "XL air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+35. Keyword: "stainless steel air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+36. Keyword: "digital air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+37. Keyword: "healthy air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+38. Keyword: "digital air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+39. Keyword: "healthy air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+40. Keyword: "rotisserie air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+41. Keyword: "rotisserie air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+42. Keyword: "multifunctional air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+43. Keyword: "multifunctional air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+44. Keyword: "family size air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+45. Keyword: "dehydrator air fryer"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+46. Keyword: "family size air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+47. Keyword: "dehydrator air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+48. Keyword: "air fryer for meal prep"
+   Match Type: EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+49. Keyword: "Chefman air fryer"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+50. Keyword: "air fryer for meal prep"
+   Match Type: PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+... and 5 more identical keywords
+
+--------------------------------------------------------------------------------
+🟡 SIMILAR KEYWORDS (Medium Competition Risk)
+--------------------------------------------------------------------------------
+These keywords share significant tokens and may compete for similar searches.
+
+1. "air purifier large room" ≈ "large room air purifier" (similarity: 100%)
+   Common tokens: room, purifier, air, large
+   Match Types: EXACT vs PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+2. "large room HEPA air purifier" ≈ "HEPA air purifier large room" (similarity: 100%)
+   Common tokens: purifier, room, large, air, hepa
+   Match Types: EXACT vs PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+3. "air fryer dishwasher safe" ≈ "Dishwasher safe air fryer" (similarity: 100%)
+   Common tokens: air, safe, fryer, dishwasher
+   Match Types: PHRASE vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+4. "space saving gym equipment" ≈ "space saving home gym equipment" (similarity: 80%)
+   Common tokens: equipment, gym, space, saving
+   Match Types: EXACT vs EXACT
+   Account 1: Merach Rower - US - Final4 - 1774061702 / Merach Rower - US - Final4 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+5. "air purifier large room" ≈ "HEPA air purifier large room" (similarity: 80%)
+   Common tokens: purifier, room, air, large
+   Match Types: EXACT vs PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+6. "air purifier pet dander" ≈ "air purifier for pet dander" (similarity: 80%)
+   Common tokens: purifier, dander, air, pet
+   Match Types: EXACT vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+7. "air purifier with sleep mode" ≈ "air purifier sleep mode" (similarity: 80%)
+   Common tokens: purifier, mode, sleep, air
+   Match Types: PHRASE vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+8. "quiet HEPA air purifier bedroom" ≈ "quiet air purifier bedroom" (similarity: 80%)
+   Common tokens: purifier, quiet, air, bedroom
+   Match Types: PHRASE vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+9. "large room HEPA air purifier" ≈ "large room air purifier" (similarity: 80%)
+   Common tokens: room, purifier, air, large
+   Match Types: EXACT vs PHRASE
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+10. "stainless steel air fryer" ≈ "Countertop air fryer stainless steel" (similarity: 80%)
+   Common tokens: air, stainless, steel, fryer
+   Match Types: PHRASE vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+11. "stainless steel air fryer" ≈ "stainless steel rotisserie air fryer" (similarity: 80%)
+   Common tokens: air, stainless, steel, fryer
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+12. "touch screen air fryer" ≈ "Touch screen air fryer oven" (similarity: 80%)
+   Common tokens: air, touch, fryer, screen
+   Match Types: EXACT vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+13. "easy clean air fryer" ≈ "Easy clean nonstick air fryer" (similarity: 80%)
+   Common tokens: clean, air, fryer, easy
+   Match Types: EXACT vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+14. "best air fryer family size" ≈ "family size air fryer" (similarity: 80%)
+   Common tokens: air, family, fryer, size
+   Match Types: EXACT vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+15. "air fryer 17 presets" ≈ "air fryer with 17 presets" (similarity: 80%)
+   Common tokens: 17, presets, air, fryer
+   Match Types: PHRASE vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+16. "home gym equipment" ≈ "compact home gym equipment" (similarity: 75%)
+   Common tokens: equipment, home, gym
+   Match Types: EXACT vs PHRASE
+   Account 1: Momcozy Stroller Organizer - US - 1774101428 / Momcozy Stroller Organizer - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+17. "compact gym equipment" ≈ "compact home gym equipment" (similarity: 75%)
+   Common tokens: equipment, gym, compact
+   Match Types: EXACT vs PHRASE
+   Account 1: Merach Rower - US - Final4 - 1774061702 / Merach Rower - US - Final4 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+18. "home gym equipment rower" ≈ "home gym equipment" (similarity: 75%)
+   Common tokens: equipment, home, gym
+   Match Types: EXACT vs EXACT
+   Account 1: Merach Rower - US - Final6 - 1774061968 / Merach Rower - US - Final6 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+19. "ergonomic office chair" ≈ "ergonomic office chair cushion" (similarity: 75%)
+   Common tokens: office, ergonomic, chair
+   Match Types: PHRASE vs EXACT
+   Account 1: DavidTest - SIHOO M18 Ergonomic Office Chair, High Back Mesh D... - US - 1775175916 / DavidTest - SIHOO M18 Ergonomic Office Chair, High Back Mesh D... - US - Main
+   Account 2: yeahpromos - Everlasting Comfort Doctor Recommended Memory Foam... - US - 1775475327 / yeahpromos - Everlasting Comfort Doctor Recommended Memory Foam... - US - Main
+
+20. "compact home gym" ≈ "compact home gym equipment" (similarity: 75%)
+   Common tokens: home, gym, compact
+   Match Types: EXACT vs PHRASE
+   Account 1: Merach Rower - US - Final3 - 1774061612 / Merach Rower - US - Final3 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775441264 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+21. "quiet home gym equipment" ≈ "home gym equipment" (similarity: 75%)
+   Common tokens: equipment, home, gym
+   Match Types: EXACT vs EXACT
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+22. "Product home gym equipment" ≈ "home gym equipment" (similarity: 75%)
+   Common tokens: equipment, home, gym
+   Match Types: PHRASE vs EXACT
+   Account 1: Merach Fitness - US - 1774056264 / Merach Fitness - US - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+23. "foldable home gym equipment" ≈ "home gym equipment" (similarity: 75%)
+   Common tokens: equipment, home, gym
+   Match Types: PHRASE vs EXACT
+   Account 1: Merach Rowing Machine - US - Test2 - 1774058020 / Merach Rowing Machine - US - Test2 - Main
+   Account 2: yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - 1775440761 / yeahpromos - Sportsroyals Power Tower Pull Up Bar Station, 450L... - US - Main
+
+24. "king size sheets" ≈ "King size bed sheets" (similarity: 75%)
+   Common tokens: king, size, sheets
+   Match Types: EXACT vs PHRASE
+   Account 1: MellanniSheets_Yeahpromos - 1775303187 / MellanniSheets_Yeahpromos - Main
+   Account 2: yeahpromos - California Design Den California King Sheet Sets -... - US - 1775475596 / yeahpromos - California Design Den California King Sheet Sets -... - US - Main
+
+25. "home air purifier" ≈ "air purifier for home" (similarity: 75%)
+   Common tokens: purifier, home, air
+   Match Types: PHRASE vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+26. "quiet air purifier" ≈ "quiet air purifier bedroom" (similarity: 75%)
+   Common tokens: purifier, quiet, air
+   Match Types: EXACT vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+27. "air purifier allergies" ≈ "air purifier pet allergies" (similarity: 75%)
+   Common tokens: purifier, air, allergies
+   Match Types: PHRASE vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+28. "air purifier bedroom" ≈ "quiet air purifier bedroom" (similarity: 75%)
+   Common tokens: purifier, air, bedroom
+   Match Types: EXACT vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+29. "air purifier smoke filter" ≈ "smoke air purifier" (similarity: 75%)
+   Common tokens: smoke, purifier, air
+   Match Types: EXACT vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+30. "air purifier dust pollen" ≈ "dust air purifier" (similarity: 75%)
+   Common tokens: purifier, dust, air
+   Match Types: EXACT vs EXACT
+   Account 1: Yeahpromos-PuroAir HEPA Air Purifier - US - 1774797059 / PuroAir HEPA Air Purifier - US - Main
+   Account 2: yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - 1775404111 / yeahpromos - WINIX 5520 Air Purifier for Home Large Room Up to ... - US - Main
+
+31. "healthy air fryer" ≈ "Healthy cooking air fryer" (similarity: 75%)
+   Common tokens: healthy, fryer, air
+   Match Types: EXACT vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+32. "air fryer with rotisserie" ≈ "rotisserie air fryer" (similarity: 75%)
+   Common tokens: rotisserie, air, fryer
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+33. "air fryer oven" ≈ "convection oven air fryer" (similarity: 75%)
+   Common tokens: air, oven, fryer
+   Match Types: EXACT vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+34. "convection air fryer" ≈ "convection oven air fryer" (similarity: 75%)
+   Common tokens: air, fryer, convection
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+35. "air fryer 10L" ≈ "XL air fryer 10L" (similarity: 75%)
+   Common tokens: 10l, air, fryer
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+36. "XL air fryer" ≈ "Compact XL air fryer" (similarity: 75%)
+   Common tokens: air, fryer, xl
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - 1775488000 / yeahpromos - Chefman Air Fryer 8 Qt | TurboFry® 4-in-1 with 450... - US - Main
+
+37. "XL air fryer" ≈ "XL air fryer 10L" (similarity: 75%)
+   Common tokens: air, fryer, xl
+   Match Types: PHRASE vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+38. "air fryer rapid cooking" ≈ "rapid air fryer" (similarity: 75%)
+   Common tokens: rapid, air, fryer
+   Match Types: PHRASE vs PHRASE
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+39. "healthy oil-free air fryer" ≈ "healthy air fryer" (similarity: 75%)
+   Common tokens: healthy, fryer, air
+   Match Types: EXACT vs EXACT
+   Account 1: yeahpromos_605_20260404 -air-fryer- 1775275036 / yeahpromos_605_20260404 - Main
+   Account 2: yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - 1775404212 / yeahpromos - CHEFMAN Multifunctional Digital Air Fryer+ Rotisse... - US - Main
+
+--------------------------------------------------------------------------------
+RECOMMENDATIONS
+--------------------------------------------------------------------------------
+1. 🔴 CRITICAL: You have identical keywords competing across accounts.
+   - Consider pausing keywords in one account to reduce CPC
+   - Or differentiate by using different match types in each account
+   - Use negative keywords to partition traffic between accounts
+
+2. 🟡 REVIEW: Highly similar keywords may be bidding on same searches.
+   - Review if both accounts need these overlapping terms
+   - Consider using negative keywords to prevent overlap
+
+3. General tips:
+   - Use negative keywords strategically (e.g., brand names, product categories)
+   - Consider different bidding strategies per account
+   - Monitor CPC trends after making changes
+   - One way to reduce competition: use different match types per account
+
+================================================================================

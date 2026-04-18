@@ -46,6 +46,16 @@
 
 ---
 
+## 亚马逊促销提醒 (每周一)
+
+当收到 cron 触发时 (`亚马逊促销提醒 (每周一)`):
+
+1. 执行: `bash /root/.openclaw/workspace/scripts/run-promotion-reminder.sh`
+2. 生成未来90天内的促销节点提醒
+3. 通过飞书发送给用户
+
+---
+
 ## AI筛选准则
 
 ### ✅ 应保留的内容
