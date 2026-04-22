@@ -209,6 +209,49 @@ def get_google_ads_campaigns_with_urls(customer_id: str, require_spend: bool = T
         return []
 
 
+def extract_clean_amazon_url(url: str) -> str:
+    """Strip tracking parameters from Amazon URL for availability checks.
+    
+    Removes: &maas=, &tag=, &m=, &aa_campaignid=, &aa_adgroupid=,
+             &aa_creativeid=, &ref=, and other affiliate/tracking params.
+    Keeps: amazon.com/dp/ASIN or amazon.com/gp/product/ASIN
+    """
+    if not url:
+        return url
+    
+    # Extract ASIN
+    asin_match = re.search(r'/dp/([A-Z0-9]{10})', url)
+    if not asin_match:
+        asin_match = re.search(r'/gp/product/([A-Z0-9]{10})', url)
+    
+    if asin_match:
+        asin = asin_match.group(1)
+        # Check if URL uses /dp/ or /gp/product/
+        if '/dp/' in url:
+            return f"https://www.amazon.com/dp/{asin}"
+        elif '/gp/product/' in url:
+            return f"https://www.amazon.com/gp/product/{asin}"
+    
+    # Fallback: strip known tracking params via parse_qs
+    from urllib.parse import urlparse, parse_qs, urlencode
+    parsed = urlparse(url)
+    if "amazon.com" not in parsed.netloc:
+        return url
+    
+    # Keep only asin-related params, drop all tracking/attribution params
+    tracking_params = {
+        'maas', 'tag', 'm', 'aa_campaignid', 'aa_adgroupid', 'aa_creativeid',
+        'ref', 'linkCode', 'camp', 'creative', 'pf_rd_p', 'pf_rd_r',
+        'gclid', 'fbclid', 'utm_source', 'utm_medium', 'utm_campaign'
+    }
+    qs = parse_qs(parsed.query)
+    clean_qs = {k: v for k, v in qs.items() if k.lower() not in tracking_params}
+    clean_query = urlencode(clean_qs, doseq=True) if clean_qs else ""
+    
+    base = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    return f"{base}?{clean_query}" if clean_query else base
+
+
 def check_amazon_product_with_decodo(url: str) -> ProductCheck:
     """Check Amazon product availability using Decodo scraper.
     
@@ -223,6 +266,9 @@ def check_amazon_product_with_decodo(url: str) -> ProductCheck:
             status="error",
             error_message="Could not extract ASIN from URL"
         )
+    
+    # Strip tracking params before checking - Decodo doesn't need attribution params
+    clean_url = extract_clean_amazon_url(url)
     
     try:
         # Use decodo scraper - it's installed at the skill level
@@ -264,8 +310,8 @@ def check_amazon_product_with_decodo(url: str) -> ProductCheck:
                 error_message="DECODO_AUTH_TOKEN not found"
             )
         
-        # Build command with environment
-        cmd = f'''cd "{decodo_skill_dir}" && DECODO_AUTH_TOKEN="{decodo_token}" python3 tools/scrape.py --target amazon --url "{url}" 2>&1'''
+        # Build command with environment - use clean URL for Decodo
+        cmd = f'''cd "{decodo_skill_dir}" && DECODO_AUTH_TOKEN="{decodo_token}" python3 tools/scrape.py --target amazon --url "{clean_url}" 2>&1'''
         
         result = os.popen(cmd).read()
         
