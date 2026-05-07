@@ -266,6 +266,86 @@ python3 -m src.main --command research \
 - **流程**: URL + 佣金率 → Decodo提取 → 自动构建product_description → 创建广告
 - **校验**: 创建广告后自动执行广告校验（使用verify_ads.py）
 
+### 暂停广告系列记录 (2026-04-25)
+- **暂停日志**: `/root/.openclaw/workspace/autoads/archer-roi/logs/paused_campaigns.json`
+- **必填字段**: ASIN, campaign_id, paused_at, reason, note
+- **暂停原因选项**: 联盟通知暂停 / ROI过低 / 无订单 / 商品下架 / 其他
+- **状态**: ✅ 已配置
+
+### 联盟广告暂停规则 (2026-05-02 新增Rule 5)
+**Archer** (`runner.py` → `check_low_roi_trends`):
+- Rule 1: 累计花费>$50 AND ROI<100%持续3天 AND 每天aff_clicks>0 → pause
+- Rule 5 (NEW): **总点击>50** AND 累计佣金<$20 AND confirmed CVR<3% → pause [佣金<$20 + CVR<3% + 点击>50三重条件]
+
+**YeahPromos/PartnerBoost** (`generate_affiliate_report.py` → `check_pause_rules_new`):
+- Rule 1: T-3/T-2有点击 AND 总点击>50 AND confirmed=0 → pause
+- Rule 2: T-3/T-2有点击 AND 总点击>50 AND ROI_usd≤110% → pause
+- Rule 3: T-3~T总点击>40 AND pending=0 → pause
+- Rule 4: T-3~T总点击>40 AND CVR≤3% → pause [CVR=(confirmed+pending)/gads_clicks，无点击门槛]
+- Rule 5 (NEW): **总点击>50** AND 佣金<$20 AND confirmed CVR<3% → pause [confirmed CVR=confirmed/gads_clicks，点击>50门槛]
+
+**Rule 4 vs Rule 5 区别**：
+| | Rule 4 | Rule 5 |
+|---|---|---|
+| 点击门槛 | >40（无） | >50（有） |
+| CVR公式 | (confirmed+pending)/gads_clicks | confirmed/gads_clicks |
+| 佣金门槛 | 无 | <$20 |
+| 适用 | Y/PB通用 | Y/PB通用 |
+
+### 联盟广告预算增加规则 (2026-05-02 新增)
+**文件**: `/root/.openclaw/workspace/autoads/archer-roi/budget_rules.py`
+**逻辑**: 独立查询每日cost（不改roi_history），触发时自动+CNY 20
+
+**规则条件**:
+- Archer: 连续2天花费>=预算 AND (confirmed CVR>=150% OR ROI>=150%)
+- YeahPromos/PartnerBoost: 连续2天花费>=预算 AND confirmed CVR>=150%
+
+**实现函数**:
+| 函数 | 功能 |
+|------|------|
+| `get_gads_daily_costs_by_asin()` | 独立按天查询每日cost |
+| `get_campaign_budget()` | 查询Campaign当前每日预算 |
+| `increase_campaign_budget()` | 预算+CNY 20 |
+| `check_and_increase_budgets()` | 主规则逻辑 |
+
+**待集成**: `runner.py` main() 流程中调用 `check_and_increase_budgets()`
+
+### 广告系列数据库 (2026-04-25)
+**新建广告时自动记录的数据库表**
+- **数据库文件**: `/root/.openclaw/workspace/autoads/logs/ad_campaigns_db.json`
+- **模块**: `autoads/src/ad_campaigns_db.py`
+
+**记录字段**:
+| 字段 | 说明 |
+|------|------|
+| campaign_id | Google Ads广告系列ID |
+| campaign_name | 广告系列名称 |
+| account_id | Google Ads账户ID |
+| asin | Amazon ASIN |
+| product_name | 商品名称 |
+| price | 商品单价(USD) |
+| commission_rate | 佣金率 |
+| network | 联盟网络(archer/yeahpromos/partnerboost) |
+| url | 产品URL |
+| cpc_bid | CPC出价 |
+| status | 状态(ENABLED/PAUSED) |
+| created_at | 创建时间 |
+
+**查询函数**:
+```python
+from ad_campaigns_db import (
+    save_campaign_record,      # 保存记录
+    get_campaigns_by_asin,     # 按ASIN查询
+    get_campaigns_by_account,   # 按账户查询
+    get_campaign_by_id,        # 按ID查询
+    get_campaigns_by_network,  # 按联盟查询
+    get_campaigns_for_cpc_check,  # 获取需CPC检查的 campaigns
+    get_summary               # 获取统计摘要
+)
+```
+
+**状态**: ✅ 已配置，创建广告成功后自动记录
+
 ### ⚠️ URL Suffix 处理规则 (2026-04-04)
 **【重要】用户提供完整Amazon URL时，程序应自动从?后提取suffix**
 - **完整URL示例**: `https://www.amazon.com/dp/B00SU0QSZ8?maas=xxx&tag=xxx&aa_campaignid=...`

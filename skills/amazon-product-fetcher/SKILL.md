@@ -1,14 +1,14 @@
 ---
 name: amazon-product-fetcher
-description: Fetch complete Amazon product data including title, current price, currency, star rating, review count, availability, main image, and product URL. Works from an Amazon URL or ASIN. No API key required. Trigger when asked to "get Amazon product info", "fetch Amazon price", "look up product on Amazon", "what does X cost on Amazon".
-version: 1.0.0
+description: Fetch complete Amazon product data including title, current price, currency, star rating, review count, availability, main image, and product URL. Works from an Amazon URL or ASIN. Uses Decodo API (no direct Amazon scraping, no CAPTCHA). Trigger when asked to "get Amazon product info", "fetch Amazon price", "look up product on Amazon", "what does X cost on Amazon".
+version: 2.0.0
 license: MIT
 metadata: {"openclaw": {"emoji": "🛒", "requires": {"bins": []}}}
 ---
 
 # Amazon Product Fetcher 🛒
 
-从 Amazon 公开商品页面抓取完整商品数据，**无需任何 API Key**，纯 Python 标准库。
+通过 Decodo API 获取 Amazon 商品完整数据，**无 CAPTCHA 封禁**，纯 Python 标准库。
 
 ## When to Use
 
@@ -20,11 +20,11 @@ metadata: {"openclaw": {"emoji": "🛒", "requires": {"bins": []}}}
 ## Quick Start
 
 ```bash
-# 通过 URL
-python scripts/fetch.py --url "https://www.amazon.com/dp/B0CX44VMKZ"
-
 # 通过 ASIN
 python scripts/fetch.py --asin B0CX44VMKZ
+
+# 通过 URL
+python scripts/fetch.py --url "https://www.amazon.com/dp/B0CX44VMKZ"
 
 # JSON 格式输出
 python scripts/fetch.py --asin B0CX44VMKZ --json
@@ -37,39 +37,36 @@ python scripts/fetch.py --asin B0CX44VMKZ --json
 | `asin` | Amazon 商品编号 |
 | `title` | 商品标题 |
 | `price` | 当前价格数字 |
-| `currency` | 货币符号（如 `$`、`€`） |
+| `currency` | 货币符号（如 `USD`） |
 | `rating` | 星级评分（如 `4.5`） |
 | `reviews` | 评论数量 |
 | `availability` | 库存状态 |
 | `image_url` | 主图 URL |
 | `product_url` | Amazon 商品链接 |
 
-## No API Key Needed
+## Decodo API
 
-直接解析 Amazon 公开商品页面 HTML。使用真实浏览器 User-Agent 避免被屏蔽。
+使用 Decodo scraper-api (`https://scraper-api.decodo.com/v2/scrape`)：
 
-> **提示：** Amazon 偶尔会返回 CAPTCHA 页面。若出现此情况，稍后重试即可。大批量抓取请使用 `skill-amazon-spapi`（需要卖家凭证）。
+1. **amazon_pricing** — 获取价格、Condition、Seller（优先使用）
+2. **amazon** — 全量解析（fallback，包含标题/评分/评论/图片）
 
-## Configuration (openclaw.json)
+内置速率限制：**每请求间隔 0.1~0.3 秒**（约 5 req/s）。
 
-无需配置 API Key。可选配置：
+## Authentication
 
-```json
-{
-  "skills": {
-    "entries": {
-      "amazon-product-fetcher": {
-        "enabled": true
-      }
-    }
-  }
-}
+内置了默认 Decodo token。如需使用自己的 token，设置环境变量：
+
+```bash
+export DECODO_AUTH_TOKEN="your_base64_token"
 ```
+
+或通过 `--token` 参数传入。
 
 ## Troubleshooting
 
 | 问题 | 解决方案 |
 |------|----------|
-| 价格为空 | Amazon 可能使用了不同的价格 widget；重试一次 |
-| CAPTCHA / 503 | 等待 30 秒后重试 |
-| 无法从 URL 提取 ASIN | 改用 `--asin` 直接传入 |
+| 价格为空 | 商品无定价或 API 解析失败，尝试换 ASIN |
+| error: fetch_failed | 网络问题或 Decodo API 不可用 |
+| error: no_response | Decodo API 无响应，检查网络连接 |

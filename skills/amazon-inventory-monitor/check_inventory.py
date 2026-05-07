@@ -510,8 +510,11 @@ def main():
     parser = argparse.ArgumentParser(description="Check Amazon inventory for Google Ads")
     parser.add_argument(
         "--customer-id",
-        required=True,
-        help="Google Ads Customer ID (without dashes)"
+        help="Single Google Ads Customer ID (without dashes)"
+    )
+    parser.add_argument(
+        "--customer-ids",
+        help="Comma-separated Google Ads Customer IDs (without dashes)"
     )
     parser.add_argument(
         "--output",
@@ -536,20 +539,29 @@ def main():
     
     args = parser.parse_args()
     
+    # Determine customer IDs to check
+    customer_ids = []
+    if args.customer_ids:
+        customer_ids = [cid.strip() for cid in args.customer_ids.split(',') if cid.strip()]
+    elif args.customer_id:
+        customer_ids = [args.customer_id]
+    else:
+        logger.error("Either --customer-id or --customer-ids must be provided")
+        return
+    
     require_spend = not args.no_spend_filter
     
-    logger.info(f"Starting inventory check for customer {args.customer_id}")
-    if require_spend:
-        logger.info("Filtering to ASINs with spend/clicks in last 7 days")
-    else:
-        logger.info("Checking all ASINs (no spend filter)")
-    
-    reports = check_all_campaigns(args.customer_id, max_workers=args.parallel, require_spend=require_spend)
+    # Check all customer IDs and aggregate reports
+    all_reports = []
+    for cid in customer_ids:
+        logger.info(f"Checking customer {cid}...")
+        reports = check_all_campaigns(cid, max_workers=args.parallel, require_spend=require_spend)
+        all_reports.extend(reports)
     
     if args.json:
         # Output as JSON
         output = []
-        for r in reports:
+        for r in all_reports:
             output.append({
                 "campaign_id": r.campaign_id,
                 "campaign_name": r.campaign_name,
@@ -569,7 +581,7 @@ def main():
         print(json.dumps(output, indent=2))
     else:
         # Generate formatted report
-        report_text = generate_report(reports)
+        report_text = generate_report(all_reports)
         print(report_text)
         
         if args.output:

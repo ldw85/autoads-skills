@@ -136,6 +136,18 @@
     "web-tools-guide": {
       "version": "1.0.0",
       "installedAt": 1775297571230
+    },
+    "planning-with-files": {
+      "version": "2.26.1",
+      "installedAt": 1777076372806
+    },
+    "mail": {
+      "version": "",
+      "installedAt": 1777295214810
+    },
+    "composio": {
+      "version": "1.0.0",
+      "installedAt": 1777544146390
     }
   }
 }

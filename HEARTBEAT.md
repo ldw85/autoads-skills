@@ -4,6 +4,22 @@
 
 收到以下 systemEvent 时执行对应任务：
 
+## Composio Outlook 邮件监控 (每日2次)
+
+当收到 cron 触发时 (`composio_email_monitor`):
+
+1. 执行: `python3 /root/.openclaw/workspace/scripts/composio_email_monitor.py --check`
+2. 读取 Outlook 邮件，过滤 yeahpromos.com 发来的邮件
+3. 提取 ASIN 和 MID
+4. 通过 MID→ASIN 映射查找关联的 ASIN
+5. 汇总需要暂停的 ASIN 列表
+6. 用户确认后执行暂停并记录
+
+注意：
+- 已处理的邮件ID记录在 `logs/processed_emails.json`
+- MID→ASIN 映射记录在 `logs/mid_asin_mapping.json`
+- 暂停日志记录在 `logs/paused_campaigns.json`
+
 ## 每日简报任务 (早上9点)
 
 ### 任务: 每日趋势简报
@@ -14,21 +30,20 @@
 4. **排除标准**: 体育赛事、娱乐综艺、名人八卦、生活方式类内容
 5. 整理成简报格式发送给用户
 
-## Archer ROI 报告 (8:00 和 12:00)
+## 每日Affiliate ROI报告 (8:00)
 
-当收到 `systemEvent: "archer_roi_8am"` 或 `systemEvent: "archer_roi_12pm"` 时：
+当收到 cron 触发时 (`每日Affiliate ROI报告`):
 
-1. 执行: `cd /root/.openclaw/workspace/autoads/archer-roi && python3 runner.py --roi --network archer --days 30`
-2. 整理ROI报告（佣金/成本）
-3. 发送给用户
+1. 执行: `cd /root/.openclaw/workspace/autoads/archer-roi && bash scripts/run-affiliate-report.sh`
+2. 生成YeahPromos和PartnerBoost的详细ROI报告（含CVR、佣金、成本、点击等）
+3. 检查暂停规则，整理飞书报告并发送给用户
 
-## Archer 产品监控 (每2小时)
+报告格式：
+```
+ASIN: B0D4QVWHFN | GADS Clicks: 317 | Orders: 9 (Cnf: 2, Pnd: 7) | Comm: $44.00 | GADS Cost: $367.18 | ROI: 75.3% | CVR: 2.84% | ConfirmedCVR: 0.63%
+```
 
-当收到 `systemEvent: "archer_product_check"` 时：
-
-1. 执行: `cd /root/.openclaw/workspace/autoads/archer-roi && python3 runner.py --check --pause --network archer`
-2. 检查商品状态
-3. **如有不可用商品，自动暂停对应广告系列，并通知用户**
+暂停规则检测：Rule 2(低ROI)、Rule 3(Pending为0)、Rule 4(低CVR)、Rule 5(低佣金+低CVR)
 
 ---
 

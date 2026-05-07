@@ -1,44 +1,62 @@
 #!/usr/bin/env python3
 """
-Amazon Product Fetcher — stdlib only, no pip dependencies.
-Fetches title, price, rating, reviews, availability, image from a public Amazon page.
+Amazon Product Fetcher — via Decodo API (no direct Amazon scraping)
+
+Uses Decodo's scraper-api to fetch Amazon product data without
+being blocked by CAPTCHA or IP blocks.
 
 Usage:
-    python fetch.py --url "https://www.amazon.com/dp/B0CX44VMKZ"
     python fetch.py --asin B0CX44VMKZ
     python fetch.py --asin B0CX44VMKZ --json
 """
 
 import argparse
-import html
 import json
 import os
 import re
 import sys
+import time
+import random
 import urllib.request
+import urllib.error
 
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
 
-MARKETPLACE = os.environ.get("AMAZON_MARKETPLACE", "www.amazon.com")
+SCRAPE_URL = "https://scraper-api.decodo.com/v2/scrape"
+
+# Decodo credentials — set via environment variable
+# DECODO_AUTH_TOKEN=your_token (base64 encoded "user:password")
+# Or use the pre-configured token from decodo-scraper skill
+DEFAULT_AUTH = "VTAwMDAzODA1MDQ6UFdfMWI3MjgzMzRmOTE4NjdlMmU3ZDY4ZWVmNzE4ZDEwMzY1"
 
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "x-integration": "openclaw",
 }
+
+# Rate limiting: 0.1-0.3s between calls (~5 req/s)
+MIN_DELAY = 0.1
+MAX_DELAY = 0.3
+
+_last_call = 0
+
+def rate_limit():
+    global _last_call
+    now = time.time()
+    elapsed = now - _last_call
+    if elapsed < MIN_DELAY:
+        time.sleep(MIN_DELAY - elapsed + random.uniform(0, 0.05))
+    _last_call = time.time()
+
 
 # ---------------------------------------------------------------------------
 # URL / ASIN helpers
 # ---------------------------------------------------------------------------
 
 def extract_asin_from_url(url: str) -> str | None:
-    """Extract ASIN from any Amazon URL format."""
     for pattern in [
         r"/dp/([A-Z0-9]{10})",
         r"/gp/product/([A-Z0-9]{10})",
@@ -52,116 +70,158 @@ def extract_asin_from_url(url: str) -> str | None:
 
 
 def build_url(asin: str) -> str:
-    return f"https://{MARKETPLACE}/dp/{asin}"
+    return f"https://www.amazon.com/dp/{asin}"
 
 
 # ---------------------------------------------------------------------------
-# HTTP fetch
+# Decodo API fetch
 # ---------------------------------------------------------------------------
 
-def fetch_page(url: str) -> str:
-    req = urllib.request.Request(url, headers=HEADERS)
+def fetch_via_decodo(asin: str, auth_token: str = None) -> dict:
+    """
+    Fetch Amazon product data via Decodo API.
+    
+    Tries amazon_pricing first (returns price + seller info),
+    falls back to amazon (full page parse).
+    """
+    token = auth_token or os.environ.get("DECODO_AUTH_TOKEN") or DEFAULT_AUTH
+    headers = {**HEADERS, "Authorization": f"Basic {token}"}
+    
+    # Try amazon_pricing first (cheaper, sufficient for price)
+    price_data = _fetch_pricing(asin, headers)
+    if price_data:
+        return price_data
+    
+    # Fall back to full amazon parse
+    return _fetch_full(asin, headers)
+
+
+def _fetch_pricing(asin: str, headers: dict) -> dict | None:
+    """Use amazon_pricing target — returns price, condition, seller."""
+    payload = json.dumps({
+        "target": "amazon_pricing",
+        "query": asin,
+        "headless": "html",
+        "page_from": "1",
+        "parse": True
+    }).encode("utf-8")
+    
+    req = urllib.request.Request(SCRAPE_URL, data=payload, headers=headers, method="POST")
+    
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            charset = resp.headers.get_content_charset() or "utf-8"
-            return resp.read().decode(charset, errors="replace")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            
+            results = data.get("results", [])
+            if not results:
+                return None
+            
+            content = results[0].get("content", {})
+            inner = content.get("results", {})
+            parse_code = inner.get("parse_status_code", 0)
+            pricing = inner.get("pricing", [])
+            
+            if parse_code == 12000 and pricing:
+                first = pricing[0]
+                return {
+                    "asin": asin,
+                    "price": str(first.get("price", "")),
+                    "currency": first.get("currency", "USD"),
+                    "condition": first.get("condition", ""),
+                    "seller": first.get("seller", ""),
+                    "availability": first.get("delivery", ""),
+                    "rating": "",
+                    "reviews": "",
+                    "title": inner.get("title", ""),
+                    "image_url": "",
+                    "product_url": build_url(asin),
+                    "source": "decodo_pricing",
+                    "parse_status": parse_code,
+                }
+    except Exception:
+        pass
+    
+    return None
+
+
+def _fetch_full(asin: str, headers: dict) -> dict | None:
+    """Use amazon target — full page parse with title, rating, reviews, image."""
+    url = build_url(asin)
+    payload = json.dumps({
+        "target": "amazon",
+        "url": url,
+        "parse": True,
+    }).encode("utf-8")
+    
+    req = urllib.request.Request(SCRAPE_URL, data=payload, headers=headers, method="POST")
+    
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            
+            results = data.get("results", [])
+            if not results:
+                return None
+            
+            content = results[0].get("content", {})
+            
+            # Parse structured fields from content
+            title = content.get("title", "") or content.get("name", "")
+            price_elem = content.get("price", {})
+            if isinstance(price_elem, dict):
+                price = price_elem.get("value", price_elem.get("raw", ""))
+            else:
+                price = price_elem or ""
+            
+            rating = content.get("rating", "")
+            reviews = content.get("review_count", content.get("reviews", ""))
+            image = content.get("image", content.get("main_image", ""))
+            availability = content.get("availability", content.get("delivery", ""))
+            
+            return {
+                "asin": asin,
+                "price": str(price),
+                "currency": "USD",
+                "condition": "",
+                "seller": "",
+                "availability": availability,
+                "rating": str(rating),
+                "reviews": str(reviews),
+                "title": title,
+                "image_url": image,
+                "product_url": url,
+                "source": "decodo_full",
+                "parse_status": content.get("parse_status_code", ""),
+            }
     except Exception as e:
-        print(f"Error fetching page: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-# ---------------------------------------------------------------------------
-# Field parsers (regex on raw HTML — no lxml/bs4)
-# ---------------------------------------------------------------------------
-
-def _first(patterns: list, text: str) -> str:
-    """Return first capturing group from the first matching pattern."""
-    for p in patterns:
-        m = re.search(p, text, re.DOTALL | re.IGNORECASE)
-        if m:
-            val = html.unescape(m.group(1)).strip()
-            # Remove inner HTML tags if any slipped through
-            val = re.sub(r"<[^>]+>", "", val).strip()
-            if val:
-                return val
-    return ""
-
-
-def parse_title(page: str) -> str:
-    return _first([
-        r'id="productTitle"[^>]*>\s*(.*?)\s*</span>',
-        r'"title"\s*:\s*"([^"]{10,})"',
-    ], page)
-
-
-def parse_price(page: str) -> tuple:
-    """Returns (price_number_str, currency_symbol)."""
-    raw = _first([
-        r'class="a-price[^"]*"[^>]*>.*?<span\s+class="a-offscreen">([^<]+)</span>',
-        r'id="priceblock_ourprice"[^>]*>\s*([^<\n]+)',
-        r'id="priceblock_dealprice"[^>]*>\s*([^<\n]+)',
-        r'class="priceToPay[^"]*"[^>]*>.*?<span[^>]*>\s*([0-9][0-9,\.]*)\s*</span>',
-    ], page)
-    if not raw:
-        return ("", "")
-    raw = raw.strip()
-    m = re.match(r'^([^\d]*)([\d,\.]+)', raw)
-    if m:
-        return (m.group(2).strip(), m.group(1).strip())
-    return (raw, "")
-
-
-def parse_rating(page: str) -> str:
-    return _first([
-        r'class="a-icon-alt">\s*([\d\.]+)\s+out of',
-        r'aria-label="([\d\.]+) out of 5',
-        r'"ratingScore"\s*:\s*"?([\d\.]+)"?',
-    ], page)
-
-
-def parse_reviews(page: str) -> str:
-    return _first([
-        r'id="acrCustomerReviewText"[^>]*>\s*([\d,]+)\s+rating',
-        r'"reviewCount"\s*:\s*"?([\d,]+)"?',
-        r'([\d,]+)\s+(?:global\s+)?ratings?\b',
-    ], page)
-
-
-def parse_availability(page: str) -> str:
-    return _first([
-        r'id="availability"[^>]*>.*?<span[^>]*>\s*(.*?)\s*</span>',
-        r'"availability"\s*:\s*"([^"]+)"',
-    ], page)
-
-
-def parse_image(page: str) -> str:
-    return _first([
-        r'"hiRes"\s*:\s*"(https://[^"]+\.jpg[^"]*)"',
-        r'"large"\s*:\s*"(https://[^"]+\.jpg[^"]*)"',
-        r'id="landingImage"[^>]+src="([^"]+)"',
-        r'id="imgBlkFront"[^>]+src="([^"]+)"',
-    ], page)
+        return {"error": str(e), "asin": asin}
 
 
 # ---------------------------------------------------------------------------
 # Core
 # ---------------------------------------------------------------------------
 
-def fetch_product(asin: str) -> dict:
-    url = build_url(asin)
-    page = fetch_page(url)
-    price, currency = parse_price(page)
-    return {
-        "asin": asin,
-        "title": parse_title(page),
-        "price": price,
-        "currency": currency,
-        "rating": parse_rating(page),
-        "reviews": parse_reviews(page),
-        "availability": parse_availability(page),
-        "image_url": parse_image(page),
-        "product_url": url,
-    }
+def fetch_product(asin: str, auth_token: str = None) -> dict:
+    rate_limit()
+    
+    # Try pricing endpoint first
+    result = fetch_via_decodo(asin, auth_token)
+    
+    if result is None or result.get("error"):
+        return {
+            "asin": asin,
+            "title": "",
+            "price": "",
+            "currency": "",
+            "rating": "",
+            "reviews": "",
+            "availability": "",
+            "image_url": "",
+            "product_url": build_url(asin),
+            "error": result.get("error", "fetch_failed") if result else "no_response",
+        }
+    
+    return result
 
 
 def print_table(d: dict) -> None:
@@ -177,7 +237,8 @@ def print_table(d: dict) -> None:
     ]
     width = max(len(k) for k, _ in rows)
     for k, v in rows:
-        print(f"  {k:<{width}}  {v}")
+        if v:
+            print(f"  {k:<{width}}  {v}")
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +247,7 @@ def print_table(d: dict) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fetch Amazon product data — stdlib only, no API key needed."
+        description="Fetch Amazon product data via Decodo API — no direct scraping, no CAPTCHA."
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--asin", help="Amazon ASIN (e.g. B0CX44VMKZ)")
@@ -196,15 +257,10 @@ def main():
         help="Output as JSON (machine-readable)"
     )
     parser.add_argument(
-        "--marketplace", default=None,
-        help="Amazon domain (default: www.amazon.com). Env: AMAZON_MARKETPLACE"
+        "--token", default=None,
+        help="Decodo auth token (or set DECODO_AUTH_TOKEN env var)"
     )
     args = parser.parse_args()
-
-    # Allow --marketplace flag to override env
-    if args.marketplace:
-        global MARKETPLACE
-        MARKETPLACE = args.marketplace
 
     if args.url:
         asin = extract_asin_from_url(args.url)
@@ -214,12 +270,20 @@ def main():
     else:
         asin = args.asin.strip().upper()
 
-    result = fetch_product(asin)
+    result = fetch_product(asin, auth_token=args.token)
 
     if args.as_json:
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        # Clean output for JSON
+        output = {k: v for k, v in result.items() if v}
+        if "error" in output:
+            print(json.dumps({"status": "error", "error": output["error"], "asin": asin}))
+        else:
+            print(json.dumps(output, ensure_ascii=False, indent=2))
     else:
-        print(f"\n📦 Amazon Product — {asin}\n")
+        if result.get("error"):
+            print(f"\n❌ Failed to fetch {asin}: {result['error']}\n", file=sys.stderr)
+            sys.exit(1)
+        print(f"\n📦 Amazon Product — {asin} (via Decodo)\n")
         print_table(result)
         print()
 

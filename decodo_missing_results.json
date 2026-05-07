@@ -1,0 +1,67 @@
+[
+  {
+    "asin": "B00004R9VW",
+    "price": 79.99,
+    "status": "success"
+  },
+  {
+    "asin": "B07RKW5H68",
+    "price": 25.99,
+    "status": "success"
+  },
+  {
+    "asin": "B085WTVV18",
+    "price": 229.99,
+    "status": "success"
+  },
+  {
+    "asin": "B0BSP4NS28",
+    "price": 199.9,
+    "status": "success"
+  },
+  {
+    "asin": "B001IWNDDA",
+    "price": 119.99,
+    "status": "success"
+  },
+  {
+    "asin": "B0744B55QV",
+    "price": 378.96,
+    "status": "success"
+  },
+  {
+    "asin": "B09CJG22ZT",
+    "price": 99.99,
+    "status": "success"
+  },
+  {
+    "asin": "B001CWX26Y",
+    "price": 112.39,
+    "status": "success"
+  },
+  {
+    "asin": "B0942BQ81N",
+    "price": 79.9,
+    "status": "success"
+  },
+  {
+    "asin": "B0BS4KNVZN",
+    "price": 77.39,
+    "status": "success"
+  },
+  {
+    "asin": "B09J9T8NT2",
+    "price": 54.9,
+    "status": "success"
+  },
+  {
+    "asin": "B00CPGMUXW",
+    "price": 169.0,
+    "status": "success"
+  },
+  {
+    "asin": "B0BHDGZXW5",
+    "price": 139.99,
+    "status": "success"
+  }
+]

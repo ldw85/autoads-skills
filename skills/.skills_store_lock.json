@@ -180,6 +180,24 @@
       "zip_url": "https://lightmake.site/api/v1/download?slug=review-analysis",
       "source": "skillhub",
       "version": "1.0.0"
+    },
+    "planning-with-files": {
+      "name": "Planning with files",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=planning-with-files",
+      "source": "skillhub",
+      "version": "2.26.1"
+    },
+    "mail": {
+      "name": "mail",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=mail",
+      "source": "skillhub",
+      "version": ""
+    },
+    "composio": {
+      "name": "Composio",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=composio",
+      "source": "skillhub",
+      "version": "1.0.0"
     }
   }
 }
