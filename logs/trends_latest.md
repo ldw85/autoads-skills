@@ -1,17 +1,18 @@
-📈 **每日趋势简报** - 2026-05-07
-筛选了 5 条相关内容
+📈 **每日趋势简报** - 2026-05-08
+筛选了 6 条相关内容
 
 📰 其他科技
-• cole ragans (500+)
-  → What happened to Cole Ragans? Live injury updates for Guardi...
-• ncis origins (2000+)
-  → 'NCIS: Origins' Bosses Break Down Shocking Finale and Share ...
-• jonathan survivor (1000+)
-  → ‘Survivor’: Is Jonathan Young In a Relationship? What We Kno...
-• ryan seacrest (1000+)
-  → American Idol host Ryan Seacrest looks back on iconic moment...
-• lindy ruff (500+)
-  → Sabres coach Lindy Ruff fires subtle shot at Bruins coach Ma...
+• gad saad (500+)
+  → Playing Gad
+• flamengo (500+)
+  → Jogo do Flamengo na Libertadores é interrompido por conta de...
+• bryce harper (500+)
+  → Why Bryson Stott is no longer Phillies' primary infield worr...
+• doge humanities grants ruling (500+)
+  → DOGE’s Termination of Humanities Grants Is Ruled Unconstitut...
+• gordon ramsay (500+)
+  → The Unexpected Item Gordon Ramsay Has Been Collecting for Ye...
+  +1 more
 
 ---
 💡 过滤掉了娱乐/体育/政治内容
@@ -23,4 +24,4 @@
 💡 工作日通常有更多 AI/科技 相关趋势
 
 
-🕐 2026/5/7 09:00:53
+🕐 2026/5/8 09:01:52
