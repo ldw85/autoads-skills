@@ -232,6 +232,43 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## 精细化广告创建规则
+
+当用户要求创建精细化分层广告时，必须遵循以下规则：
+
+### Skill 调用优先
+
+1. **检查 Skill**：使用技能前必须先读取 `SKILL.md`，确认脚本内容正确、适配最新需求、参数上送完整
+2. **必须使用 Skill**：有 Skill 时必须使用 Skill 的 CLI 调用，禁止直接调用底层 API
+3. **验证后再用**：如果 Skill 内容不是最新的，先更新为正确版本再使用
+
+### 两种场景及对应 Skill
+
+| 场景 | 使用 Skill | 脚本路径 |
+|------|-----------|---------|
+| 为现有Campaign**追加**精细化分层广告组 | `refined-ads` | `~/.openclaw/workspace/skills/refined-ads/run_skill.py` |
+| **从零创建**全新精细化广告系列 | `refined-campaign-new` | `~/.openclaw/workspace/skills/refined-campaign-new/run_skill.py` |
+
+### 调用示例
+
+```bash
+# 场景1：追加到现有Campaign
+cd ~/.openclaw/workspace/skills/refined-ads
+python3 run_skill.py --campaign-id 23845759879 --customer-id 6052559425
+
+# 场景2：从零创建新Campaign
+cd ~/.openclaw/workspace/skills/refined-campaign-new
+python3 run_skill.py --url "https://..." --brand ROVE --product-name "Dash Cam" --price 79.99 --commission-rate 0.075 --customer-id 6052559425
+```
+
+### 教训（2026-05-14）
+
+- 直接调用 API 绕过了 `RefinedBidOptimizer` 的完整逻辑
+- 导致广告组创建成功但广告素材缺失
+- 必须使用 Skill 调用，确保完整流程执行
+
+---
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
