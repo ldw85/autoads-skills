@@ -1,8 +1,10 @@
 #!/bin/bash
 # Amazon Inventory Monitor - Wrapper Script
-# Runs the inventory check for all accounts and sends results to Feishu
+# Runs the inventory check for Archer联盟 only and sends results to Feishu
+#
+# Archer Customer ID: 6660356395
 
-CUSTOMER_IDS="3674729801,3645726299,4772859239,6052559425,6660356395"
+CUSTOMER_IDS="6660356395"
 LOG_FILE="/root/.openclaw/workspace/logs/inventory_check.log"
 OUTPUT_FILE="/root/.openclaw/workspace/logs/inventory_report.txt"
 

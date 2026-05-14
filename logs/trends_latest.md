@@ -1,18 +1,17 @@
-📈 **每日趋势简报** - 2026-05-08
-筛选了 6 条相关内容
+📈 **每日趋势简报** - 2026-05-14
+筛选了 5 条相关内容
 
 📰 其他科技
-• gad saad (500+)
-  → Playing Gad
-• flamengo (500+)
-  → Jogo do Flamengo na Libertadores é interrompido por conta de...
-• bryce harper (500+)
-  → Why Bryson Stott is no longer Phillies' primary infield worr...
-• doge humanities grants ruling (500+)
-  → DOGE’s Termination of Humanities Grants Is Ruled Unconstitut...
-• gordon ramsay (500+)
-  → The Unexpected Item Gordon Ramsay Has Been Collecting for Ye...
-  +1 more
+• nick foligno (500+)
+  → Foligno Face-Off wraps up on Mother's Day, raises more than ...
+• pope leo (500+)
+  → Mayor Brandon Johnson to meet with Pope Leo XIV during Vatic...
+• tulsi gabbard (2000+)
+  → Rep. Anna Luna threatens to subpoena CIA over MK-Ultra files
+• ceddanne rafaela (500+)
+  → After internal shakeup, Red Sox interim manager says lineup ...
+• dennis schroder (500+)
+  → Cleveland Cavaliers Star Dennis Schroder Makes Instagram Pos...
 
 ---
 💡 过滤掉了娱乐/体育/政治内容
@@ -24,4 +23,4 @@
 💡 工作日通常有更多 AI/科技 相关趋势
 
 
-🕐 2026/5/8 09:01:52
+🕐 2026/5/14 09:00:48

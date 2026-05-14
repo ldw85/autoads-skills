@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""
+Refined Ads Skill - Create Layered Ad Groups with AI-powered Brand Extraction
+
+This script creates refined/layered keyword ad groups in Google Ads.
+It extracts existing ad content from Main ad group, uses AI to identify brand/core_terms,
+and creates L1/L2/L3/L5 layered ad groups with proper keywords and ads.
+
+Usage:
+    python3 run_skill.py --campaign-id 23838920800 --customer-id 6052559425 [--brand Rove] [--product-url ...]
+"""
+
+import sys
+import os
+import subprocess
+import argparse
+import json
+import logging
+import time
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Change to autoads directory
+AUTOADS_DIR = '/root/.openclaw/workspace/autoads'
+os.chdir(AUTOADS_DIR)
+
+# Import the refined_bid_optimizer directly
+sys.path.insert(0, AUTOADS_DIR)
+from src.refined_bid_optimizer import RefinedBidOptimizer
+
+
+def validate_params(args) -> tuple:
+    """Validate all parameters before execution."""
+    if not args.campaign_id:
+        return False, "Campaign ID is required (--campaign-id)"
+    
+    if not args.customer_id:
+        return False, "Customer ID is required (--customer-id)"
+    
+    if args.price and (args.price <= 0 or args.price > 10000):
+        return False, f"Price must be between 0 and 10000 (got {args.price})"
+    
+    if args.commission_rate is not None:
+        if args.commission_rate <= 0 or args.commission_rate > 1:
+            return False, f"Commission rate must be between 0 and 1 (got {args.commission_rate})"
+    
+    return True, ""
+
+
+def get_campaign_info(customer_id, campaign_id):
+    """Get campaign info including existing ad content."""
+    optimizer = RefinedBidOptimizer()
+    
+    # Extract existing ad content (includes AI brand/core_term extraction)
+    ad_content = optimizer.extract_existing_ad_content(customer_id, campaign_id)
+    
+    if not ad_content:
+        return None, "Could not extract ad content from Main ad group"
+    
+    return ad_content, None
+
+
+def create_layered_ads(customer_id, campaign_id, ad_content, brand=None, price=None, 
+                        commission_rate=None, product_url=None):
+    """Create layered ad groups using existing ad content."""
+    optimizer = RefinedBidOptimizer()
+    
+    # Use provided brand or AI-extracted brand
+    effective_brand = brand or ad_content.brand or "Product"
+    effective_url = product_url or ad_content.final_url
+    
+    # Calculate max_cpc if not provided
+    if price and commission_rate:
+        max_cpc = optimizer.calculate_max_cpc(price, commission_rate)
+    else:
+        max_cpc = 1.0  # Default
+        logger.warning("No price/commission provided, using default CPC")
+    
+    # Generate keywords with better brand/core_terms from AI
+    logger.info(f"Generating keywords with brand={effective_brand}, core_terms={ad_content.core_product_terms}")
+    
+    try:
+        result = optimizer.generate_from_product_info(
+            product_name=effective_brand,
+            brand=effective_brand,
+            price=price or 99.99,
+            commission_rate=commission_rate or 0.05,
+            url=effective_url or "https://www.amazon.com",
+            customer_id=customer_id,
+            country='US'
+        )
+        
+        # Override brand/core_terms with AI-extracted values
+        if ad_content.brand:
+            result['brand'] = ad_content.brand
+        if ad_content.core_product_terms:
+            result['core_product_terms'] = ad_content.core_product_terms
+        
+        logger.info(f"Generated keywords for layers: {list(result.get('layers', {}).keys())}")
+        
+        # Create ad groups with ads
+        created = optimizer.create_ad_groups(
+            customer_id=customer_id,
+            campaign_id=campaign_id,
+            result=result,
+            include_ads=True,
+            ad_content=ad_content
+        )
+        
+        return created, None
+        
+    except Exception as e:
+        logger.error(f"Failed to create layered ads: {e}")
+        return None, str(e)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Refined Ads Skill - Create Layered Ad Groups',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Required parameters
+    parser.add_argument('--campaign-id', required=True, help='Target campaign ID')
+    parser.add_argument('--customer-id', required=True, help='Google Ads customer ID')
+    
+    # Optional parameters for better keyword generation
+    parser.add_argument('--brand', help='Brand name (will be extracted from ads if not provided)')
+    parser.add_argument('--product-url', help='Product URL for keyword research')
+    parser.add_argument('--price', type=float, help='Product price in USD')
+    parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate')
+    parser.add_argument('--country', default='US', help='Target country (default: US)')
+    
+    args = parser.parse_args()
+    
+    # Validate parameters
+    is_valid, error_msg = validate_params(args)
+    if not is_valid:
+        logger.error(f"Validation failed: {error_msg}")
+        print(f"ERROR: {error_msg}")
+        sys.exit(1)
+    
+    print("="*70)
+    print("🔧 Refined Ads Skill - Creating Layered Ad Groups")
+    print("="*70)
+    print(f"\n📋 Campaign ID: {args.campaign_id}")
+    print(f"📋 Customer ID: {args.customer_id}")
+    if args.brand:
+        print(f"📋 Brand: {args.brand}")
+    if args.price:
+        print(f"📋 Price: ${args.price}")
+    
+    # Step 1: Get existing ad content from Main ad group
+    print("\n⏳ Step 1: Extracting ad content from Main ad group...")
+    ad_content, error = get_campaign_info(args.customer_id, args.campaign_id)
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    print(f"   ✅ Extracted {len(ad_content.headlines)} headlines")
+    print(f"   ✅ Extracted {len(ad_content.descriptions)} descriptions")
+    print(f"   ✅ Extracted {len(ad_content.sitelinks)} sitelinks")
+    if ad_content.brand:
+        print(f"   ✅ AI identified brand: {ad_content.brand}")
+    if ad_content.core_product_terms:
+        print(f"   ✅ AI extracted core terms: {ad_content.core_product_terms}")
+    if ad_content.url_suffix:
+        print(f"   ✅ URL suffix present")
+    
+    time.sleep(1)
+    
+    # Step 2: Create layered ad groups
+    print("\n⏳ Step 2: Creating layered ad groups...")
+    created, error = create_layered_ads(
+        customer_id=args.customer_id,
+        campaign_id=args.campaign_id,
+        ad_content=ad_content,
+        brand=args.brand,
+        price=args.price,
+        commission_rate=args.commission_rate,
+        product_url=args.product_url
+    )
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    # Print results
+    print("\n" + "="*70)
+    print("✅ SUCCESS: Layered Ad Groups Created")
+    print("="*70)
+    
+    total_layers = 0
+    total_keywords = 0
+    total_sitelinks = 0
+    
+    for layer, data in created.items():
+        if isinstance(data, dict) and 'ad_group_id' in data:
+            total_layers += 1
+            total_keywords += data.get('keywords_added', 0)
+            total_sitelinks += data.get('sitelinks_added', 0)
+            status = '✅' if data.get('ad_group_id') else '❌'
+            print(f"\n  {status} {layer}: {data.get('name', 'N/A')}")
+            print(f"     AdGroup ID: {data.get('ad_group_id', 'N/A')}")
+            print(f"     Keywords: {data.get('keywords_added', 0)}")
+            print(f"     Ads: {'✅' if data.get('ads_created') else '❌'}")
+            print(f"     Sitelinks: {data.get('sitelinks_added', 0)}")
+    
+    print(f"\n📊 Summary:")
+    print(f"   Total Layers Created: {total_layers}")
+    print(f"   Total Keywords: {total_keywords}")
+    print(f"   Total Sitelinks: {total_sitelinks}")
+    print("\n" + "="*70)
+
+
+if __name__ == '__main__':
+    main()
