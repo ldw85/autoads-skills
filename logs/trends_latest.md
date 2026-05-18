@@ -1,17 +1,26 @@
-📈 **每日趋势简报** - 2026-05-14
-筛选了 5 条相关内容
+📈 **每日趋势简报** - 2026-05-18
+筛选了 8 条相关内容
+
+📱 产品/硬件
+• nba finals (2000+)
+  → NBA Playoffs: What to expect in Thunder-Spurs series
+
+💼 商业/创业
+• jb bickerstaff (500+)
+  → Detroit Pistons' starting lineups for Game 7 vs. Cleveland C...
 
 📰 其他科技
-• nick foligno (500+)
-  → Foligno Face-Off wraps up on Mother's Day, raises more than ...
-• pope leo (500+)
-  → Mayor Brandon Johnson to meet with Pope Leo XIV during Vatic...
-• tulsi gabbard (2000+)
-  → Rep. Anna Luna threatens to subpoena CIA over MK-Ultra files
-• ceddanne rafaela (500+)
-  → After internal shakeup, Red Sox interim manager says lineup ...
+• evan mobley (2000+)
+  → Allen, Mobley need to step up
+• sam merrill (1000+)
+  → Why Ausar Thompson wasn’t ejected from Game 6 for slamming S...
+• liberty university (500+)
+  → Mother inspired by her late daughter’s dream to attend Liber...
+• tornado warning nebraska (2000+)
+  → LIVE: Severe thunderstorm warning in effect north of Omaha m...
 • dennis schroder (500+)
-  → Cleveland Cavaliers Star Dennis Schroder Makes Instagram Pos...
+  → Former Warriors guard once again proving teams fail to reali...
+  +1 more
 
 ---
 💡 过滤掉了娱乐/体育/政治内容
@@ -23,4 +32,4 @@
 💡 工作日通常有更多 AI/科技 相关趋势
 
 
-🕐 2026/5/14 09:00:48
+🕐 2026/5/18 09:01:26
