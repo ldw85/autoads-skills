@@ -197,18 +197,9 @@ def check_emails_and_pause(dry_run=True):
     
     asins_to_pause = list(set(asins_to_pause))
     
-    # 构建飞书通知消息
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    email_count = len(yeahpromos_emails)
-    
     if not asins_to_pause:
         print("✅ 没有需要暂停的 ASIN")
         save_processed_emails(processed_ids)
-        # 发送飞书通知
-        notification = f"📧 **Composio邮件监控** - {timestamp}\n\n"
-        notification += f"检查 {email_count} 封YeahPromos邮件\n"
-        notification += f"✅ 无需暂停的ASIN"
-        send_feishu_notification(notification)
         return
     
     print(f"\n🛑 需要暂停的 ASIN: {asins_to_pause}")

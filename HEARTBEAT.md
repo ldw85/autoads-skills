@@ -20,7 +20,19 @@
 - MID→ASIN 映射记录在 `logs/mid_asin_mapping.json`
 - 暂停日志记录在 `logs/paused_campaigns.json`
 
-## 每日简报任务 (早上9点)
+## 搜索词质量分析 (每2小时)
+
+当收到 cron 触发时 (`search_term_analyzer`):
+
+1. 执行: `python3 /root/.openclaw/workspace/scripts/search_term_analyzer.py --all-spending --cron`
+2. 分析过去7天有花费>=$1的所有广告系列
+3. 语义分析：识别办公打印机、价格导向、竞品品牌等不相关搜索词
+4. 按问题类型分类输出（OFFICE_PRINTER/SHOPPING/PLATFORM等）
+5. 发送飞书通知给用户确认
+
+注意：仅当发现高风险搜索词时才发送通知
+
+## 每日趋势简报 (早上9点)
 
 ### 任务: 每日趋势简报
 
