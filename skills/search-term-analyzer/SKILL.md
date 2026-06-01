@@ -1,63 +1,70 @@
-# Search Term Analyzer Skill
+---
+name: search-term-analyzer
+description: 分析Google Ads广告系列的搜索词报告，判断语义相关性并生成否定词建议
+trigger_on:
+  - 搜索词报告分析
+  - 搜索词分析
+  - 否定词分析
+  - analyze search terms
+  - negative keyword analysis
+  - 批量搜索词
+  - batch analyze
+---
 
-分析Google Ads广告系列的搜索词，识别语义不相关的搜索词并建议添加到否定关键词列表。
+# 搜索词分析Skill
 
-## 功能
+用于分析Google Ads广告系列的搜索词报告，判断哪些搜索词不相关并建议添加为否定词。
 
-1. **语义分析**：基于规则识别与广告产品不相关的搜索词
-2. **分类输出**：按问题类型分类（办公打印机、价格导向、竞品品牌等）
-3. **定时任务**：每2小时自动分析当天有花费的广告系列
-4. **飞书通知**：分析完成后推送结果供用户确认
-
-## 分析规则
-
-### 🔴 高风险（建议加否定）
-
-- **办公打印机**：laser, laserjet, inkjet, officejet, deskjet, envy, officejet
-- **竞品品牌**：Canon selphy/pixma/tr/ts, Epson ecotank/et/l/wf/xp, HP deskjet/envy/officejet, Brother mfc/dcp
-- **价格导向**：price, buy, cheap, discount, sale, for sale, budget
-- **办公功能**：all in one, multifunction, copier, scanner, fax
-- **购物平台**：amazon, walmart, best buy
-- **错误类型**：sublimation, dtf（热转印设备）
-
-### 🟡 中风险（建议优化匹配）
-
-- 过于宽泛的词：printer, photo printer（无产品定向）
-- 泛功能词：wireless printer（无照片打印定向）
-
-## 触发方式
-
-### 手工触发
-```
-执行搜索词分析
-```
-
-### 定时任务
-- 每2小时执行一次（0:00, 2:00, 4:00, 6:00, 8:00, 10:00, 12:00, 14:00, 16:00, 18:00, 20:00, 22:00）
-- 分析所有过去7天有花费>=$1的广告系列
-- 有发现时发送飞书通知
-
-## 输出格式
+## 使用方式
 
 ```
-📊 搜索词质量分析报告
+# 单个广告系列分析
+分析搜索词报告 23888315496
+分析这个广告系列的搜索词 DC HOUSE
 
-广告系列: Liene-Photo-Printer-PartnerBoost-US (ID: 23792756828)
-总搜索词: 14 | 高风险: 6
-
-🔴 建议添加否定关键词:
-- carverall laser printer ($1.93, 1 click)
-- hp 525 printer price ($1.92, 1 click)
-- canon printer price ($1.81, 1 click)
-...
-
-🟡 可优化匹配:
-- printer price in usa ($1.43, 1 click)
-...
+# 批量分析（所有有效广告系列）
+批量分析搜索词报告 PartnerBoost
 ```
 
-## 否定关键词添加规则
+## 工作流程
 
-1. **严格匹配**：用于完全无关的搜索词（如激光打印机）
-2. **词组匹配**：用于有一定相关性但意图模糊的词
-3. **用户确认**：AI生成建议后需用户确认才实际添加
+1. 获取广告系列的搜索词（过去30天，有点击的）
+2. 输出搜索词列表给用户
+3. 用户把搜索词发给你
+4. 用AI语义分析判断不相关搜索词
+5. 用户确认后添加否定词
+
+## 参数说明
+
+- `--campaign-id`: 广告系列ID（优先级高于--campaign）
+- `--campaign`: 广告系列名称（模糊匹配）
+- `--customer-id`: Google Ads账户ID，默认6660356395
+- `--days`: 分析天数，默认30
+- `--auto-ai`: 自动调用AI分析
+
+## 支持的账户
+
+- Archer: 6660356395
+- YeahPromos: 6052559425
+- PartnerBoost: 4772859239
+
+## 脚本位置
+
+- 单个分析: `/root/.openclaw/workspace/scripts/search_term_negatives.py`
+- 批量分析: `/root/.openclaw/workspace/scripts/search_term_all.py`
+
+## 示例
+
+```bash
+# 分析Archer账户的广告系列
+python3 scripts/search_term_negatives.py --campaign-id 23888315496
+
+# 批量分析PartnerBoost
+python3 scripts/search_term_negatives.py --customer-id 4772859239 --campaign "" --days 30
+```
+
+## 添加否定词
+
+```bash
+python3 scripts/search_term_negatives.py --campaign-id 23888315496 --add "zebronics projector" --match-type PHRASE
+```
