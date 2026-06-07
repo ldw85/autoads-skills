@@ -273,8 +273,8 @@ def generate_l0_keywords(
                 seen_neg.add(kw)
                 neg_keyword_set.add(kw)
         logger.info(f"GKP Negative keywords: {sorted(neg_keyword_set)}")
-        return cleaned[:20], sorted(neg_keyword_set)
-    return cleaned[:20], []
+        return cleaned[:30], sorted(neg_keyword_set)
+    return cleaned[:30], []
 
 
 def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description: str) -> list:
@@ -614,14 +614,18 @@ STEP 1: Identify the product's MODEL NAME from the description first.
   - If description is '[Brand] [Model] [Category] [Features]', the model is the [Model] part
   - If description has '[Brand] [Category] Model [Number]', the model is [Number]
 
-STEP 2: Include ALL four types:
+STEP 2: Include ALL four types. Per David 2026-06-07, do NOT hard-limit the count of any type.
+  The number of keywords should be **data-driven** (how many real spelling variants exist), not prompt-limited.
+  If a model has 15+ valid spelling variants, generate all 15. If it has 3, that's fine.
+  GKP search volume will validate which are worth keeping.
 
 【Type 1: Brand + Product Model Combinations (HIGHEST PRIORITY)】
 - Brand + Model (e.g., "[Brand] R2-4K", "[Brand] R2 4K", "[Brand] R2")
 - Model + Category Word (e.g., "R2-4K dash cam", "R2 4K car camera")
 - Model alone variations: "R2-4K", "R2 4K", "R2 4k"
 - Per David 2026-06-07: These model keywords are HIGH-VALUE because users searching for the model
-  know exactly what they want - high intent, high conversion. Generate at least 5-7 model keywords.
+  know exactly what they want - high intent, high conversion. Generate ALL valid model combinations,
+  not limited by a hard count.
 
 【Type 2: Brand + Product Type Combinations】
 - Brand + Product Type (the product category from description)
@@ -652,8 +656,8 @@ STRICT RULES (use semantic understanding - do NOT list specific product names):
 5. NO competitor product names
 6. NO generic shopping terms
 7. Include ALL 4 types above (especially model combinations in Type 1)
-8. Aim for 15-20 keywords total
-9. **CRITICAL: Type 1 (Model combinations) should be at least 5-7 keywords** - these are the most valuable
+8. Aim for 15-25 keywords total (not a hard limit; if model has many valid variants, expand the list)
+9. **Type 1 (Model combinations) is the highest priority - generate as many valid variants as exist, not limited by a hard count**
 
 Return ONLY JSON array: ["Keyword 1", "Keyword 2", ...]"""
     
