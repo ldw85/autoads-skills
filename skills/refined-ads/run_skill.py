@@ -463,7 +463,7 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
     try:
         result = subprocess.run(
             ['claude', '--print', '--output-format', 'json', prompt],
-            capture_output=True, text=True, timeout=180  # 2026-06-07 David: 60s 不够 (80 词), 升到 180s
+            capture_output=True, text=True, timeout=360  # 2026-06-07 David 23:35: 360s (复杂动作需要更长时间)
         )
         
         try:
@@ -1115,17 +1115,28 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         # 2026-06-07 David: GKP 阶段 AI 识别的负面词, 添加为 campaign negatives
         # 例: ROVE R2-4K 查 GKP 会返回 "sd card" / "memory card" / "installation" 等
         # 这些词虽相关但不是购买意图, 应加为否定词
+        # 2026-06-07 23:35: 同时用 negative_keyword_generator.merge_with_l0_negatives() 归类
         gkp_negatives = result.get('gkp_negatives', [])
         if gkp_negatives and campaign_id:
             try:
-                added = optimizer._add_negative_keywords_to_campaign(
-                    customer_id=customer_id,
-                    campaign_id=campaign_id,
-                    negative_keywords=gkp_negatives,
-                    match_type='PHRASE'  # PHRASE match: 包含词的所有变体都排除
+                from src.negative_keyword_generator import NegativeKeywordGenerator
+                gen = NegativeKeywordGenerator()
+                # 1) 用 negative_keyword_generator 归类 L0 negatives -> CategorizedNegative
+                categorized = gen.merge_with_l0_negatives(
+                    l0_negatives=gkp_negatives,
+                    product_description=product_description,
+                    brand=effective_brand
                 )
-                logger.info(f"✓ Added {added} GKP-derived negative keywords to campaign {campaign_id}")
-                logger.info(f"  Negative samples: {gkp_negatives[:10]}")
+                logger.info(f"✓ merge_with_l0_negatives: {len(gkp_negatives)} L0 negatives -> {len(categorized)} CategorizedNegative")
+                # 2) 用 categorized API 添加到 campaign (按 category 可选不同 match type)
+                if categorized:
+                    added = optimizer.client.create_negative_keywords_categorized(
+                        campaign_id=campaign_id,
+                        categorized_negatives=categorized,
+                        customer_id=customer_id
+                    )
+                    logger.info(f"✓ Added {len(categorized)} categorized negative keywords to campaign {campaign_id}")
+                    logger.info(f"  Samples: {[(n.keyword, n.category) for n in categorized[:5]]}")
             except Exception as e:
                 logger.warning(f"Failed to add GKP negative keywords: {e}")
 
