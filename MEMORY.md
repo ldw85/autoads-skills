@@ -189,6 +189,37 @@ David 2026-06-07 提出深层元规则: **AI 不能依赖预训练知识, 只应
 - 保留 Layer 3 里 "If product_description explicitly says 'NOT [variant]', trust that" 这条不冲突的规则
 - 决定不进一步改造, V1 提示词已足够好 (94.7% 平均准确率, 跨产品波动 2.8%)
 
+## V5 精准化升级 (2026-06-07 12:05 响应 David 指示)
+
+### David 准确目标表述
+
+David 指出: **"目标还是要保留和传入的产品名称，品牌名称，产品品牌型号含义相同的关键词，去掉不相关的，这需要ai语义理解，不完全依赖预训练知识"**
+
+关键词是"含义相同"——比 V1 的"same core meaning/use"更精准。
+
+### V5 实验数据 (2 产品 × 3 次重复)
+
+| 提示词 | Open Goaaal | KODAK Step | 平均 |
+|---|---|---|---|
+| V1 简洁 | 68.9% | 68.6% | 68.8% |
+| **V5 含义相同** | 68.9% | **84.3%** | **76.6%** |
+| 差异 | 0 | +15.7% | +7.8% |
+
+V5 在 KODAK 上显著优于 V1, 在 Open Goaaal 上持平。
+
+### V5 提示词设计亮点
+
+1. **TASK 明确为"含义相同"**: "Does this keyword have the SAME MEANING as the product name/brand/model in product_description?"
+2. **双盲互换测试原理**: "Two keywords have the same meaning if a user wanting one would be equally satisfied with the other"
+3. **DROP 规则分 6 类** (V1 是 4 类): 加了 "Different brand" 和 "Same brand but different product line"
+4. **同品牌不同产品线明确化**: e.g., "[brand] photo printer" vs "[brand] camera" (同品牌但不同产品线) → DROP
+
+### 生产版采用 V5
+
+Layer 3 提示词从 V1 升级为 V5。
+- 10 个关键回归测试全部通过
+- V5 跟 David 12:05 表述的目标精准对齐
+
 ### 元规则更新 (2026-06-07)
 
 **【核心发现】AI 提示词 "加约束指令" 可能伤害稳定性**
