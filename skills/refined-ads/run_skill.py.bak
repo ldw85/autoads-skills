@@ -1,0 +1,638 @@
+#!/usr/bin/env python3
+"""
+Refined Ads Skill - Create Layered Ad Groups with AI-powered Brand Extraction
+
+This script creates refined/layered keyword ad groups in Google Ads.
+It extracts existing ad content from Main ad group, uses AI to identify brand/core_terms,
+and creates L1/L2/L3/L5 layered ad groups with proper keywords and ads.
+
+Usage:
+    python3 run_skill.py --campaign-id 23838920800 --customer-id 6052559425 [--brand Rove] [--product-url ...]
+"""
+
+import sys
+import os
+import subprocess
+import argparse
+import json
+import logging
+import time
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Change to autoads directory
+AUTOADS_DIR = '/root/.openclaw/workspace/autoads'
+os.chdir(AUTOADS_DIR)
+
+# Import the refined_bid_optimizer directly
+sys.path.insert(0, AUTOADS_DIR)
+from src.refined_bid_optimizer import RefinedBidOptimizer, AdContent, SitelinkInfo
+
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+def check_brand_blacklist(brand: str) -> bool:
+    """Check if brand is in blacklist.
+    
+    Args:
+        brand: Brand name
+        
+    Returns:
+        True if brand is blacklisted
+    """
+    import json
+    import os
+    
+    blacklist_file = '/root/.openclaw/workspace/autoads/logs/blacklist_brands.json'
+    
+    if not os.path.exists(blacklist_file):
+        return False
+    
+    with open(blacklist_file) as f:
+        data = json.load(f)
+    
+    brands = data.get('brands', [])
+    brand_lower = brand.lower().strip()
+    
+    # Check exact match or partial match
+    for blacklisted in brands:
+        if brand_lower == blacklisted.lower() or brand_lower in blacklisted.lower():
+            logger.warning(f"⚠️ WARNING: Brand '{brand}' is in blacklist!")
+            return True
+    
+    return False
+
+
+# ============================================================
+# L0 Keywords Generation (FIXED: Google Keyword Planner + AI)
+# ============================================================
+def generate_l0_keywords(
+    brand: str,
+    product_name: str = None,
+    product_model: str = None,
+    product_url: str = None,
+    customer_id: str = None
+) -> list:
+    """Generate L0 (Brand_Model) keywords - with Google Keyword Planner + AI.
+    
+    Priority:
+    1. Google Keyword Planner API -> AI semantic filter -> final list
+    2. Fallback: brand + model/product combinations
+    
+    Args:
+        brand: Brand name (e.g., "RhinoUSA")
+        product_name: Full product name
+        product_model: Model number (e.g., "B0BSP4NS28")
+        product_url: Product URL for Google Keyword Planner
+        customer_id: Google Ads customer ID
+        
+    Returns:
+        List of L0 keywords
+    """
+    import re
+    import sys
+    
+    keywords = []
+    brand_clean = brand.strip() if brand else ""
+    
+    if not brand_clean:
+        return []
+    
+    # Try Google Keyword Planner first (use optimizer's authenticated client)
+    if product_url and customer_id:
+        try:
+            # Use the RefinedBidOptimizer's client (already authenticated)
+            sys.path.insert(0, '/root/.openclaw/workspace/autoads')
+            from src.refined_bid_optimizer import RefinedBidOptimizer
+            
+            opt = RefinedBidOptimizer()
+            gkws = opt.client.generate_keyword_ideas(
+                customer_id=customer_id,
+                url=product_url,
+                country='US',
+                language='EN',
+                limit=50
+            )
+            
+            logger.info(f"GKP returned {len(gkws)} keywords for L0")
+            
+            # Filter using AI semantics
+            for kw in gkws:
+                kw_text = kw.get('text', '') if isinstance(kw, dict) else kw
+                if is_l0_keyword(kw_text, brand_clean, product_model, product_name):
+                    keywords.append(kw_text)
+            
+        except Exception as e:
+            logger.warning(f"GKP failed: {e}, using fallback")
+    
+    # Fallback: Generate brand + model/product combinations
+    if not keywords:
+        logger.info("Using fallback L0 generation")
+        seeds = set()
+        
+        # Direct model combinations
+        if product_model:
+            seeds.add(f"{brand_clean} {product_model}")
+            seeds.add(f"{brand_clean}{product_model}")
+            seeds.add(f"{brand_clean} {product_model.lower()}")
+            seeds.add(f"{brand_clean}-{product_model}")
+        
+        # From product name (exclude brand)
+        if product_name:
+            words = product_name.split()
+            product_words = [w for w in words if w.lower() != brand_clean.lower()]
+            if product_words:
+                core_phrase = ' '.join(product_words[:3])
+                seeds.add(f"{brand_clean} {core_phrase}")
+                seeds.add(f"{brand_clean}{core_phrase}")
+        
+        # Clean and add variations
+        for kw in seeds:
+            keywords.append(kw.title())
+            keywords.append(kw.lower())
+    
+    # Final cleanup
+    cleaned = list(set([k.strip() for k in keywords if k.strip()]))
+    
+    logger.info(f"Generated {len(cleaned)} L0 keywords")
+    return cleaned[:20]
+
+
+def is_l0_keyword(keyword_text: str, brand: str, product_model: str = '', product_name: str = '') -> bool:
+    """Check if keyword is a L0 (Brand_Model) keyword using AI语义分析.
+    
+    Args:
+        keyword_text: Keyword to check
+        brand: Brand name
+        product_model: Product model
+        product_name: Full product name
+        
+    Returns:
+        True if matches L0 pattern
+    """
+    text_lower = keyword_text.lower()
+    brand_lower = brand.lower() if brand else ""
+    
+    # Must contain brand
+    if brand_lower and brand_lower not in text_lower:
+        return False
+    
+    # Check product model (with default)
+    if product_model:
+        model_lower = product_model.lower()
+        if model_lower in text_lower:
+            return True
+    
+    # Check product name components (with default)
+    if product_name:
+        words = product_name.split()
+        for word in words:
+            word_clean = word.lower().strip()
+            if len(word_clean) > 2 and word_clean != brand_lower:
+                if word_clean in text_lower:
+                    return True
+    
+    return False
+
+def validate_params(args) -> tuple:
+    """Validate all parameters before execution."""
+    if not args.campaign_id:
+        return False, "Campaign ID is required (--campaign-id)"
+    
+    if not args.customer_id:
+        return False, "Customer ID is required (--customer-id)"
+    
+    # Product description is REQUIRED for accurate brand keywords
+    if not args.product_description or len(args.product_description.strip()) < 10:
+        return False, "Product description is required (--product-description). Please provide a product description for accurate brand keyword generation."
+    
+    if args.price and (args.price <= 0 or args.price > 10000):
+        return False, f"Price must be between 0 and 10000 (got {args.price})"
+    
+    if args.commission_rate is not None:
+        if args.commission_rate <= 0 or args.commission_rate > 1:
+            return False, f"Commission rate must be between 0 and 1 (got {args.commission_rate})"
+    
+    return True, ""
+
+
+def get_campaign_info(customer_id, campaign_id):
+    """Get campaign info including existing ad content."""
+    optimizer = RefinedBidOptimizer()
+    
+    # Extract existing ad content (includes AI brand/core_term extraction)
+    ad_content = optimizer.extract_existing_ad_content(customer_id, campaign_id)
+    
+    if not ad_content:
+        return None, "Could not extract ad content from Main ad group"
+    
+    return ad_content, None
+
+
+def create_layered_ads(customer_id, campaign_id, ad_content, 
+                        brand=None, price=None, 
+                        commission_rate=None, product_url=None,
+                        product_description=None):
+    """Create layered ad groups using existing ad content.
+    
+    Args:
+        product_description: Product description (REQUIRED for accurate keywords)
+    """
+    optimizer = RefinedBidOptimizer()
+    
+    # Use provided brand or AI-extracted brand
+    effective_brand = brand or ad_content.brand or "Product"
+    effective_url = product_url or ad_content.final_url
+    
+    # ===== CRITICAL: Parse suffix from product_url =====
+    # Extract ?后的追踪参数作为final_url_suffix
+    effective_suffix = ''
+    base_url = effective_url
+    
+    if product_url and '?' in product_url:
+        # 分割URL，取?后部分
+        url_parts = product_url.split('?')
+        base_url = url_parts[0]  # 不带参数的base URL
+        query = url_parts[1] if len(url_parts) > 1 else ''
+        # 解析参数
+        from urllib.parse import parse_qs, quote
+        params = parse_qs(query)
+        suffix_parts = []
+        for key, vals in params.items():
+            for v in vals:
+                # URL编码值
+                encoded_val = quote(v, safe='')
+                suffix_parts.append(f"{key}={encoded_val}")
+        effective_suffix = '&'.join(suffix_parts)
+    
+    # 如果没有从product_url解析到suffix，使用ad_content中已有的
+    if not effective_suffix and ad_content.url_suffix:
+        effective_suffix = ad_content.url_suffix
+        logger.info(f"Using existing suffix from ad_content")
+    
+    # 更新ad_content的suffix和final_url
+    if effective_suffix:
+        ad_content.url_suffix = effective_suffix
+        ad_content.final_url = base_url
+        logger.info(f"Set suffix: {effective_suffix[:50]}...")
+    else:
+        logger.warning("WARNING: No suffix found!")
+    
+    # Calculate max_cpc if not provided
+    if price and commission_rate:
+        max_cpc = optimizer.calculate_max_cpc(price, commission_rate)
+    else:
+        max_cpc = 1.0  # Default
+        logger.warning("No price/commission provided, using default CPC")
+    
+    # Generate keywords with better brand/core_terms from AI
+    logger.info(f"Generating keywords with brand={effective_brand}, core_terms={ad_content.core_product_terms}")
+    
+    # ===== USE PRODUCT DESCRIPTION FOR ACCURATE KEYWORDS =====
+    # If product_description provided, use it for better L0/L1 keyword generation
+    product_desc_for_keywords = product_description or ""
+    
+    try:
+        result = optimizer.generate_from_product_info(
+            product_name=effective_brand,
+            brand=effective_brand,
+            price=price or 99.99,
+           commission_rate=commission_rate or 0.05,
+            url=effective_url or "https://www.amazon.com",
+            customer_id=customer_id,
+            country='US'
+        )
+        
+        # Override brand/core_terms with AI-extracted values
+        if ad_content.brand:
+            result['brand'] = ad_content.brand
+        if ad_content.core_product_terms:
+            result['core_product_terms'] = ad_content.core_product_terms
+        
+        # If product_description provided, use it for L0 keywords
+        if product_desc_for_keywords and len(product_desc_for_keywords) > 10:
+            logger.info(f"Using product description for L0 keywords: {product_desc_for_keywords[:50]}...")
+            l0_from_desc = generate_l0_keywords(
+                brand=effective_brand,
+                product_name=product_desc_for_keywords,
+                product_model=product_model,
+                product_url=product_url,
+                customer_id=customer_id
+            )
+            if l0_from_desc:
+                result['L0_keywords'] = l0_from_desc
+                logger.info(f"Generated {len(l0_from_desc)} L0 keywords from product description")
+        
+        logger.info(f"Generated keywords for layers: {list(result.get('layers', {}).keys())}")
+        
+        # ===== ADD L0 KEYWORDS FOR BRAND MODEL TESTING =====
+        # Generate brand + product combination keywords for L0 multi-bid testing
+        # Use Google Keyword Planner + AI semantics (FIXED)
+        
+        # Extract product info from ad_content
+        product_for_l0 = getattr(ad_content, 'product_name', None) or effective_brand
+        product_for_l0 = product_for_l0 or effective_brand
+        product_model = None
+        product_url = None
+        
+        if ad_content:
+            # Extract ASIN from final_url as product_model
+            final_url = ad_content.final_url or ''
+            if 'amazon.com/dp/' in final_url:
+                # Extract ASIN: amazon.com/dp/B0XXXXXX
+                import re
+                match = re.search(r'amazon\.com/dp/([A-Z0-9]{10})', final_url)
+                if match:
+                    product_model = match.group(1)
+            product_url = final_url
+        
+        l0_keywords = generate_l0_keywords(
+            brand=effective_brand,
+            product_name=product_for_l0,
+            product_model=product_model,
+            product_url=product_url,
+            customer_id=customer_id
+        )
+        result['L0_keywords'] = l0_keywords
+        logger.info(f"Generated {len(l0_keywords)} L0 keywords for Brand_Model testing")
+        
+        # Create ad groups with ads
+        created = optimizer.create_ad_groups(
+            customer_id=customer_id,
+            campaign_id=campaign_id,
+            result=result,
+            include_ads=True,
+            ad_content=ad_content
+        )
+        
+        return created, None
+        
+    except Exception as e:
+        logger.error(f"Failed to create layered ads: {e}")
+        return None, str(e)
+
+
+# ============================================================
+# Ad Content Expansion Functions
+# ============================================================
+
+def expand_headlines(headlines: list, target: int = 15, brand: str = "") -> list:
+    """Expand headlines to target count using templates."""
+    if len(headlines) >= target:
+        return headlines[:target]
+    
+    # Template headlines (brand-agnostic, policy-safe)
+    templates = [
+        "Premium Quality",
+        "Best Seller",
+        "Free Shipping",
+        "Fast Delivery",
+        "Satisfaction Guaranteed",
+        "New Arrival",
+        "Top Rated",
+        "Official Store",
+        "Limited Stock",
+        "Order Now"
+    ]
+    
+    # Add brand if available
+    if brand:
+        brand_templates = [
+            f"Shop {brand}",
+            f"Buy {brand}",
+            f"{brand} Official",
+            f"{brand} Reviews",
+            f"Best {brand}",
+            f"{brand} Deals"
+        ]
+        templates = brand_templates + templates
+    
+    # Combine and deduplicate
+    expanded = list(headlines)
+    for t in templates:
+        if len(expanded) >= target:
+            break
+        if t not in expanded:
+            expanded.append(t)
+    
+    return expanded[:target]
+
+
+def expand_descriptions(descriptions: list, target: int = 4) -> list:
+    """Expand descriptions to target count."""
+    if len(descriptions) >= target:
+        return descriptions[:target]
+    
+    templates = [
+        "Premium quality product. Order now and enjoy fast shipping.",
+        "Trusted by thousands of customers. 30-day return policy.",
+        "Best value for money. Limited stock available.",
+        "Professional grade product. Contact us for questions."
+    ]
+    
+    expanded = list(descriptions)
+    for t in templates:
+        if len(expanded) >= target:
+            break
+        if t not in expanded:
+            expanded.append(t)
+    
+    return expanded[:target]
+
+
+def expand_sitelinks(sitelinks: list, target: int = 6) -> list:
+    """Expand sitelinks to target count. Returns SitelinkInfo objects."""
+    # Convert dicts to SitelinkInfo if needed
+    converted = []
+    for sl in sitelinks:
+        if isinstance(sl, dict):
+            converted.append(SitelinkInfo(
+                asset_id=sl.get('asset_id', ''),
+                link_text=sl.get('link_text', ''),
+                description1=sl.get('description1', ''),
+                description2=sl.get('description2', '')
+            ))
+        elif hasattr(sl, 'link_text'):
+            converted.append(sl)
+        else:
+            converted.append(SitelinkInfo(
+                asset_id=str(sl.get('asset_id', '')),
+                link_text=str(sl.get('link_text', '')),
+                description1=str(sl.get('description1', '')),
+                description2=str(sl.get('description2', ''))
+            ))
+    
+    if len(converted) >= target:
+        return converted[:target]
+    
+    templates = [
+        {"link_text": "Shop Now", "description1": "Browse collection", "description2": "Free shipping $50+"},
+        {"link_text": "Reviews", "description1": "Customer reviews", "description2": "4.5+ stars"},
+        {"link_text": "Specs", "description1": "Product details", "description2": "Full specifications"},
+        {"link_text": "Support", "description1": "Contact us 24/7", "description2": "We're here to help"},
+        {"link_text": "Shipping", "description1": "Fast delivery", "description2": "Free over $50"},
+        {"link_text": "Returns", "description1": "Easy returns", "description2": "30-day policy"}
+    ]
+    
+    for s in templates:
+        if len(converted) >= target:
+            break
+        converted.append(SitelinkInfo(
+            asset_id='',
+            link_text=s['link_text'],
+            description1=s['description1'],
+            description2=s['description2']
+        ))
+    
+    return converted[:target]
+
+
+def ensure_ad_content_quantity(ad_content, brand: str = "") -> None:
+    """Ensure ad_content has enough headlines/descriptions/sitelinks.
+    
+    Modifies ad_content in-place to meet Google Ads requirements:
+    - 15 headlines
+    - 4 descriptions
+    - 6 sitelinks
+    """
+    # Expand headlines to 15
+    ad_content.headlines = expand_headlines(ad_content.headlines, 15, brand)
+    
+    # Expand descriptions to 4
+    ad_content.descriptions = expand_descriptions(ad_content.descriptions, 4)
+    
+    # Expand sitelinks to 6
+    ad_content.sitelinks = expand_sitelinks(ad_content.sitelinks, 6)
+    
+    logger.info(f"Expanded: {len(ad_content.headlines)} headlines, "
+                f"{len(ad_content.descriptions)} descriptions, "
+                f"{len(ad_content.sitelinks)} sitelinks")
+
+
+# ============================================================
+# Main Function
+# ============================================================
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Refined Ads Skill - Create Layered Ad Groups',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Required parameters
+    parser.add_argument('--campaign-id', required=True, help='Target campaign ID')
+    parser.add_argument('--customer-id', required=True, help='Google Ads customer ID')
+    parser.add_argument('--product-description', required=True, 
+                        help='Product description (required for accurate brand keywords)')
+    
+    # Optional parameters for better keyword generation
+    parser.add_argument('--brand', help='Brand name (will be extracted from ads if not provided)')
+    parser.add_argument('--product-url', help='Product URL for keyword research')
+    parser.add_argument('--price', type=float, help='Product price in USD')
+    parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate')
+    parser.add_argument('--country', default='US', help='Target country (default: US)')
+    
+    args = parser.parse_args()
+    
+    # Validate parameters
+    is_valid, error_msg = validate_params(args)
+    if not is_valid:
+        logger.error(f"Validation failed: {error_msg}")
+        print(f"ERROR: {error_msg}")
+        sys.exit(1)
+    
+    print("="*70)
+    print("🔧 Refined Ads Skill - Creating Layered Ad Groups")
+    print("="*70)
+    print(f"\n📋 Campaign ID: {args.campaign_id}")
+    print(f"📋 Customer ID: {args.customer_id}")
+    if args.brand:
+        print(f"📋 Brand: {args.brand}")
+    if args.price:
+        print(f"📋 Price: ${args.price}")
+    
+    # Step 1: Get existing ad content from Main ad group
+    print("\n⏳ Step 1: Extracting ad content from Main ad group...")
+    ad_content, error = get_campaign_info(args.customer_id, args.campaign_id)
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    print(f"   ✅ Extracted {len(ad_content.headlines)} headlines")
+    print(f"   ✅ Extracted {len(ad_content.descriptions)} descriptions")
+    print(f"   ✅ Extracted {len(ad_content.sitelinks)} sitelinks")
+    if ad_content.brand:
+        print(f"   ✅ AI identified brand: {ad_content.brand}")
+    if ad_content.core_product_terms:
+        print(f"   ✅ AI extracted core terms: {ad_content.core_product_terms}")
+    if ad_content.url_suffix:
+        print(f"   ✅ URL suffix present")
+    
+    # ===== EXPAND AD CONTENT TO MEET REQUIREMENTS =====
+    # Ensure we have 15 headlines, 4 descriptions, 6 sitelinks
+    effective_brand = args.brand or ad_content.brand or ""
+    
+    # ===== CHECK BLACKLIST =====
+    if effective_brand and check_brand_blacklist(effective_brand):
+        print(f"   ⚠️ Brand '{effective_brand}' is in blacklist! Confirm to proceed anyway?")
+    
+    ensure_ad_content_quantity(ad_content, effective_brand)
+    
+    print(f"   ✅ Expanded to {len(ad_content.headlines)} headlines, "
+          f"{len(ad_content.descriptions)} descriptions, "
+          f"{len(ad_content.sitelinks)} sitelinks")
+    
+    time.sleep(1)
+    
+    # Step 2: Create layered ad groups
+    print("\n⏳ Step 2: Creating layered ad groups...")
+    created, error = create_layered_ads(
+        customer_id=args.customer_id,
+        campaign_id=args.campaign_id,
+        ad_content=ad_content,
+        brand=args.brand,
+        price=args.price,
+        commission_rate=args.commission_rate,
+        product_url=args.product_url,
+        product_description=args.product_description
+    )
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    # Print results
+    print("\n" + "="*70)
+    print("✅ SUCCESS: Layered Ad Groups Created")
+    print("="*70)
+    
+    total_layers = 0
+    total_keywords = 0
+    total_sitelinks = 0
+    
+    for layer, data in created.items():
+        if isinstance(data, dict) and 'ad_group_id' in data:
+            total_layers += 1
+            total_keywords += data.get('keywords_added', 0)
+            total_sitelinks += data.get('sitelinks_added', 0)
+            status = '✅' if data.get('ad_group_id') else '❌'
+            print(f"\n  {status} {layer}: {data.get('name', 'N/A')}")
+            print(f"     AdGroup ID: {data.get('ad_group_id', 'N/A')}")
+            print(f"     Keywords: {data.get('keywords_added', 0)}")
+            print(f"     Ads: {'✅' if data.get('ads_created') else '❌'}")
+            print(f"     Sitelinks: {data.get('sitelinks_added', 0)}")
+    
+    print(f"\n📊 Summary:")
+    print(f"   Total Layers Created: {total_layers}")
+    print(f"   Total Keywords: {total_keywords}")
+    print(f"   Total Sitelinks: {total_sitelinks}")
+    print("\n" + "="*70)
+
+
+if __name__ == '__main__':
+    main()

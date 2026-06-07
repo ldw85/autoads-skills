@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+"""
+Refined Ads Skill - Create Layered Ad Groups with AI-powered Brand Extraction
+
+This script creates refined/layered keyword ad groups in Google Ads.
+It extracts existing ad content from Main ad group, uses AI to identify brand/core_terms,
+and creates L0/L1/L2/L3/L5 layered ad groups with proper keywords and ads.
+
+L0 (Brand_Model) is NEW - dedicated to brand + product model/name keywords.
+
+Usage:
+    python3 run_skill.py --campaign-id 23838920800 --customer-id 6052559425 --brand Rove --product-model R2 --product-url ...
+"""
+
+import sys
+import os
+import subprocess
+import argparse
+import json
+import logging
+import time
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Change to autoads directory
+AUTOADS_DIR = '/root/.openclaw/workspace/autoads'
+os.chdir(AUTOADS_DIR)
+
+# Import the refined_bid_optimizer directly
+sys.path.insert(0, AUTOADS_DIR)
+from src.refined_bid_optimizer import RefinedBidOptimizer
+
+
+def validate_params(args) -> tuple:
+    """Validate all parameters before execution."""
+    if not args.campaign_id:
+        return False, "Campaign ID is required (--campaign-id)"
+    
+    if not args.customer_id:
+        return False, "Customer ID is required (--customer-id)"
+    
+    if not args.brand:
+        return False, "Brand name is required (--brand)"
+    
+    if not args.product_model:
+        return False, "Product model is required (--product-model)"
+    
+    if not args.product_url:
+        return False, "Product URL is required (--product-url)"
+    
+    if not args.price or args.price <= 0:
+        return False, f"Price is required and must be > 0 (got {args.price})"
+    
+    if args.price and args.price > 10000:
+        return False, f"Price must be <= 10000 (got {args.price})"
+    
+    if not args.commission_rate or args.commission_rate <= 0:
+        return False, f"Commission rate is required and must be > 0"
+    
+    if args.commission_rate and args.commission_rate > 1:
+        return False, f"Commission rate must be <= 1 (got {args.commission_rate})"
+    
+    return True, ""
+
+
+def get_campaign_info(customer_id, campaign_id):
+    """Get campaign info including existing ad content."""
+    optimizer = RefinedBidOptimizer()
+    
+    # Extract existing ad content (includes AI brand/core_term extraction)
+    ad_content = optimizer.extract_existing_ad_content(customer_id, campaign_id)
+    
+    if not ad_content:
+        return None, "Could not extract ad content from Main ad group"
+    
+    return ad_content, None
+
+
+from urllib.parse import urlparse, parse_qs
+
+def parse_url_for_suffix(url):
+    """Parse URL to extract suffix from query parameters."""
+    if not url or '?' not in url:
+        return ''
+    base_url, query_string = url.split('?', 1)
+    params = parse_qs(query_string)
+    suffix_parts = []
+    for key, values in params.items():
+        for value in values:
+            suffix_parts.append(f"{key}={value}")
+    return '&'.join(suffix_parts)
+
+def create_layered_ads(customer_id, campaign_id, ad_content, brand=None, price=None, 
+                        commission_rate=None, product_url=None):
+    """Create layered ad groups using existing ad content."""
+    optimizer = RefinedBidOptimizer()
+    
+    # Use provided brand or AI-extracted brand
+    effective_brand = brand or ad_content.brand or "Product"
+    effective_url = product_url or ad_content.final_url
+    
+    # CRITICAL: Parse suffix from the NEW URL, not from old ad_content!
+    # This ensures the new tracking parameters are used
+    effective_suffix = parse_url_for_suffix(product_url) if product_url else ''
+    if not effective_suffix and ad_content.url_suffix:
+        # Fallback to old suffix only if new URL has no suffix
+        effective_suffix = ad_content.url_suffix
+        logger.warning("Using old suffix from existing ad (new URL had no suffix)")
+    
+    if product_url and '?' in product_url and not effective_suffix:
+        logger.error("WARNING: product_url has '?' but parse failed!")
+    elif effective_suffix:
+        logger.info(f"Using URL suffix: {effective_suffix[:50]}...")
+    
+    # ===== FIXED: Update ad_content with new suffix =====
+    # The parsed suffix MUST be passed to ad creation
+    if effective_suffix:
+        ad_content.url_suffix = effective_suffix
+        ad_content.final_url = product_url.split('?')[0]  # Base URL without params
+        logger.info(f"Updated ad_content with new suffix: {effective_suffix[:50]}...")
+    
+    # Calculate max_cpc if not provided
+    if price and commission_rate:
+        max_cpc = optimizer.calculate_max_cpc(price, commission_rate)
+    else:
+        max_cpc = 1.0  # Default
+        logger.warning("No price/commission provided, using default CPC")
+    
+    # Generate keywords with better brand/core_terms from AI
+    logger.info(f"Generating keywords with brand={effective_brand}, core_terms={ad_content.core_product_terms}")
+    
+    try:
+        result = optimizer.generate_from_product_info(
+            product_name=effective_brand,
+            brand=effective_brand,
+            price=price or 99.99,
+            commission_rate=commission_rate or 0.05,
+            url=effective_url,
+            customer_id=customer_id,
+            country='US'
+        )
+        
+        # Override brand/core_terms with AI-extracted values
+        if ad_content.brand:
+            result['brand'] = ad_content.brand
+        if ad_content.core_product_terms:
+            result['core_product_terms'] = ad_content.core_product_terms
+        
+        logger.info(f"Generated keywords for layers: {list(result.get('layers', {}).keys())}")
+        
+        # Create ad groups with ads
+        created = optimizer.create_ad_groups(
+            customer_id=customer_id,
+            campaign_id=campaign_id,
+            result=result,
+            include_ads=True,
+            ad_content=ad_content
+        )
+        
+        return created, None
+        
+    except Exception as e:
+        logger.error(f"Failed to create layered ads: {e}")
+        return None, str(e)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Refined Ads Skill - Create Layered Ad Groups',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Required parameters
+    parser.add_argument('--campaign-id', required=True, help='Target campaign ID')
+    parser.add_argument('--customer-id', required=True, help='Google Ads customer ID')
+    
+    # Required parameters for L0 (Brand_Model) keywords
+    parser.add_argument('--brand', required=True, help='Brand name (required)')
+    parser.add_argument('--product-model', required=True, help='Product model number (required for L0)')
+    parser.add_argument('--product-url', required=True, help='Product URL (required for keyword research)')
+    parser.add_argument('--price', type=float, required=True, help='Product price in USD (required)')
+    parser.add_argument('--commission-rate', type=float, required=True, dest='commission_rate', help='Commission rate (required, e.g. 0.075)')
+    parser.add_argument('--country', default='US', help='Target country (default: US)')
+    
+    args = parser.parse_args()
+    
+    # Validate parameters
+    is_valid, error_msg = validate_params(args)
+    if not is_valid:
+        logger.error(f"Validation failed: {error_msg}")
+        print(f"ERROR: {error_msg}")
+        sys.exit(1)
+    
+    print("="*70)
+    print("🔧 Refined Ads Skill - Creating Layered Ad Groups")
+    print("="*70)
+    print(f"\n📋 Campaign ID: {args.campaign_id}")
+    print(f"📋 Customer ID: {args.customer_id}")
+    if args.brand:
+        print(f"📋 Brand: {args.brand}")
+    if args.price:
+        print(f"📋 Price: ${args.price}")
+    
+    # Step 1: Get existing ad content from Main ad group
+    print("\n⏳ Step 1: Extracting ad content from Main ad group...")
+    ad_content, error = get_campaign_info(args.customer_id, args.campaign_id)
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    print(f"   ✅ Extracted {len(ad_content.headlines)} headlines")
+    print(f"   ✅ Extracted {len(ad_content.descriptions)} descriptions")
+    print(f"   ✅ Extracted {len(ad_content.sitelinks)} sitelinks")
+    if ad_content.brand:
+        print(f"   ✅ AI identified brand: {ad_content.brand}")
+    if ad_content.core_product_terms:
+        print(f"   ✅ AI extracted core terms: {ad_content.core_product_terms}")
+    if ad_content.url_suffix:
+        print(f"   ✅ URL suffix present")
+    
+    time.sleep(1)
+    
+    # Step 2: Create layered ad groups
+    print("\n⏳ Step 2: Creating layered ad groups...")
+    created, error = create_layered_ads(
+        customer_id=args.customer_id,
+        campaign_id=args.campaign_id,
+        ad_content=ad_content,
+        brand=args.brand,
+        price=args.price,
+        commission_rate=args.commission_rate,
+        product_url=args.product_url
+    )
+    
+    if error:
+        print(f"\n❌ FAILED: {error}")
+        sys.exit(1)
+    
+    # ============================================================
+    # ===== FIXED: Post-creation validation =====
+    # Verify final_url_suffix is properly set for ads
+    print("\n⏳ Step 3: Validating final_url_suffix...")
+    
+    from src.refined_bid_optimizer import RefinedBidOptimizer
+    validator = RefinedBidOptimizer()
+    
+    validation_errors = []
+    created_ad_groups = []
+    
+    for layer, data in created.items():
+        if isinstance(data, dict) and 'ad_group_id' in data and data.get('ad_group_id'):
+            created_ad_groups.append((layer, data['ad_group_id']))
+    
+    # Check each created ad group for suffix
+    for layer, ad_group_id in created_ad_groups:
+        suffix_check = validator.verify_ad_group_suffix(args.customer_id, ad_group_id)
+        if not suffix_check.get('has_suffix'):
+            validation_errors.append(f"{layer} ({ad_group_id}): missing suffix")
+            logger.error(f"MISSING suffix for {layer} ad group {ad_group_id}")
+        else:
+            logger.info(f"Verified suffix for {layer}: present")
+    
+    # Report validation results
+    if validation_errors:
+        print(f"\n⚠️ WARNING: Some ad groups missing final_url_suffix:")
+        for err in validation_errors:
+            print(f"   - {err}")
+    else:
+        print(f"   ✅ All {len(created_ad_groups)} ad groups have valid suffixes")
+    
+    # ============================================================
+    
+    # Print results
+    print("\n" + "="*70)
+    print("✅ SUCCESS: Layered Ad Groups Created")
+    print("="*70)
+    
+    total_layers = 0
+    total_keywords = 0
+    total_sitelinks = 0
+    
+    for layer, data in created.items():
+        if isinstance(data, dict) and 'ad_group_id' in data:
+            total_layers += 1
+            total_keywords += data.get('keywords_added', 0)
+            total_sitelinks += data.get('sitelinks_added', 0)
+            status = '✅' if data.get('ad_group_id') else '❌'
+            print(f"\n  {status} {layer}: {data.get('name', 'N/A')}")
+            print(f"     AdGroup ID: {data.get('ad_group_id', 'N/A')}")
+            print(f"     Keywords: {data.get('keywords_added', 0)}")
+            print(f"     Ads: {'✅' if data.get('ads_created') else '❌'}")
+            print(f"     Sitelinks: {data.get('sitelinks_added', 0)}")
+    
+    print(f"\n📊 Summary:")
+    print(f"   Total Layers Created: {total_layers}")
+    print(f"   Total Keywords: {total_keywords}")
+    print(f"   Total Sitelinks: {total_sitelinks}")
+    print("\n" + "="*70)
+
+
+if __name__ == '__main__':
+    main()
+
+def add_l0_multi_bid(args, ad_content):
+    """为存量Campaign添加L0多个CPC广告组"""
+    from src.refined_campaign_creator import RefinedCampaignCreator
+    import logging
+    logging.disable(logging.INFO)
+    
+    creator = RefinedCampaignCreator(affiliate_name='yeahpromos')
+    
+    # 准备参数
+    price = args.price
+    commission_rate = args.commission_rate
+    max_cpc_l0 = price * commission_rate / 50 * 6.98
+    
+    result = creator.create_l0_multi_bid_groups(
+        customer_id=args.customer_id,
+        campaign_id=args.campaign_id,
+        brand=args.brand,
+        product_model=args.product_model,
+        product_name=getattr(args, 'product_name', args.brand),
+        l0_keywords=[],  # 让函数内部生成
+        ad_content={
+            'headlines': ad_content.headlines if ad_content else ['Buy ' + args.brand],
+            'descriptions': ad_content.descriptions if ad_content else ['Best quality']
+        },
+        final_url=args.product_url if args.product_url else (ad_content.final_url if ad_content else ''),
+        url_suffix=ad_content.url_suffix if ad_content else None,
+        base_cpc=max_cpc_l0
+    )
+    
+    return result

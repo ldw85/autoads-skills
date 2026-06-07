@@ -1,0 +1,8 @@
+googleAds:
+  OAuth2:
+    file: ./awesome-ridge-478918-t7-bc818468b332.json
+    mode: FILE
+  developer_token: 3SiWtpcSmxkS1LUxROqXlg
+  login_customer_id: '6435691150'
+  use_proto_plus: true
+use_proto_plus: true

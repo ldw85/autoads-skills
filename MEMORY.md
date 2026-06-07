@@ -39,6 +39,82 @@
 7. 会话过长时使用记忆压缩/重置
 8. 超过3个月的记忆归档
 
+## 🔴 全局反硬编码铁律 (2026-06-06)
+
+**【最高优先级】禁止任何形式的硬编码fallback**
+
+### 1. 绝对禁止的硬编码
+- ❌ 硬编码ASIN / 产品URL（如 `B0DFF7SSMW`、`B0DYC8NQ5K`）
+- ❌ 硬编码产品名称/品牌名（如 `JoyBerri Trampoline`）
+- ❌ 硬编码headlines/description（如 `["JoyBerri Trampoline"]`、`["Best trampoline for backyard"]`）
+- ❌ 硬编码产品变体（如 `f"open goal soccer"`、`f"goaaal soccer net"`）
+- ❌ 硬编码产品类型判断（如 `if 'goaaal' in brand_lower or 'goal' in brand_lower`）
+- ❌ 硬编码同品牌其他产品线（SHOKZ的Xtrainerz、OpenRun、Aeropex等不能当作变体使用）
+
+### 2. fallback必须遵守的原则
+- **报错优先**：如果必要信息缺失，直接报错让用户补充，而不是fallback
+- **AI生成**：所有文案、变体、关键词必须由AI从传入的参数生成
+- **从现有资源复制**：存量广告系列补充分层时，广告内容必须从Campaign现有的广告中复制
+- **AI语义识别**：产品线过滤、竞品识别等由AI语义判断，禁止硬编码品牌名检查
+
+### 3. 存量广告系列补充分层场景的完整原则
+- **不传URL**：用户调用 `--campaign-id` 时不传URL
+- **广告内容100%复制现有**：从该Campaign的Main广告组提取headlines/description/URL/suffix
+- **品牌名从ad_content提取**：从广告内容中AI语义识别品牌，禁止作为参数硬编码
+- **核心关键词从产品描述生成**：用户必须提供产品描述，AI生成核心产品词
+- **产品线过滤**：AI判断同品牌其他产品线（Xtrainerz/OpenRun/Aeropex等）应DROP
+
+### 4. 错误案例（2026-06-06 SHOKZ L0事件）
+- 5个新建L0广告组使用了蹦床产品URL (`B0DFF7SSMW` = JoyBerri Trampoline) → 展示耳机广告
+- L0关键词包含 `Shokz Openrun` / `Aftershokz Xtrainerz` / `Shokz Aeropex` → 同品牌其他产品线污染
+- 原因：run_skill.py:391-396 硬编码了AdContent fallback (JoyBerri Trampoline + B0DFF7SSMW)
+- 修复：fallback改为报错；AI提示词加强产品线过滤；删除所有硬编码产品变体
+
+### 5. 验证检查命令
+```bash
+# 查找所有硬编码的ASIN/品牌
+grep -nE "B0[A-Z0-9]{8}|goaaal|JoyBerri|Trampoline" \
+  /root/.openclaw/workspace/autoads/src/*.py \
+  /root/.openclaw/workspace/skills/refined-ads/*.py
+
+# 期望结果：(no output)
+```
+
+### 6. 关键词 4 层过滤架构 (2026-06-07 新增)
+
+**【背景】** 避免硬编码+让产品定义变更可复用,autoads 创建普通广告系列时使用 4 层过滤流水线。
+
+**【新文件】** `autoads/src/keyword_filter.py` (UniversalKeywordFilter 类)
+
+| 层 | 名称 | 职责 | 实现方式 |
+|---|---|---|---|
+| Layer 1 | 竞品识别 | 只识别**品牌层面**竞品 (其他品牌 + 同品牌不同产品线) | AI 语义 (不硬编码品牌) |
+| Layer 2 | Amazon 平台过滤 | 精确字符串匹配 'amazon' 作为完整词或前缀 (产品名+amazon → KEEP) | 字符串 (严格精确) |
+| Layer 3 | 产品相关性 | 识别关键词是否与主产品同义/相关 (变体/不同品类/通用词 → DROP) | AI 语义 (不硬编码产品词) |
+| Layer 4 | 品牌层 (L0/L1 专用) | 仅保留品牌词 (精细化广告组 L0/L1 层使用) | AI 语义 |
+
+**【调用模式】**
+- **普通广告系列**: `filter_for_standard_campaign(keywords, product_description, brand)` → Layer 1+2+3
+  - 保留范围: 品牌词 + 核心产品词 + 相同产品含义的长尾词
+- **精细化 L0/L1 层**: `filter_for_brand_layer(keywords, product_description, brand)` → Layer 1+2+4
+  - 保留范围: 仅品牌词
+- **精细化程序独立**: `skills/refined-ads/run_skill.py` 的 `_ai_filter_l0_keywords` 和 `autoads/src/refined_campaign_creator.py` 的 L1 Brand 过滤未改动,本模块不覆盖
+
+**【关键设计原则】**
+- 缺信息即报错 (不静默fallback), `KeywordFilterError` 抛出
+- 4 层各司其职, 互不重叠 (Layer 1 只管品牌, 不管变体/品类)
+- 所有 AI 提示词基于"通用规则"而非硬编码 (如"使用同一原则判断任何品牌")
+- Layer 2 "精确匹配" = 整体==amazon 或以 "amazon "/amazon./amazon's 开头; "amazon basics" / "amazonbasics" 视为Amazon自家品牌DROP
+- "产品名+amazon" (如 "soccer goal amazon") KEEP — 客户有在amazon购买意图
+- 测试场景: Open Goaaal 24x8ft 户外足球门, 42 测试关键词, 4 层最终保留 15 个 (品牌3 + 核心6 + 长尾3 + 产品+amazon 2 + 通用+产品 1), 完全符合预期
+
+**【兼容性】**
+- `ad_researcher.py` 的 `_ai_filter_brand_relevance` 和 `_filter_competitor_keywords` 保留 (带 DeprecationWarning), 内部转发到新模块
+- `_generate_keywords` 内部已重写为调用 `filter_for_standard_campaign`
+- 旧的 `filter_amazon_keywords` / `filter_generic_keywords` 内嵌函数 + `GENERIC_KEYWORDS` 硬编码黑名单 已彻底删除
+
+**【验证】** Open Goaaal 端到端测试通过: 42 关键词 → Layer1 移除 12 竞品 → Layer2 移除 3 amazon → Layer3 移除 12 变体/品类/通用 → KEEP 15 合格关键词
+
 ## 记忆机制 (2026-04-14)
 
 ### 每日日志规范
@@ -140,6 +216,30 @@
 - ☕ 生活品质 (咖啡机、空气炸锅、扫地机器人等)
 - 🏆 体育赛事及用品 (球队周边、运动装备、粉丝商品、赛事装备等)
 
+## 广告与ASIN映射数据库 (2026-05-23)
+
+### ad_campaigns_db.json
+- **位置**: `/root/.openclaw/workspace/autoads/logs/ad_campaigns_db.json`
+- **用途**: 存储广告系列与ASIN映射关系（campaign_id、campaign_name、account_id、asin、product_name、price、commission_rate、network、url、cpc_bid、status）
+- **记录数**: 287条
+- **查询函数**:
+```python
+from ad_campaigns_db import get_campaigns_by_asin, get_campaigns_by_account
+campaigns = get_campaigns_by_asin('B0D6J5B98H')
+```
+
+### asin_to_campaigns.json
+- **位置**: `/root/.openclaw/workspace/autoads/logs/asin_to_campaigns.json`
+- **用途**: ASIN反向查询对应广告系列
+- **查询示例**:
+```python
+import json
+with open('/root/.openclaw/workspace/autoads/logs/asin_to_campaigns.json') as f:
+    lookup = json.load(f)
+campaigns = lookup['mapping'].get('B0D6J5B98H', [])
+```
+
+---
 ## 技能库
 
 - feishu-doc, feishu-wiki, feishu-drive (飞书操作)

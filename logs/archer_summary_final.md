@@ -1,0 +1,36 @@
+# Archer优选商品报告
+
+筛选条件：$100+, 20+reviews, 4.0+stars
+
+| # | ASIN | 品牌 | 价格 | 评论 | 评分 |
+|---|------|------|------:|------:|------:|
+| 1 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 2 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 3 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 4 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 5 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 6 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 7 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 8 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 9 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 10 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 11 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 12 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 13 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 14 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 15 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 16 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 17 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 18 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 19 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 20 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 21 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 22 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 23 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 24 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 25 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 26 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 27 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 28 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 29 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |
+| 30 | B0BQFXVGNZ | ALLWEI | $2488.0 | 138.0 | 4.4 |

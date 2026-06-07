@@ -44,6 +44,8 @@ def main():
     parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate (decimal)')
     parser.add_argument('--country', default='US', help='Target country (default: US)')
     parser.add_argument('--budget', type=float, default=20.0, help='Daily budget (default: 20)')
+    parser.add_argument('--rating', help='Product rating (e.g., "4.6")')
+    parser.add_argument('--reviews-count', type=int, dest='reviews_count', help='Number of reviews (e.g., 21000)')
     
     args = parser.parse_args()
     
@@ -87,7 +89,9 @@ def main():
         price=args.price,
         commission_rate=args.commission_rate,
         country=args.country,
-        budget=args.budget
+        budget=args.budget,
+        product_rating=args.rating,
+        product_reviews_count=args.reviews_count
     )
     
     print("\n" + "="*70)

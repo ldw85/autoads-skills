@@ -44,7 +44,7 @@
 
 ## 每日Affiliate ROI报告 (8:00)
 
-当收到 cron 触发时 (`每日Affiliate ROI报告`):
+当收到 cron 触发时 (`affiliate_roi_report`):
 
 1. 执行: `cd /root/.openclaw/workspace/autoads/archer-roi && bash scripts/run-affiliate-report.sh`
 2. 生成YeahPromos和PartnerBoost的详细ROI报告（含CVR、佣金、成本、点击等）

@@ -1,0 +1,340 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Archer Affiliates API",
+    "description": "API that allows use of features on the Archer Platform",
+    "version": "0.1"
+  },
+  "servers": [
+    {
+      "url": "https://api.archeraffiliates.com"
+    }
+  ],
+  "paths": {
+    "/token": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login For Access Token",
+        "operationId": "login_for_access_token_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "default": "password"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getproducts": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get Products",
+        "description": "Get all products in the Archer Affiliates Catalog",
+        "operationId": "get_products_getproducts_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "Number of records to skip"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100
+            },
+            "description": "Max records to return (max 500)"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search phrase for products"
+          },
+          {
+            "name": "brand_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by brand_id"
+          },
+          {
+            "name": "product_available",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["yes", "no", "either"],
+              "default": "yes"
+            },
+            "description": "Filter products by availability"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "fetched_count": {
+                      "type": "integer"
+                    },
+                    "skip": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "product_catalog": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "brand_id": {
+                            "type": "string"
+                          },
+                          "company_name": {
+                            "type": "string"
+                          },
+                          "ASIN": {
+                            "type": "string"
+                          },
+                          "product_name": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "string"
+                          },
+                          "total_reviews": {
+                            "type": "string"
+                          },
+                          "avg_rating": {
+                            "type": "string"
+                          },
+                          "image_encoded_string": {
+                            "type": "string"
+                          },
+                          "product_category": {
+                            "type": "string"
+                          },
+                          "commission_payout_aff": {
+                            "type": "string"
+                          },
+                          "deal": {
+                            "type": "object"
+                          },
+                          "product_status": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_single_product": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get Single Product",
+        "operationId": "get_single_product_get_single_product_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/link_data": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Links Data",
+        "description": "Returns data for links that have clicks > 0",
+        "operationId": "links_data_link_data_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "startdate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Start date (YYYYMMDD)"
+          },
+          {
+            "name": "enddate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "End date (YYYYMMDD)"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "True for ascending, False for descending"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/aggregated_report": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Agg Report For Affiliates",
+        "description": "Returns aggregated totals for all links in date range",
+        "operationId": "agg_report_for_affiliates_aggregated_report_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "startdate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enddate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "token"
+          }
+        }
+      }
+    }
+  }
+}

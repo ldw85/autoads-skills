@@ -1,0 +1,128 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PartnerBoost API",
+    "description": "PartnerBoost FBA Products API",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.partnerboost.com"
+    }
+  ],
+  "paths": {
+    "/api/datafeed/get_fba_products": {
+      "post": {
+        "summary": "Get FBA Products",
+        "operationId": "get_fba_products",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "API authentication token"
+                  },
+                  "page_size": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of results per page"
+                  },
+                  "page": {
+                    "type": "integer", 
+                    "default": 1,
+                    "description": "Page number"
+                  },
+                  "country_code": {
+                    "type": "string",
+                    "default": "US",
+                    "description": "Country code (US, UK, DE, ES, FR, IT)"
+                  },
+                  "brand_id": {
+                    "type": "integer",
+                    "description": "Filter by brand ID"
+                  },
+                  "sort": {
+                    "type": "string",
+                    "description": "Sort order (price_desc, price_asc, discount_desc)"
+                  },
+                  "asins": {
+                    "type": "string",
+                    "description": "Comma-separated ASINs"
+                  },
+                  "relationship": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "1 for affiliate products"
+                  },
+                  "has_promo_code": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Filter by promo code availability"
+                  },
+                  "has_acc": {
+                    "type": "integer", 
+                    "default": 0,
+                    "description": "Filter by accelerator commission"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {"type": "integer"},
+                        "msg": {"type": "string"}
+                      }
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "product_id": {"type": "string"},
+                              "product_name": {"type": "string"},
+                              "asin": {"type": "string"},
+                              "discount": {"type": "string"},
+                              "commission": {"type": "string"},
+                              "category": {"type": "string"},
+                              "rating": {"type": "string"},
+                              "reviews": {"type": "string"},
+                              "url": {"type": "string"},
+                              "brand_name": {"type": "string"},
+                              "original_price": {"type": "string"},
+                              "discount_price": {"type": "string"},
+                              "acc_commission": {"type": "string"},
+                              "promo_code_list": {"type": "array"},
+                              "link": {"type": "string"}
+                            }
+                          }
+                        },
+                        "has_more": {"type": "boolean"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

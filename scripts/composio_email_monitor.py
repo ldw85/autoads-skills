@@ -23,10 +23,10 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
-# Composio 配置
-API_KEY = 'ak_e198_UxBGEs3ILVwWji7'
+# Composio 配置 (updated 2026-06-03)
+API_KEY = os.environ.get('COMPOSIO_API_KEY', 'ak__6l6HT0MCX-Rvxg9DsFj')
 MCP_SERVER_URL = 'https://backend.composio.dev/v3/mcp/42fe4c7e-d7f3-418d-9183-9c58821e8988/mcp'
-CONNECTED_ACCOUNT_ID = 'ca_k0c6yTjlB6sg'
+CONNECTED_ACCOUNT_ID = 'ca_h6jrQTnP0cPT'
 USER_ID = 'pb_asin_stt_mon@outlook.com'
 
 # 日志目录
@@ -197,9 +197,19 @@ def check_emails_and_pause(dry_run=True):
     
     asins_to_pause = list(set(asins_to_pause))
     
+    # 每次运行都发送汇总报告
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    
     if not asins_to_pause:
         print("✅ 没有需要暂停的 ASIN")
         save_processed_emails(processed_ids)
+        # 发送正常运行汇总
+        notification = f"📧 **Composio邮件监控日报** - {timestamp}\n\n"
+        notification += f"✅ 今日扫描完成\n"
+        notification += f"📧 处理邮件: {len(processed_ids)} 封\n"
+        notification += f"⚠️ 待暂停: 0\n"
+        notification += f"💚 状态: 正常运行"
+        send_feishu_notification(notification)
         return
     
     print(f"\n🛑 需要暂停的 ASIN: {asins_to_pause}")
@@ -225,10 +235,12 @@ def check_emails_and_pause(dry_run=True):
     
     save_processed_emails(processed_ids)
     
-    # 发送飞书通知
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    notification = f"📧 **Composio邮件监控** - {timestamp}\n\n"
-    notification += f"🛑 已暂停 {len(asins_to_pause)} 个ASIN: {asins_to_pause}"
+    # 发送暂停汇总通知
+    notification = f"📧 **Composio邮件监控日报** - {timestamp}\n\n"
+    notification += f"📧 处理邮件: {len(processed_ids)} 封\n"
+    notification += f"🛑 已暂停 {len(asins_to_pause)} 个ASIN:\n"
+    for asin in asins_to_pause:
+        notification += f"  • {asin}\n"
     send_feishu_notification(notification)
 
 
