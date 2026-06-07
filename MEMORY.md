@@ -220,6 +220,51 @@ Layer 3 提示词从 V1 升级为 V5。
 - 10 个关键回归测试全部通过
 - V5 跟 David 12:05 表述的目标精准对齐
 
+## 广告素材 rating/reviews_count Bug 修复 (2026-06-07 12:15)
+
+### David 报告
+
+创建普通广告系列时, headlines 出现两个问题:
+1. "21K+ Happy Customers" - 是默认值, 不是传入参数
+2. "500 Reviews 43 Stars" - 43 Stars 应该是 4.3 Stars, 传入参数是 4.3
+
+### 根因 (3 个 Bug)
+
+1. **main.py 不传 rating/reviews_count**: `researcher.research()` 调用时只传 product_description/product_url/brand_name 等, **没传 product_rating 和 product_reviews_count** (这两个参数接口存在但未被使用)
+   - main.py 把 rating 塞进 product_description 文本 "Rating: 4.3/5 (500 reviews)", AI 从文本中无法精确抽取
+
+2. **ad_researcher.py prompt 有硬编码默认值**: 第 482 行 "Examples: '21K+ Happy Customers', '4.6 Stars Rated'" - "21K" 和 "4.6" 是**例子数值**, AI 看到后误以为是参考值, 直接套用作为默认
+   - 修复: 改为抽象占位符 + 明确指令 "If 'PRODUCT RATING' is provided, you MUST use that EXACT rating"
+
+3. **policy_filter.py 丢了小数点** - 这才是 "43 Stars" 真正原因!
+   - `normalize_to_title_case` 函数: 对每个 word, 先 `clean_word = ''.join(c for c in word if c.isalnum())` 去掉小数点
+   - `clean_word = "43"` (原 word="4.3")
+   - 后续 `result.append(clean_word.capitalize())` 用的是 "43" 而不是 "4.3"
+   - AI 正确生成 "4.3 Stars Rated" → 被规范化丢小数点 → "43 Stars Rated"
+
+### 修复
+
+1. **ad_researcher.py prompt**: 移除"21K"和"4.6"硬编码, 改为抽象占位符 + "USE EXACT PASSED-IN VALUES" 明确指示
+2. **main.py**: 显式传 `product_rating` 和 `product_reviews_count` 给 `researcher.research()` (从 Decodo 提取的 amazon_info 中取)
+3. **ad_researcher.py _generate_keywords**: 新增 brand_name 参数透传 (供 4 层 filter 用)
+4. **policy_filter.py normalize_to_title_case**: 特殊处理 `^\d+\.\d+$` 模式, 保留原 word 不去小数点
+
+### 验证
+
+端到端测试 (Bose QC45, rating=4.3, reviews=500):
+- H4: "4.3 Stars Rated by 500" ✓
+- H5: "500 Happy Customers" ✓
+- H6: "Trusted by 500 Reviewers" ✓
+- Issues: 0 (没出现 "43 Stars" 或 "21K")
+
+8 个 keyword_filter 回归测试全部通过
+
+### 教训 (2026-06-07)
+
+- 同一个 bug 有 3 层原因叠加: (1) main.py 不传参 (2) prompt 硬编码默认值 (3) 规范化函数丢小数点
+- **不能只修一层** - 修 1 和 2 不够, 3 是真正导火索
+- 之前的 MEMORY 记录里 David 提过"Star 数应该是 4.0 而不是 46", 这次发现是"43" 而不是 "46" - 同一个问题换了形式
+
 ### 元规则更新 (2026-06-07)
 
 **【核心发现】AI 提示词 "加约束指令" 可能伤害稳定性**
