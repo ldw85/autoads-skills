@@ -159,18 +159,37 @@ def generate_l0_keywords(
                         break
                 seed_keywords.extend(product_type_words)
             
-            # 4) 产品型号 (从描述中提取的大写开头的词)
+            # 4) 产品型号 (从描述中提取含数字的型号代码)
+            # 2026-06-07 David: ROVE R2-4K 是关键品牌型号, 之前硬编码 pattern 只匹配大写开头词
+            # -> 错过 R2-4K / R2 4K / X431 PROS V 等含数字型号
+            # 新 pattern: 提取包含数字的型号 (不是纯字母)
             if product_description:
-                model_patterns = re.findall(r'\b[A-Z][A-Za-z0-9]*(?:[-\s][A-Z0-9+]+)*\b', product_description)
+                # 提取型号候选: 1) 含连字符+数字 2) 含数字+字母混合
+                # 例: R2-4K, R2 4K, X431 PROS V, P500, M2.5
+                model_candidates = []
+                # Pattern 1: 大写+数字+连字符+数字 (e.g., R2-4K)
+                model_candidates.extend(re.findall(r'\b[A-Z]\d+(?:[-][A-Z0-9]+)+\b', product_description))
+                # Pattern 2: 大写+数字 (e.g., X431, P500, M2)
+                model_candidates.extend(re.findall(r'\b[A-Z]\d{2,}[A-Z]?\b', product_description))
+                # Pattern 3: 大写字母+数字+大写字母 (e.g., R2 4K, V5.0)
+                model_candidates.extend(re.findall(r'\b[A-Z]\d+(?:\s[A-Z0-9]+)+\b', product_description))
+                # Pattern 4: 词首是数字的型号 (e.g., 128GB, 5G - 一般不是型号但是个制式)
+                # 保留含字母+数字混合的: 4K, 5G 跳过
+                
                 seen_seed = set()
-                for p in model_patterns:
-                    p_lower = p.lower()
+                for p in model_candidates:
+                    p_clean = p.strip()
+                    p_lower = p_clean.lower()
+                    # 过滤: 长度>=2, 不是纯数字, 不是品牌
                     if (p_lower not in seen_seed and 
                         p_lower not in brand.lower() and
-                        len(p_lower) >= 4):
-                        seed_keywords.append(p)
+                        len(p_clean) >= 2 and
+                        any(c.isdigit() for c in p_clean) and
+                        # 过滤掉纯制式词 (4K, 5G, 128GB, 24H)
+                        not re.match(r'^\d+[A-Z]{1,3}$', p_clean)):
+                        seed_keywords.append(p_clean)
                         seen_seed.add(p_lower)
-                    if len(seed_keywords) >= 10:
+                    if len(seed_keywords) >= 12:  # 保留 room 给品牌名+短词
                         break
             
             # 去重保序，限制最多10个 (GKP 限制)
@@ -505,25 +524,40 @@ CORE PRINCIPLE: Use semantic understanding to identify what THIS product is.
 - Identify the product's key characteristics: name, model, technology, use case, features
 - Generate keywords that match THESE characteristics
 
-Include ALL three types:
+STEP 1: Identify the product's MODEL NAME from the description first.
+- A model name typically CONTAINS NUMBERS + LETTERS (e.g., 'R2-4K', 'R2 4K', 'X431 PROS V', 'P500')
+- The model name is a SPECIFIC identifier that distinguishes THIS product from OTHER products
+- Do NOT confuse the model with general features like '4K' (resolution) or '128GB' (storage) or '5G' (WiFi)
+- Do NOT confuse the model with the product category (e.g., 'Dash Cam' is category, 'R2-4K DUAL' is model)
+- Examples of MODEL extraction (abstract, not specific to your product):
+  - If description is '[Brand] [Model] [Category] [Features]', the model is the [Model] part
+  - If description has '[Brand] [Category] Model [Number]', the model is [Number]
 
-【Type 1: Brand + Product Word Combinations】
+STEP 2: Include ALL four types:
+
+【Type 1: Brand + Product Model Combinations (HIGHEST PRIORITY)】
+- Brand + Model (e.g., "[Brand] R2-4K", "[Brand] R2 4K", "[Brand] R2")
+- Model + Category Word (e.g., "R2-4K dash cam", "R2 4K car camera")
+- Model alone variations: "R2-4K", "R2 4K", "R2 4k"
+- Per David 2026-06-07: These model keywords are HIGH-VALUE because users searching for the model
+  know exactly what they want - high intent, high conversion. Generate at least 5-7 model keywords.
+
+【Type 2: Brand + Product Type Combinations】
 - Brand + Product Type (the product category from description)
 - Brand + Feature (a key feature mentioned in description)
 - Brand + Use Case (the use case implied by description)
 - Brand + Attribute (a key attribute mentioned in description)
 
-【Type 2: Brand + Product Model/Name Combinations】
-- Identify the product's specific model name/number from description
-- Combine the model name with brand
-- Combine any model identifiers with brand
+【Type 3: Brand + Product Model Spelling Variants】
+- Spacing/hyphen variations: "R2-4K" -> "R2 4K", "R24K", "R-2-4K"
+- Number form: "R2 4K" -> "R2 4k" (lowercase k)
+- Model + extra word: "R2-4K DUAL", "R2 4K Dual", "R2-4K dash cam"
+- Word order: "Dash Cam R2-4K" vs "R2-4K Dash Cam"
 
-【Type 3: Spelling Variants & Misspellings of the SAME Meaning】
-- Common misspellings: 型号名 → 拼写变体 (拆开/添加字符/调换顺序)
-- Brand name typos: 品牌名 → 错误拼写 (首字母/中间字母替换)
-- Word order variations: 词组 → 调换词序
-- Spacing/hyphen variations: 词组 → 空格/连字符变体
-- Number form: 数字 → 拼写或符号变体
+【Type 4: Other Misspellings】
+- Common misspellings of brand: [brand] -> misspelled variants
+- Word order variations
+- Spacing/hyphen variations
 
 STRICT RULES (use semantic understanding - do NOT list specific product names):
 1. ALL keywords must be brand + THIS specific product combination
@@ -536,8 +570,9 @@ STRICT RULES (use semantic understanding - do NOT list specific product names):
 4. NO ASIN
 5. NO competitor product names
 6. NO generic shopping terms
-7. Include ALL 3 types above (don't skip misspellings or model combinations)
+7. Include ALL 4 types above (especially model combinations in Type 1)
 8. Aim for 15-20 keywords total
+9. **CRITICAL: Type 1 (Model combinations) should be at least 5-7 keywords** - these are the most valuable
 
 Return ONLY JSON array: ["Keyword 1", "Keyword 2", ...]"""
     
@@ -743,7 +778,9 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
            commission_rate=commission_rate or 0.05,
             url=effective_url or "https://www.amazon.com",
             customer_id=customer_id,
-            country='US'
+            country='US',
+            product_description=product_description,  # FIX: Enable AI semantic classification (not just 50% word match)
+            core_terms=ad_content.core_product_terms if ad_content and ad_content.core_product_terms else None  # FIX: Use AI-extracted core terms
         )
         
         # Override brand/core_terms with AI-extracted values
@@ -809,7 +846,33 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         )
         result['L0_keywords'] = l0_keywords
         logger.info(f"Generated {len(l0_keywords)} L0 keywords for Brand_Model testing")
-        
+
+        # 2026-06-07 David: L1 可以和 L0 关键词一样, 因为都是品牌词广告组
+        # L1 是 baseline ($2.4), L0_3-7 是 CPC 测试组 ($3-7)
+        # 强制 L1 复用 L0 的 brand+model 组合词, 避免被 _reclassify_keywords_with_better_info 分到 L2
+        if l0_keywords:
+            l1_ad_group_name = f"{effective_brand}_Brand"
+            # 用 L0 关键词的纯 brand + model 变体 (保留前 10)
+            l1_kw_data = [
+                {
+                    'text': kw,
+                    'match_type': 'PHRASE',
+                    'bid': 2.4,
+                    'layer': 'L1'
+                }
+                for kw in l0_keywords[:10]
+            ]
+            if 'layers' not in result:
+                result['layers'] = {}
+            result['layers']['L1'] = {
+                'name': l1_ad_group_name,
+                'bid': 2.4,
+                'keywords': l1_kw_data
+            }
+            logger.info(
+                f"L1 ad group '{l1_ad_group_name}' will use same {len(l1_kw_data)} L0 keywords (David 2026-06-07 指示)"
+            )
+
         # Create ad groups with ads
         # Pass product_description to enable GKP-based negative keywords
         created = optimizer.create_ad_groups(
