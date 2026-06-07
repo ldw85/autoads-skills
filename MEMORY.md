@@ -158,6 +158,94 @@ grep -nE "Open Goaaal|SHOKZ|Shockz|Shoks|Aftershokz|KODAK|Bose|24x8|24 feet|socc
 
 **【验证】** 10 个关键回归测试用例全部通过, KEEP/DROP 行为与硬编码版本完全一致
 
+## 🔴 CLI 工具 nargs 陷阱铁律 (2026-06-07 确立)
+
+**【背景】** 修复 `scripts/search_term_negatives.py` 时的真实损失, 与"全局反硬编码铁律"+"故障即文档元规则"并列。
+
+### 1. 铁律
+
+**任何接收"列表型用户输入"的 CLI 参数, 禁止用 `nargs='+'` + 空格作为分隔符。** 必须改用 `type=str` + 内部解析不会与"项内容"冲突的字符(逗号/换行/Tab等)。
+
+### 2. 陷阱原理
+
+`nargs='+'` 让 argparse 按**空格**拆分用户输入为多个值。但当"项本身"包含空格(如多词短语 `"zevo flying insect trap"`)时, 程序分不清:
+- 哪些空格是"项之间"的(应该拆)
+- 哪些空格是"项内部"的(不应该拆)
+
+结果: 多词短语被错误拆成单词, 单词级否定词(`flying`/`insect`/`fly`)误伤自家产品词。
+
+### 3. 修复模板(适用于所有列表型 CLI 参数)
+
+```python
+# ❌ 错误(陷阱)
+parser.add_argument('--add', type=str, nargs='+', help='添加否定词(空格分隔)')
+
+# ✅ 正确(修复)
+parser.add_argument('--add', type=str, default=None,
+                  help='添加否定词(逗号/换行 分隔;空格不在分隔符集)')
+parser.add_argument('--add-from-file', type=str, default=None,
+                  help='从文件读取(每行一个,# 开头为注释)')
+
+# 内部统一解析函数
+def parse_list_input(text: str) -> List[str]:
+    """逗号/换行 分隔, 不拆分空格, 去重+保序"""
+    if not text or not text.strip():
+        return []
+    items = re.split(r'[,\n]+', text.strip())
+    seen = set()
+    result = []
+    for item in items:
+        item = item.strip()
+        if item and item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+```
+
+### 4. 配套原则: 生成侧 & 输入侧必须用同一套规则
+
+- **AI 在会话中输出列表** → 用统一的文本格式(每行一个, 代码块包裹)
+- **用户从代码块复制** → 粘贴到 `--add "..."` → CLI 内部用相同解析函数
+- **文件** → `--add-from-file` 走另一路径但用同一种"每行一个"格式
+
+**保证**: 无论用户从哪种入口输入, 都走同一个 `parse_list_input()`, 避免"AI 输出格式 ≠ CLI 接收格式"的不一致。
+
+### 5. 错误案例 (2026-06-07 真实损失)
+
+**【场景】** 向 Campaign 23806773800 (Flowtron bug zapper) 添加 33 个否定词
+
+**【命令】**
+```bash
+python3 search_term_negatives.py --add zevo flying insect trap raid fly trap raid fogger wondercide ...
+```
+
+**【错误结果】** argparse 把未加引号的 4 词短语拆成 4 个单词:
+- `zevo` ✅ 单词 OK
+- `flying` ❌ 过宽
+- `insect` ❌ 误伤 "flowtron electronic **insect** killer"
+- `trap` ❌ 过宽
+- `raid` / `fly` ❌ 过宽
+- `fogger` (基本无害)
+
+**【损失】** 5 个过宽单词级否定词被错误添加, 3 个复合短语(`zevo flying insect trap`/`raid fly trap`/`raid fogger`)未被正确添加。
+
+**【修复 Commit】** `889c2e3 fix(search_term_negatives): 停止按空格拆分否定词,改用逗号/换行分隔符`
+
+### 6. 验收检查命令
+
+```bash
+# 扫描所有 CLI 工具, 查找危险的 nargs='+' + help='空格分隔' 组合
+grep -rnE "nargs='\+'\s*[,)]|nargs=\"\+\"\s*[,)]" /root/.openclaw/workspace/scripts/ /root/.openclaw/workspace/autoads/scripts/ 2>/dev/null | grep -iE "add|negativ|list|items|words" | head -20
+
+# 期望: (无输出) 或每个命中都有明确说明"已修复/有特殊原因"
+```
+
+### 7. 已应用修复的工具
+
+| 工具 | 修复 Commit | 验证状态 |
+|---|---|---|
+| `scripts/search_term_negatives.py` | `889c2e3` | ✅ 12 个解析测试通过 + EVIQO 实测通过 |
+
 ## V3 改造成与回退记录 (2026-06-07 4轮实验)
 
 ### 背景
