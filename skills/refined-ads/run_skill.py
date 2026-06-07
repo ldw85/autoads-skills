@@ -111,11 +111,12 @@ def generate_l0_keywords(
     # ============================================================
     gkp_raw = []  # GKP返回的原始关键词
     gkp_filtered = []  # AI从GKP过滤后的
+    gkp_negatives = []  # AI从GKP识别的负面词
     if customer_id:
         try:
             sys.path.insert(0, '/root/.openclaw/workspace/autoads')
             from src.refined_bid_optimizer import RefinedBidOptimizer
-            
+
             # 构造种子词 - GKP最多支持10个，要尽量提供，【尤其短的】
             # 短的seed扩展范围更广，长的seed会限死GKP返回
             seed_keywords = []
@@ -220,10 +221,15 @@ def generate_l0_keywords(
                 gkp_raw = [kw.get('text', '') if isinstance(kw, dict) else kw for kw in gkws]
                 logger.info(f"GKP returned {len(gkp_raw)} keywords (seed: {all_keywords})")
             
-            # AI 从 GKP 中过滤品牌关键词
+            # AI 从 GKP 中过滤品牌关键词 (3 路分类: brand / negative / drop)
             if gkp_raw and product_description:
-                gkp_filtered = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
-                logger.info(f"AI extracted {len(gkp_filtered)} keywords from GKP")
+                gkp_result = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
+                gkp_filtered = gkp_result.get('brand_keywords', [])
+                gkp_negatives = gkp_result.get('negative_keywords', [])
+                logger.info(f"AI extracted {len(gkp_filtered)} brand keywords from GKP")
+                logger.info(f"AI identified {len(gkp_negatives)} negative keywords from GKP")
+                if gkp_negatives:
+                    logger.info(f"  Negative samples: {gkp_negatives[:5]}")
         except Exception as e:
             logger.warning(f"GKP failed: {e}")
     
@@ -242,15 +248,33 @@ def generate_l0_keywords(
     if ai_raw and product_description:
         ai_validated = _validate_ai_generated_l0(ai_raw, brand_clean, product_description)
         logger.info(f"AI validated {len(ai_validated)}/{len(ai_raw)} AI-generated keywords")
-    
+
     # ============================================================
     # Stage 4: 合并去重
     # ============================================================
     all_keywords_raw = list(gkp_filtered) + list(ai_validated)
     cleaned = list(set([k.strip().title() for k in all_keywords_raw if k.strip() and len(k.strip()) > 2]))
-    
+
     logger.info(f"Final: {len(cleaned)} L0 keywords (GKP: {len(gkp_filtered)}, AI validated: {len(ai_validated)})")
-    return cleaned[:20]
+
+    # 2026-06-07 David: GKP 阶段识别出的负面词, 加为 campaign negatives
+    # 不传 campaign_id 时不添加, 只能从 caller 处理
+    # 返回元组 (L0 keywords, negative_keywords)
+    if gkp_negatives:
+        # 去重, 提取 keyword 文本
+        seen_neg = set()
+        neg_keyword_set = set()
+        for neg in gkp_negatives:
+            if isinstance(neg, dict):
+                kw = neg.get('keyword', '').strip().lower()
+            else:
+                kw = str(neg).strip().lower()
+            if kw and kw not in seen_neg:
+                seen_neg.add(kw)
+                neg_keyword_set.add(kw)
+        logger.info(f"GKP Negative keywords: {sorted(neg_keyword_set)}")
+        return cleaned[:20], sorted(neg_keyword_set)
+    return cleaned[:20], []
 
 
 def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description: str) -> list:
@@ -363,8 +387,11 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
     return ai_keywords
 
 
-def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: str) -> list:
-    """Use AI to filter GKP keywords for brand+product relevance.
+def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: str) -> dict:
+    """Use AI to filter GKP keywords into 3 categories.
+    
+    Per David 2026-06-07: GKP 阶段也能发现负面词 (配件/安装/竞品/对比/平台等),
+    不应该只丢入, 应该 AI 提前识别为 negative_keywords, 加为 campaign 否定词。
     
     Args:
         gkp_keywords: List of keywords from Google Keyword Planner
@@ -372,23 +399,31 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
         product_description: Product description for context
         
     Returns:
-        Filtered list of L0 keywords (brand + core product keywords)
+        Dict with 3 lists:
+        {
+          "brand_keywords": [str, ...],   # L0 保留
+          "negative_keywords": [str, ...], # 加为 campaign negatives
+          "drop": [str, ...]              # 完全丢弃
+        }
     """
     import json
     import subprocess
     
     # 生成品牌变体
     brand_lower = brand.lower().replace(' ', '')
-    # 不硬编码变体，让AI从品牌名+产品描述中识别所有变体
     brand_variants = [brand, brand_lower]
     
     keywords_text = "\n".join([f"- {kw}" for kw in gkp_keywords[:80]])
     
-    # 强化提示词：明确要求提取"有搜索量的同含义变体"
+    # 2026-06-07 David: 3 路分类 (brand / negative / drop)
     prompt = f"""从GKP返回的关键词中，提取"有真实用户搜索量"且"与品牌+产品同含义"的品牌关键词。
+同时，识别出"有购买意外性"的词为否定关键词。
 
-【背景】这些关键词来自Google Keyword Planner，已代表真实用户搜索。
-我们需要从其中提取最适合投放的品牌关键词。
+【背景】这些关键词来自Google Keyword Planner, 代表真实用户搜索。
+我们使用品牌型号作为 seed 词查询 GKP, 会返回三类词:
+1. **品牌型号相关词** (L0) - 本产品的品牌型号变体, 保留为正向关键词
+2. **周边词/相关词** (NEGATIVE) - 配件/安装/使用场景/竞品/平台等, 虽相关但不是购买意图, 应加为否定词
+3. **完全无关词** (DROP) - 与本产品无关, 丢弃
 
 【品牌变体】{', '.join(set(brand_variants))}
 【产品描述】{product_description}
@@ -396,30 +431,74 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
 【GKP返回的关键词】(最多 80 个)
 {keywords_text}
 
-【任务】
-从GKP返回的关键词中，提取"品牌 + 当前产品同义词"组合的关键词。
+【3 路分类任务】
 
-可以包含以下三种类型（不限于，仅从GKP返回中提取）：
-1. Brand + Standard Product Term
-   例: "{brand} [产品描述中出现的核心产品词]"
-2. Brand + Model Identifier
-   例: "{brand} [产品型号]" / "{brand} [型号变体]"
-3. Brand + Spelling Variants WITH Search Volume
-   例: "{brand} [拼写变体]" / "{brand} [型号简写]" (GKP 返回了该词说明用户实际这样搜索)
+【A. brand_keywords (L0 保留)】从GKP返回中提取"品牌 + 当前产品同义词"组合的关键词。
+  - Brand + Standard Product Term
+  - Brand + Model Identifier
+  - Brand + Spelling Variants (GKP 返回说明用户实际这样搜索)
 
-【严格过滤】必须 DROP：
-- 同品牌其他产品线 (使用语义理解判断: 本产品描述中的技术特征/使用场景/设计与该词描述的型号是否一致)
-- 竞品品牌
-- 纯品牌名 (必须带产品词)
-- 通用购物词 (best/cheap/amazon/free shipping)
-- 与产品无关的词
+【B. negative_keywords (负面词, 加为 campaign negatives)】从GKP返回中识别"周边/相关但不是购买意图"的词。
+  **重要: 负面词必须从 GKP 返回列表中存在, 不能凭空生成**。
+  (这些词 GKP 返回说明有真实用户搜索, 证明他们会点击广告但不是购买意图)
+  6 大负面词类别 (严格按语义判断, 不列举具体词):
+  
+  B1. **ACCESSORY (配件)** - 用户想买配件, 不是本产品
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: SD card, memory card, charger, mount, case, cable, holder, adapter, battery
+    判定原则: 这个词是否在 GKP 返回列表中, 并且描述一个"产品配件"而非产品本身?
+
+  B2. **INSTALLATION (安装/使用)** - 用户想看安装/使用方法, 不是买产品
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: installation, install, setup, manual, how to use, instructions, wiring, hardwire
+    判定原则: 这个词是否在 GKP 返回列表中, 并且描述"使用/安装"动作而非"购买"意图?
+
+  B3. **COMPETITOR (竞品品牌)** - 其他品牌产品, 会争夺预算
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: 同品类其他品牌名 (VIOFO, Garmin, Nextbase, etc.)
+    判定原则: 这个词是否在 GKP 返回列表中, 并且是一个"竞品品牌"名?
+
+  B4. **COMPARISON (对比/比较词)** - 看过对比, 不是必买意图
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: vs, alternative, alternative to, comparison, review, best, top, ranked
+    判定原则: 这个词是否在 GKP 返回列表中, 并且用于"对比/评价"而非"购买"?
+
+  B5. **PLATFORM (平台/购物场景词)** - 跳出购买场景
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: amazon basics, walmart, target, ebay, costco, reddit, youtube
+    判定原则: 这个词是否在 GKP 返回列表中, 并且代表"另一个购物/信息平台"?
+
+  B6. **USE_CASE (特定使用场景)** - 限定场景下使用
+    **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
+    例: for car, for truck, for SUV, for motorcycle, with parking mode (单独的特性), rear view mirror version
+    判定原则: 这个词是否在 GKP 返回列表中, 并且描述一个"特定使用场景/配置"而非"产品本身"?
+
+  **【重要】如果某个负面词类别在 GKP 返回中不存在, 留空不要填**. 例如: GKP 返回 80 个词中
+  没有 'sd card' / 'installation', 这些词由 PRODUCT_SPECIFIC_NEGATIVES 模块负责 (不依赖 GKP).
+  你的任务只是从 GKP 返回中识别 negative, 不要在 GKP 之外的领域生成.
+
+【C. drop】其他完全无关词, 丢弃。
+  - **Rove Concepts 家具这类"同品牌不同产品线"** 应该 drop (不要加为 L0, 也不要加为 negative)
+  - 因为这些词太冷门, 加为 negative 反而误伤其他产品
+
+【严格过滤 - 必须 drop】
+- 同品牌其他产品线
+- 纯品牌名 (不带产品词)
+- 通用购物词 (free shipping, discount, deal)
+- 与产品完全无关的词
 
 【返回格式】JSON
 {{
-  "brand_keywords": ["{brand} [产品词1]", "{brand} [型号变体]", ...]
+  "brand_keywords": ["{brand} [产品词1]", "{brand} [型号变体]", ...],
+  "negative_keywords": [
+    {{"keyword": "sd card", "category": "ACCESSORY"}},
+    {{"keyword": "installation", "category": "INSTALLATION"}}
+  ],
+  "drop": ["unrelated keyword 1", ...]
 }}
 
-只返回JSON。"""
+只返回 JSON。"""
+
     
     try:
         # Call AI via Claude Code
@@ -473,14 +552,16 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
                     json_str = inner.replace('```json', '').replace('```', '').strip()
             data = json.loads(json_str)
             
-            # 新格式：同时返回brand_keywords和core_product
+            # 2026-06-07 David: 3 路分类返回 (brand_keywords + negative_keywords + drop)
             if isinstance(data, dict):
-                brand_kw = data.get('brand_keywords', [])
-                core_kw = data.get('core_product', [])
-                # 合并返回
-                return list(set(brand_kw + core_kw))
+                return {
+                    'brand_keywords': data.get('brand_keywords', []),
+                    'negative_keywords': data.get('negative_keywords', []),
+                    'drop': data.get('drop', [])
+                }
             elif isinstance(data, list):
-                return data
+                # Fallback: 老格式, 全部当 L0
+                return {'brand_keywords': data, 'negative_keywords': [], 'drop': []}
         except Exception as e:
             logger.warning(f"JSON parse failed: {e}")
             
@@ -802,7 +883,7 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                     pm_for_l0 = match.group(1)
                 pu_for_l0 = ad_content.final_url
             
-            l0_from_desc = generate_l0_keywords(
+            l0_from_desc, neg_from_desc = generate_l0_keywords(
                 brand=effective_brand,
                 product_description=product_desc_for_keywords,
                 product_model=pm_for_l0,
@@ -812,6 +893,9 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             if l0_from_desc:
                 result['L0_keywords'] = l0_from_desc
                 logger.info(f"Generated {len(l0_from_desc)} L0 keywords from product description")
+                if neg_from_desc:
+                    result.setdefault('gkp_negatives', []).extend(neg_from_desc)
+                    logger.info(f"  + {len(neg_from_desc)} GKP negative candidates")
         
         logger.info(f"Generated keywords for layers: {list(result.get('layers', {}).keys())}")
         
@@ -837,7 +921,7 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                     pm_for_l0 = match.group(1)
             pu_for_l0 = final_url
         
-        l0_keywords = generate_l0_keywords(
+        l0_keywords, neg_keywords = generate_l0_keywords(
             brand=effective_brand,
             product_description=product_for_l0,
             product_model=pm_for_l0,
@@ -846,6 +930,9 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         )
         result['L0_keywords'] = l0_keywords
         logger.info(f"Generated {len(l0_keywords)} L0 keywords for Brand_Model testing")
+        if neg_keywords:
+            result.setdefault('gkp_negatives', []).extend(neg_keywords)
+            logger.info(f"  + {len(neg_keywords)} GKP negative candidates from L0 generation")
 
         # 2026-06-07 David: L1 可以和 L0 关键词一样, 因为都是品牌词广告组
         # L1 是 baseline ($2.4), L0_3-7 是 CPC 测试组 ($3-7)
@@ -883,7 +970,24 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             ad_content=ad_content,
             product_description=product_description
         )
-        
+
+        # 2026-06-07 David: GKP 阶段 AI 识别的负面词, 添加为 campaign negatives
+        # 例: ROVE R2-4K 查 GKP 会返回 "sd card" / "memory card" / "installation" 等
+        # 这些词虽相关但不是购买意图, 应加为否定词
+        gkp_negatives = result.get('gkp_negatives', [])
+        if gkp_negatives and campaign_id:
+            try:
+                added = optimizer._add_negative_keywords_to_campaign(
+                    customer_id=customer_id,
+                    campaign_id=campaign_id,
+                    negative_keywords=gkp_negatives,
+                    match_type='PHRASE'  # PHRASE match: 包含词的所有变体都排除
+                )
+                logger.info(f"✓ Added {added} GKP-derived negative keywords to campaign {campaign_id}")
+                logger.info(f"  Negative samples: {gkp_negatives[:10]}")
+            except Exception as e:
+                logger.warning(f"Failed to add GKP negative keywords: {e}")
+
         return created, None
         
     except Exception as e:
