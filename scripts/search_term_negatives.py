@@ -14,6 +14,7 @@
 
 import sys
 import os
+import re
 import json
 import argparse
 import logging
@@ -31,6 +32,84 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger()
+
+
+# ============================================================
+# 否定词输入解析 - 统一规则(生成/添加两侧共用)
+# ============================================================
+# 明确禁止: 不再用空格作为分隔符(多词短语内部会冲突)
+# 仅支持 2 种分隔符: 逗号(,) / 换行(\n)
+# 同一个解析函数同时服务于:
+#   1. CLI 参数 --add (用户从 shell 传入)
+#   2. AI 在会话中生成的否定词列表 (粘贴到 --add)
+#   3. 文件 --add-from-file (每行一个, # 开头为注释)
+# ============================================================
+
+_NEG_DELIMITERS = re.compile(r'[,\n]+')
+
+
+def parse_negatives_input(text: str) -> List[str]:
+    """解析否定词输入 - 统一规则(逗号/换行分隔，不拆分空格)
+
+    关键规则: 多词短语(如 "zevo flying insect trap")必须用换行或逗号
+    在两个短语之间,不能仅靠空格区隔,否则会拆成多个单词。
+
+    Examples:
+        >>> parse_negatives_input('zevo,raid,fly')
+        ['zevo', 'raid', 'fly']
+        >>> parse_negatives_input('zevo flying insect trap\\nraid fogger')
+        ['zevo flying insect trap', 'raid fogger']
+        >>> parse_negatives_input('zevo flying insect trap,raid fogger')
+        ['zevo flying insect trap', 'raid fogger']
+        >>> parse_negatives_input('zevo\\nraid\\nwondercide')
+        ['zevo', 'raid', 'wondercide']
+        >>> parse_negatives_input('  zevo  ,  raid  \\n  wondercide  ')
+        ['zevo', 'raid', 'wondercide']
+        >>> parse_negatives_input('')
+        []
+    """
+    if not text or not text.strip():
+        return []
+    # 仅按逗号/换行拆分(连续多个分隔符合并)
+    items = _NEG_DELIMITERS.split(text.strip())
+    # 去空、去重、保序
+    seen = set()
+    result = []
+    for item in items:
+        item = item.strip()
+        if item and item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
+def load_negatives_from_file(filepath: str) -> List[str]:
+    """从文件加载否定词 - 每行一个, # 开头为注释
+
+    AI 在会话中输出否定词时,统一采用这种格式(每行一个),
+    用户可直接保存为 .txt 文件后用 --add-from-file 传入
+    """
+    path = Path(filepath)
+    if not path.exists():
+        raise FileNotFoundError(f'文件不存在: {filepath}')
+    result = []
+    with open(path, 'r', encoding='utf-8') as f:
+        for lineno, line in enumerate(f, 1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
+                continue
+            result.append(stripped)
+    return result
+
+
+def format_negatives_for_ai(negatives: List[str]) -> str:
+    """AI 会话中输出否定词 - 统一为每行一个的代码块格式
+
+    这样用户可以直接:
+        1. 复制粘贴到 --add "..." (每行一个)
+        2. 或保存为文件用 --add-from-file
+    """
+    return '\n'.join(negatives)
 
 
 def get_gads_client():
@@ -211,8 +290,10 @@ def main():
     parser.add_argument('--output', type=str, 
                       default='/tmp/search_term_negatives_output.json',
                       help='输出文件路径')
-    parser.add_argument('--add', type=str, nargs='+',
-                      help='添加否定词（空格分隔）')
+    parser.add_argument('--add', type=str, default=None,
+                      help='添加否定词（逗号/换行 分隔；空格是多词短语内部字符,不用作分隔符）')
+    parser.add_argument('--add-from-file', type=str, default=None,
+                      help='从文件读取否定词（每行一个，# 开头为注释）')
     parser.add_argument('--match-type', type=str, default='PHRASE',
                       help='匹��类型: BROAD, PHRASE, EXACT')
     
@@ -221,11 +302,19 @@ def main():
     args = parser.parse_args()
     
     # 先处理添加否定词的请求
-    if args.add and args.campaign_id:
-        logger.info(f'Adding negatives: {args.add}')
-        result = add_negative_keywords(args.customer_id, args.campaign_id, args.add, args.match_type)
+    negatives_to_add = []
+    if args.add:
+        negatives_to_add.extend(parse_negatives_input(args.add))
+    if args.add_from_file:
+        negatives_to_add.extend(load_negatives_from_file(args.add_from_file))
+
+    if negatives_to_add and args.campaign_id:
+        logger.info(f'Adding {len(negatives_to_add)} negatives: {negatives_to_add}')
+        result = add_negative_keywords(args.customer_id, args.campaign_id, negatives_to_add, args.match_type)
         if result:
-            print(f'✅ 已添加 {len(args.add)} 个否定词')
+            print(f'✅ 已添加 {len(negatives_to_add)} 个否定词')
+            for n in negatives_to_add:
+                print(f'   - {n}')
         else:
             print('❌ 添加失败')
         return
@@ -351,6 +440,10 @@ def main():
                 print(f'  - {n}')
             print('')
             print('如果确认添加，请说: 确认添加')
+            print('')
+            print('或直接用以下命令：')
+            print(f'  --add "{",".join(negatives)}"')
+            print(f'  --add-from-file <file>  # 每行一个')
 
 
 if __name__ == '__main__':
