@@ -55,6 +55,18 @@ class CampaignInventoryReport:
     @property
     def out_of_stock_count(self) -> int:
         return sum(1 for p in self.products if p.status in ("out_of_stock", "unavailable"))
+    
+    @property
+    def rate_limited_count(self) -> int:
+        """Decodo 429 限流导致的 product 数 (2026-06-07 新增)
+        
+        这些 product 状态未知, 需要重试 inventory check 才能确认。
+        """
+        return sum(1 for p in self.products if p.status == "rate_limited")
+    
+    @property
+    def error_count(self) -> int:
+        return sum(1 for p in self.products if p.status == "error")
 
 
 def extract_asin_from_url(url: str) -> Optional[str]:
@@ -336,6 +348,25 @@ def check_amazon_product_with_decodo(url: str) -> ProductCheck:
                 error_message=f"Failed to parse Decodo response: {result[:200]}"
             )
         
+        # Per David 2026-06-07: 检测 Decodo 429 限流
+        # scrape.py 错误格式: {"error": "429 Client Error: ...", "status_code": 429}
+        # 在 batch 场景下不 raise (避免终止整个 inventory check),
+        # 记为 rate_limited 状态, 最后报告统计
+        if isinstance(data, dict):
+            err_str = str(data.get("error", ""))
+            status_code = data.get("status_code")
+            if status_code == 429 or "429" in err_str or "Too Many Requests" in err_str or "rate limit" in err_str.lower():
+                logger.warning(
+                    f"Decodo 限流 429 for {asin}: {err_str[:100]}"
+                )
+                return ProductCheck(
+                    url=url,
+                    asin=asin,
+                    title="",
+                    status="rate_limited",
+                    error_message=f"Decodo 429: {err_str[:150]}"
+                )
+        
         # Check stock status
         stock = data.get("stock", "")
         price = data.get("price", 0)
@@ -452,6 +483,8 @@ def generate_report(reports: List[CampaignInventoryReport]) -> str:
     total_products = sum(len(r.products) for r in reports)
     in_stock = sum(r.in_stock_count for r in reports)
     out_of_stock = sum(r.out_of_stock_count for r in reports)
+    rate_limited = sum(r.rate_limited_count for r in reports)
+    errors = sum(r.error_count for r in reports)
     
     lines = []
     lines.append("📊 **Amazon Inventory Check Report**")
@@ -463,14 +496,31 @@ def generate_report(reports: List[CampaignInventoryReport]) -> str:
     lines.append(f"- Total Products: {total_products}")
     lines.append(f"- ✅ In Stock: {in_stock}")
     lines.append(f"- ❌ Out of Stock / Unavailable: {out_of_stock}")
+    if rate_limited > 0:
+        lines.append(f"- ⚠️ Rate Limited (429): {rate_limited}")
+    if errors > 0:
+        lines.append(f"- ❗ Errors: {errors}")
     lines.append("")
+    
+    # 429 限流提示 (2026-06-07 新增)
+    if rate_limited > 0:
+        lines.append("⚠️ **Decodo 限流警告:**")
+        lines.append(f"  有 {rate_limited} 个 product 因 Decodo 429 限流未检查。")
+        lines.append("  请等几分钟后重新跑 inventory check, 或联系 David 采取其他方案。")
+        lines.append("")
     
     # Detailed per campaign
     for report in reports:
         lines.append("---")
         lines.append(f"**Campaign:** {report.campaign_name}")
         lines.append(f"ID: `{report.campaign_id}` | Status: {report.status}")
-        lines.append(f"Products: {report.in_stock_count} ✅ | {report.out_of_stock_count} ❌")
+        # Build per-campaign status line
+        status_parts = [f"Products: {report.in_stock_count} ✅", f"{report.out_of_stock_count} ❌"]
+        if report.rate_limited_count > 0:
+            status_parts.append(f"{report.rate_limited_count} ⚠️ 429")
+        if report.error_count > 0:
+            status_parts.append(f"{report.error_count} ❗ err")
+        lines.append(" | ".join(status_parts))
         lines.append("")
         
         for product in report.products:
@@ -480,6 +530,9 @@ def generate_report(reports: List[CampaignInventoryReport]) -> str:
             elif product.status in ("out_of_stock", "unavailable"):
                 status_icon = "❌"
                 status_text = "Out of Stock"
+            elif product.status == "rate_limited":
+                status_icon = "⚠️"
+                status_text = "Decodo 429 - 重试后再查"
             else:
                 status_icon = "⚠️"
                 status_text = product.error_message or "Unknown"
@@ -528,8 +581,8 @@ def main():
     parser.add_argument(
         "--parallel",
         type=int,
-        default=10,
-        help="Number of parallel Decodo calls (default: 10)"
+        default=3,
+        help="Number of parallel Decodo calls (default: 3, max recommended: 5)"
     )
     parser.add_argument(
         "--no-spend-filter",

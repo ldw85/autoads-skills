@@ -21,6 +21,19 @@ import urllib.request
 import urllib.error
 
 # ---------------------------------------------------------------------------
+# Custom exceptions
+# ---------------------------------------------------------------------------
+
+class DecodoRateLimitError(Exception):
+    """Decodo 429 限流重试后仍失败
+    
+    Per David 2026-06-07: 遇到这个错误时不要静默 fallback，
+    应该直接 raise 给上层，由 main() 打印用户提示并退出。
+    """
+    pass
+
+
+# ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
 
@@ -50,6 +63,49 @@ def rate_limit():
     if elapsed < MIN_DELAY:
         time.sleep(MIN_DELAY - elapsed + random.uniform(0, 0.05))
     _last_call = time.time()
+
+
+def _429_retry_wrapper(asin_or_url, fetch_fn, max_retries=2):
+    """调 fetch_fn, 遇到 429 时等几秒重试。
+    
+    Args:
+        asin_or_url: 用于日志
+        fetch_fn: callable 接受 no args, 返回 dict
+        max_retries: 429 时最大重试次数 (默认 2)
+    
+    Returns:
+        fetch_fn 的返回值
+    
+    Raises:
+        DecodoRateLimitError: 429 重试 max_retries 次后仍失败
+    """
+    backoff_seconds = [5, 10]
+    
+    for attempt in range(max_retries + 1):
+        if attempt > 0:
+            wait_sec = backoff_seconds[attempt - 1]
+            print(
+                f"Decodo 限流 429, 等待 {wait_sec} 秒后第 {attempt}/{max_retries} 次重试...",
+                file=sys.stderr
+            )
+            time.sleep(wait_sec)
+        
+        try:
+            return fetch_fn()
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                print(
+                    f"Decodo 限流 429 (attempt {attempt + 1}/{max_retries + 1}): {e.reason}",
+                    file=sys.stderr
+                )
+                if attempt < max_retries:
+                    continue
+                else:
+                    raise DecodoRateLimitError(
+                        f"Decodo 限流 429 ({asin_or_url}), 已重试 {max_retries} 次仍失败。"
+                        f"请等几分钟后再试, 或联系 David 采取其他方案。"
+                    )
+            raise  # 非 429 错误传播给上层
 
 
 # ---------------------------------------------------------------------------
@@ -83,17 +139,26 @@ def fetch_via_decodo(asin: str, auth_token: str = None) -> dict:
     
     Tries amazon_pricing first (returns price + seller info),
     falls back to amazon (full page parse).
+    
+    429 重试逻辑: 遇到 429 时等 5s 重试, 再 429 等 10s 重试, 仍 429
+    抛 DecodoRateLimitError。
     """
     token = auth_token or os.environ.get("DECODO_AUTH_TOKEN") or DEFAULT_AUTH
     headers = {**HEADERS, "Authorization": f"Basic {token}"}
     
-    # Try amazon_pricing first (cheaper, sufficient for price)
-    price_data = _fetch_pricing(asin, headers)
+    # Try amazon_pricing first (cheaper, sufficient for price) — 429 retry wrapped
+    def _try_pricing():
+        return _fetch_pricing(asin, headers)
+    
+    price_data = _429_retry_wrapper(asin, _try_pricing)
     if price_data:
         return price_data
     
-    # Fall back to full amazon parse
-    return _fetch_full(asin, headers)
+    # Fall back to full amazon parse — 429 retry wrapped
+    def _try_full():
+        return _fetch_full(asin, headers)
+    
+    return _429_retry_wrapper(asin, _try_full)
 
 
 def _fetch_pricing(asin: str, headers: dict) -> dict | None:
@@ -138,6 +203,8 @@ def _fetch_pricing(asin: str, headers: dict) -> dict | None:
                     "source": "decodo_pricing",
                     "parse_status": parse_code,
                 }
+    except urllib.error.HTTPError:
+        raise  # 让 429 传播到 retry wrapper
     except Exception:
         pass
     
@@ -193,6 +260,8 @@ def _fetch_full(asin: str, headers: dict) -> dict | None:
                 "source": "decodo_full",
                 "parse_status": content.get("parse_status_code", ""),
             }
+    except urllib.error.HTTPError:
+        raise  # 让 429 传播到 retry wrapper
     except Exception as e:
         return {"error": str(e), "asin": asin}
 
@@ -270,7 +339,16 @@ def main():
     else:
         asin = args.asin.strip().upper()
 
-    result = fetch_product(asin, auth_token=args.token)
+    try:
+        result = fetch_product(asin, auth_token=args.token)
+    except DecodoRateLimitError as e:
+        # Per David 2026-06-07: 不要静默 fallback, 打印用户提示后退出
+        if args.as_json:
+            print(json.dumps({"status": "rate_limited", "error": str(e), "asin": asin}))
+        else:
+            print(f"\n❌ Decodo 限流 429, 重试后仍失败: {e}", file=sys.stderr)
+            print("请等几分钟后重试, 或联系 David 采取其他方案 (例如手动填产品信息)。", file=sys.stderr)
+        sys.exit(1)
 
     if args.as_json:
         # Clean output for JSON
