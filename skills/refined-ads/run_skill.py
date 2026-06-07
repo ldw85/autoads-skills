@@ -463,7 +463,7 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
     try:
         result = subprocess.run(
             ['claude', '--print', '--output-format', 'json', prompt],
-            capture_output=True, text=True, timeout=60
+            capture_output=True, text=True, timeout=180  # 2026-06-07 David: 60s 不够 (80 词), 升到 180s
         )
         
         try:
@@ -548,7 +548,8 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
     brand_lower = brand.lower().replace(' ', '')
     brand_variants = [brand, brand_lower]
     
-    keywords_text = "\n".join([f"- {kw}" for kw in gkp_keywords[:80]])
+    keywords_text = "\n".join([f"- {kw}" for kw in gkp_keywords[:50]])  # 2026-06-07 David: 80 词让 AI 超时, 50 词平衡
+    # 2026-06-07 David: 不要限制太死, 至少 50 词让 AI 看到完整型号变体
     
     # 2026-06-07 David: 3 路分类 (brand / negative / drop)
     prompt = f"""从GKP返回的关键词中，提取"有真实用户搜索量"且"与品牌+产品同含义"的品牌关键词。
