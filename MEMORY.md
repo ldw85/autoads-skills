@@ -115,6 +115,49 @@ grep -nE "B0[A-Z0-9]{8}|goaaal|JoyBerri|Trampoline" \
 
 **【验证】** Open Goaaal 端到端测试通过: 42 关键词 → Layer1 移除 12 竞品 → Layer2 移除 3 amazon → Layer3 移除 12 变体/品类/通用 → KEEP 15 合格关键词
 
+## 🔴 故障即文档元规则 (2026-06-07 确立)
+
+**【背景】** David 反复强调这是最高阶元规则, 与"全局反硬编码铁律"互为补充。
+
+### 1. 故障即文档工作流 (每次 AI 误判时执行)
+
+1. David 提出具体误判问题
+2. AI **不**改硬编码字符串匹配来掩盖问题
+3. AI **不**fallback 到全保留
+4. AI **定位提示词哪条规则没说清** → 用**通用例子**补充规则 → 下次同类误判自然避免
+
+### 2. 提示词通用性原则 (写提示词时遵守)
+
+- ✅ **可以用例子**说明规则 (让 AI 理解边界) — 例子是**抽象类别**, 如 `[main product type]`、`[category]`、`X` 占位符
+- ❌ **不硬编码产品信息** — 不能写 "Open Goaaal"、"SHOKZ"、"photo printer"、"soccer goal" 等任何具体产品名/品牌名
+- 提示词必须适用于**任何产品** (不限品类/品牌)
+
+### 3. 验收检查命令
+
+```bash
+# 扫描所有提示词模块是否有硬编码产品信息
+grep -nE "Open Goaaal|SHOKZ|Shockz|Shoks|Aftershokz|KODAK|Bose|24x8|24 feet|soccer goal|soccer ball|photo printer|trampoline|open ear" \
+  /root/.openclaw/workspace/autoads/src/keyword_filter.py
+
+# 期望输出: 空白 (或仅命中通用形容词如 pop-up/portable/foldable - 这些是变体描述词,不是产品名)
+```
+
+### 4. 故障案例 - 2026-06-07 首次应用
+
+**【故障】** 提交 fc83589 后, David 复查发现 4 层提示词硬编码了具体产品信息:
+- Layer 1: "Open Goaaal soccer goal 24x8ft outdoor" / "KODAK photo printer" / "Bose QuietComfort 45"
+- Layer 3: "24x8 ft full-size outdoor soccer goal" / "soccer ball vs soccer goal"
+- Layer 4: "Shockz"/"Shoks"/"Aftershokz" 作为 SHOKZ 变体例子
+
+**【规则没说清】** "提示词必须适用于所有产品" 原则未遵守 — 提示词中不能有具体产品名/品牌名
+
+**【修正】** 全部替换为通用占位符:
+- `[main product type]` / `[category]` / `X` / `{brand}` 作为参数占位符
+- 变体描述保留通用形容词 ("pop-up"/"portable"/"foldable"/"collapsible"/"mini") — 这些是品类通用词,非产品名
+- Layer 1/3/4 提示词顶部加 **NOTE ON EXAMPLES** 元说明, 告诉 AI "examples are abstract categories, not specific products"
+
+**【验证】** 10 个关键回归测试用例全部通过, KEEP/DROP 行为与硬编码版本完全一致
+
 ## 记忆机制 (2026-04-14)
 
 ### 每日日志规范
