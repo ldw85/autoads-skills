@@ -114,6 +114,14 @@ def generate_l0_keywords(
     gkp_negatives = []  # AI从GKP识别的负面词
     if customer_id:
         try:
+            # 2026-06-07 David: AI 从产品描述中动态生成【复合种子词】(品牌+型号, 品牌+类别)
+            # 不硬编码 ROVE / R2-4K
+            # 复合 seed 是 GKP 返回配件/安装/比较词的关键
+            ai_composite_seeds = _generate_composite_seeds(brand_clean, product_description)
+            if ai_composite_seeds:
+                logger.info(f"AI generated {len(ai_composite_seeds)} composite seeds: {ai_composite_seeds}")
+            else:
+                ai_composite_seeds = []
             sys.path.insert(0, '/root/.openclaw/workspace/autoads')
             from src.refined_bid_optimizer import RefinedBidOptimizer
 
@@ -194,8 +202,13 @@ def generate_l0_keywords(
                         break
             
             # 去重保序，限制最多10个 (GKP 限制)
-            all_keywords = list(dict.fromkeys(seed_keywords))[:10]
-            
+            # 2026-06-07 David: 复合种子词 (品牌+型号/品牌+类别) 优先
+            # AI 生成的复合 seed 排在前部, 单独的 brand/model 放后面
+            all_keywords_seed = ai_composite_seeds + seed_keywords
+            # 去重保序
+            all_keywords = list(dict.fromkeys(all_keywords_seed))[:10]
+            logger.info(f"Final GKP seed (复合优先): {all_keywords}")
+
             if len(all_keywords) >= 2:
                 opt = RefinedBidOptimizer()
                 if product_url:
@@ -385,6 +398,128 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
     
     # Fallback: 返回原始 AI 关键词 (不推荐但避免丢失)
     return ai_keywords
+
+
+def _generate_composite_seeds(brand: str, product_description: str) -> list:
+    """Use AI to generate COMPOSITE GKP seed keywords from product description.
+    
+    Per David 2026-06-07: GKP 不返回配件词 (sd card / memory card / installation)
+    根因是种子词不对。复合 seed (品牌+型号, 品牌+类别) 才是 GKP 返回配件词的关键。
+
+    本函数从 product_description 动态生成复合种子词, 不硬编码任何产品信息。
+    
+    Args:
+        brand: Brand name
+        product_description: Product description for context
+        
+    Returns:
+        List of composite seed keywords (e.g., ["Rove R2 4K", "Rove R2-4K", "Rove Dash Cam"])
+    """
+    import json
+    import subprocess
+    
+    if not brand or not product_description:
+        return []
+    
+    prompt = f"""从产品描述中生成【复合 GKP 种子词】。
+
+【背景】
+Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) 查查时,
+会返回**配件/安装/比较/平台**等周边词。例如:
+  - GKP("Rove R2 4K") -> 60+ 词含 "sd card" / "hardwire kit" / "reddit" / "installing" 等周边词
+  - GKP("Rove") -> 80 词全是 Rove Concepts 家具 (同品牌不同产品线)
+所以必须用【复合种子词】, 不能单独用品牌名。
+
+【品牌】{brand}
+【产品描述】{product_description}
+
+【任务】
+从产品描述中识别出**最有效的复合种子词** (5-7 个)。原则:
+1. 全部种子词必须含【品牌名】+【产品相关词】
+2. 产品相关词 可以是:
+   - 型号名 (从描述中识别含数字的型号, 例如 R2-4K, X431 PROS V)
+   - 产品类别 (例如 Dash Cam, Camera, Headphones)
+   - 品牌+型号 组合 (如 "[品牌] R2-4K", "[品牌] R2 4K", "[品牌] R2-4K DUAL")
+   - 品牌+类别 组合 (如 "[品牌] Dash Cam", "[品牌] Car Camera")
+3. 不在种子词里:
+   - 配件词 (如 "SD card" - 让 GKP 主动发现, 不是手动)
+   - 安装词 (如 "install" - 同上)
+   - 竞品词 (如 "VIOFO" - 同上)
+4. 优先顺序:
+   1) 【品牌】+【型号】 (高优先 - 最精确, 容易返回高价值配件词)
+   2) 【品牌】+【型号变体】 (如 R2-4K 空格变体 R2 4K)
+   3) 【品牌】+【产品类别】 (返回品牌同类产品词)
+5. 输出的【全部】种子词将作为 GKP 的 KeywordSeed 输入
+
+【严格禁止】不硬编码特定产品信息:
+- 任何产品型号/品牌/类别名都应该从【产品描述】动态提取
+- 生成的种子词应该【适用于任何产品】, 不限于 dash cam
+
+【返回格式】JSON
+{{"composite_seeds": ["[品牌] [型号1]", "[品牌] [型号2]", "[品牌] [类别]", ...]}}
+
+只返回 JSON。"""
+    
+    try:
+        result = subprocess.run(
+            ['claude', '--print', '--output-format', 'json', prompt],
+            capture_output=True, text=True, timeout=60
+        )
+        
+        try:
+            outer = json.loads(result.stdout)
+            inner = outer.get('result', '')
+            # 提取 JSON
+            import re
+            code_block = re.search(r'```json\s*(\{.*?\})\s*```', inner, re.DOTALL)
+            if code_block:
+                json_str = code_block.group(1)
+            else:
+                # 栈找平衡 {...}
+                def extract_first_balanced_json(text):
+                    start = text.find('{')
+                    if start == -1:
+                        return None
+                    depth = 0
+                    in_string = False
+                    escape = False
+                    for i in range(start, len(text)):
+                        c = text[i]
+                        if escape:
+                            escape = False
+                            continue
+                        if c == '\\':
+                            escape = True
+                            continue
+                        if c == '"':
+                            in_string = not in_string
+                            continue
+                        if in_string:
+                            continue
+                        if c == '{':
+                            depth += 1
+                        elif c == '}':
+                            depth -= 1
+                            if depth == 0:
+                                return text[start:i+1]
+                    return None
+                json_str = extract_first_balanced_json(inner)
+                if not json_str:
+                    json_str = inner.replace('```json', '').replace('```', '').strip()
+            data = json.loads(json_str)
+            if isinstance(data, dict):
+                seeds = data.get('composite_seeds', [])
+                # 过滤: 含品牌名
+                brand_lower = brand.lower()
+                filtered = [s for s in seeds if brand_lower in s.lower() and isinstance(s, str) and len(s.strip()) >= 4]
+                return filtered[:7]  # 限制 7 个
+            return []
+        except Exception as e:
+            logger.warning(f"AI composite seeds parse failed: {e}")
+            return []
+    except Exception as e:
+        logger.warning(f"AI composite seeds failed: {e}")
+        return []
 
 
 def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: str) -> dict:
@@ -584,8 +719,9 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
             pass
     except Exception as e:
         logger.warning(f"AI filter failed: {e}")
-    
-    return []
+
+    # 2026-06-07 修复: fallback 返回空 dict (不是 list), 避免 caller AttributeError
+    return {'brand_keywords': [], 'negative_keywords': [], 'drop': []}
 
 
 def _generate_l0_from_description(brand: str, product_description: str) -> list:
