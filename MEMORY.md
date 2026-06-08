@@ -734,6 +734,25 @@ from ad_campaigns_db import (
 
 ## 完成的工作
 
+### 2026-06-08 (今日)
+- ✅ L0/L1 分层优化 (David 13:36 15:02)
+  - L0: bid_rate=1.0, cap=$7 (5/29 立, 公式 max_cpc 超 $7 封顶)
+  - L1: bid_rate=0.5 (原 0.8), cap=$2 (16:17 明确, 取代原 $2.4 限)
+  - L2/L5: bid_rate=1.0/0.7, cap=$2
+  - B 方案: L0 词 (brand + 严格 product_model) 也加到 L1 ad group (同词双层)
+  - classify_keyword L0 优先级最高 (避免 5+ 词被 L5 抢)
+  - X431 PROS V 5.0 v2 (Campaign 23914011987): L0=4/$7 + L1=39/$2 + L2=69/$2 + L5=10/$2
+- ✅ L1/L2/L5 bid cpc_cap 修复 (David 16:17)
+  - LAYER_CONFIG 加 cpc_cap: 2.0 到 L1/L2/L5 (L0 已有 cpc_cap: 7.0)
+  - 4 个 ad group bid 修复: 旧 23913131214 L1 $7.09→$2 + 新 23914011987 L1 $4.43→$2 / L2 $8.86→$2 / L5 $6.20→$2
+- ✅ PIURIFY 精细化分层 (Campaign 23912114112, 模式 A)
+  - 8 个 ad group: L0_3-7 (5 个 $3-$7) + L1 ($1.80) + L2 ($1.80) + L5 ($1.80)
+  - 65 关键词 / 12 sitelinks / 0 negative
+- ✅ 广告创建模式决策 (David 16:41 同意)
+  - 模式 A (备选): 已有普通广告 -> refined-ads 一次性补 8 层
+  - 模式 B (默认, 新产品): refined-campaign-new 4 层 -> 观察 -> refined-ads 升级 L0
+  - 记入 SKILL.md: skills/refined-ads/SKILL.md + skills/refined-campaign-new/SKILL.md
+
 ### 2026-04-12
 - ✅ 修复Archer ROI报告中ASIN网络归属错误
 - **问题**: B008I4XFWU, B0BYS93PTL, B07DQVNSP8, B07DNYSJ8W 被错误归为Archer（实际是YeahPromos）
