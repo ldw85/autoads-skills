@@ -25,6 +25,35 @@ triggers:
   - 分层广告
   - layered keywords
   - 精细化分层
+
+## 🎯 广告创建模式决策 (2026-06-08 16:41 David 确认)
+
+2 种广告创建模式 (跟「渐进式测试+保留现有」哲学一致):
+
+| 场景 | 推荐模式 | 路径 |
+|---|---|---|
+| **新产品** (无历史数据) | **模式 B** (默认, refined-campaign-new 负责) | 1. refined-campaign-new 建 4 层: L0 简化 (1 个 ad group $7) + L1 ($2) + L2 ($2) + L5 ($2) 2. 观察 7-14 天 3. **本 skill 升级**: 追加 5 个 L0_3-7 测试组 ($3/$4/$5/$6/$7) 找最优 bid, 跟原 1 个 L0 ad group 并存 |
+| **老产品** (已有普通广告) | **模式 A** (本 skill 一次性补 8 层) | 1. 调本 skill 一次性补 8 个精细化分层 ad group: L0_3-7 (5 个 $3-7) + L1 ($1.80) + L2 ($1.80) + L5 ($1.80) |
+| **老产品** (已有精细化分层) | 增量模式 (本 skill 增量加) | 调本 skill 增量加 ad group, 跟现有 ad group 并存 (不重名, 走 SKIP 逻辑 case-insensitive 复用) |
+
+**模式 A 本 skill 创建的 8 个 ad group**:
+| Ad Group | CPC | 说明 |
+|---|---|---|
+| `[Brand]_Brand_Model_3` | $3 | L0 测试组 #1 |
+| `[Brand]_Brand_Model_4` | $4 | L0 测试组 #2 |
+| `[Brand]_Brand_Model_5` | $5 | L0 测试组 #3 |
+| `[Brand]_Brand_Model_6` | $6 | L0 测试组 #4 |
+| `[Brand]_Brand_Model_7` | $7 | L0 测试组 #5 |
+| `[Brand]_Brand` | $1.80 | L1 baseline |
+| `[Brand]_Core` | $1.80 | L2 核心产品词 |
+| `[Brand]_LongTail` | $1.80 | L5 长尾词 |
+
+**模式 B 本 skill 升级时创建的 5 个 ad group** (跟原 1 个 L0 $7 并存):
+- `[Brand]_Brand_Model_3/4/5/6/7` (5 个) - CPC $3/$4/$5/$6/$7
+- 原 1 个 `[Brand]_Brand_Model_Strict` (refined-campaign-new 创建) 保留作 baseline
+- 6 个 L0 ad group 共同覆盖 brand 词
+
+**L1/L2/L5 CPC 封顶 $2** (David 2026-06-08 16:17 明确, 取代原 $2.4 限)
 input:
   type: object
   properties:
