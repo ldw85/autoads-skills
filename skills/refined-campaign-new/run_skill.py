@@ -46,6 +46,18 @@ def main():
     parser.add_argument('--budget', type=float, default=20.0, help='Daily budget (default: 20)')
     parser.add_argument('--rating', help='Product rating (e.g., "4.6")')
     parser.add_argument('--reviews-count', type=int, dest='reviews_count', help='Number of reviews (e.g., 21000)')
+    parser.add_argument('--network', default=None, help='Affiliate network name (e.g. archer, yeahpromos, partnerboost). Default: from creator init')
+    parser.add_argument('--seed-keywords', dest='seed_keywords', default=None,
+                        help='Comma-separated seed keywords (OPTIONAL). When provided, these '
+                             'are GUARANTEED to be in core_keywords. Typical content: brand name, '
+                             'product model, important variants. AI-extracted keywords added on top. '
+                             'Example: --seed-keywords "ROVE,R2-4K,ROVE R2-4K DUAL"')
+    parser.add_argument('--product-model', dest='product_model', default=None,
+                        help='Comma-separated L0 product_model keywords (OPTIONAL, 2026-06-08 L0/L1 '
+                             'optimization). L0 (Brand_Model_Strict) requires brand + at least one of '
+                             'these model keywords. AI expands with same-semantic variants only '
+                             '(spelling/case/spacing), never other brand product lines. '
+                             'Example: --product-model "X431 PROS V 5.0,X431 PROS,X431,creader"')
     
     args = parser.parse_args()
     
@@ -67,9 +79,10 @@ def main():
     print(f"📋 Commission: {args.commission_rate * 100}%")
     print(f"📋 Budget: ${args.budget}/day")
     print(f"📋 Country: {args.country}")
+    print(f"📋 Network: {args.network or 'partnerboost (default)'}")
     
     # Create campaign
-    creator = RefinedCampaignCreator()
+    creator = RefinedCampaignCreator(network=args.network)
     
     campaign_name = args.campaign_name
     if not campaign_name:
@@ -78,6 +91,18 @@ def main():
     product_description = args.product_description
     if not product_description:
         product_description = f"{args.brand} {args.product_name}"
+    
+    # Parse seed keywords (comma-separated string → list)
+    seed_keywords = None
+    if args.seed_keywords:
+        seed_keywords = [s.strip() for s in args.seed_keywords.split(',') if s.strip()]
+        logger.info(f"User-provided seed keywords ({len(seed_keywords)}): {seed_keywords[:5]}...")
+    
+    # Parse product_model keywords (comma-separated string → list)
+    product_model = None
+    if args.product_model:
+        product_model = [s.strip() for s in args.product_model.split(',') if s.strip()]
+        logger.info(f"User-provided L0 product_model keywords ({len(product_model)}): {product_model}")
     
     result = creator.create_layered_campaign(
         customer_id=args.customer_id,
@@ -91,7 +116,10 @@ def main():
         country=args.country,
         budget=args.budget,
         product_rating=args.rating,
-        product_reviews_count=args.reviews_count
+        product_reviews_count=args.reviews_count,
+        network=args.network,
+        seed_keywords=seed_keywords,
+        product_model=product_model
     )
     
     print("\n" + "="*70)
