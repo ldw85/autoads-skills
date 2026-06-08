@@ -1127,7 +1127,9 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             include_ads=True,
             ad_content=ad_content,
             product_description=product_description,
-            simplified_l0=simplified_l0
+            simplified_l0=simplified_l0,
+            price=price,
+            commission_rate=commission_rate
         )
 
         # 2026-06-07 David: GKP 阶段 AI 识别的负面词, 添加为 campaign negatives
