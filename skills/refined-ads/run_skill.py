@@ -37,33 +37,33 @@ from src.refined_bid_optimizer import RefinedBidOptimizer, AdContent, SitelinkIn
 
 def check_brand_blacklist(brand: str) -> bool:
     """Check if brand is in blacklist.
-    
+
     Args:
         brand: Brand name
-        
+
     Returns:
         True if brand is blacklisted
     """
     import json
     import os
-    
+
     blacklist_file = '/root/.openclaw/workspace/autoads/logs/blacklist_brands.json'
-    
+
     if not os.path.exists(blacklist_file):
         return False
-    
+
     with open(blacklist_file) as f:
         data = json.load(f)
-    
+
     brands = data.get('brands', [])
     brand_lower = brand.lower().strip()
-    
+
     # Check exact match or partial match
     for blacklisted in brands:
         if brand_lower == blacklisted.lower() or brand_lower in blacklisted.lower():
             logger.warning(f"⚠️ WARNING: Brand '{brand}' is in blacklist!")
             return True
-    
+
     return False
 
 
@@ -78,34 +78,34 @@ def generate_l0_keywords(
     customer_id: str = None
 ) -> list:
     """Generate L0 (Brand_Model) keywords - 合并GKP和AI生成。
-    
+
     Simple flow:
     1. Call GKP API with simple seed → get real user search keywords
     2. Call AI to generate keywords from product description → get more variations
     3. AI validates AI-generated keywords → filter out wrong-product/competitor
     4. Merge GKP + validated AI → dedup → final list
-    
-    没搜索量的词不浪费钱（不被触发），所以 AI 生成的词可以多。
+
+    没搜索量的词不浪费钱(不被触发),所以 AI 生成的词可以多。
     但 AI 生成的词必须在品牌含义上正确、在产品代表上正确 (不能混入其他产品)。
-    
+
     Args:
         brand: Brand name (e.g., "RhinoUSA")
         product_description: Full product description for context
         product_model: Model number (e.g., "B0BSP4NS28")
         product_url: Product URL for Google Keyword Planner
         customer_id: Google Ads customer ID
-        
+
     Returns:
         List of L0 keywords (brand + product combinations)
     """
     import sys
-    
+
     keywords = []
     brand_clean = brand.strip() if brand else ""
-    
+
     if not brand_clean:
         return []
-    
+
     # ============================================================
     # Stage 1: GKP - 从真实用户搜索中获取关键词
     # ============================================================
@@ -125,10 +125,10 @@ def generate_l0_keywords(
             sys.path.insert(0, '/root/.openclaw/workspace/autoads')
             from src.refined_bid_optimizer import RefinedBidOptimizer
 
-            # 构造种子词 - GKP最多支持10个，要尽量提供，【尤其短的】
-            # 短的seed扩展范围更广，长的seed会限死GKP返回
+            # 构造种子词 - GKP最多支持10个,要尽量提供,【尤其短的】
+            # 短的seed扩展范围更广,长的seed会限死GKP返回
             seed_keywords = []
-            
+
             # 1) 品牌名 (2-3个变体)
             if brand:
                 seed_keywords.append(brand)
@@ -136,14 +136,14 @@ def generate_l0_keywords(
                 # 不带空格的品牌名 (例如 "RhinoUSA")
                 if ' ' in brand:
                     seed_keywords.append(brand.replace(' ', ''))
-            
+
             # 2) 品牌简写/常拼 (2-3个)
             # 取品牌名前 4-5 个字符作为 GKP 扩展种子
             if brand and len(brand) >= 4:
                 # 首字母+一些常见变体
                 seed_keywords.append(brand[:4].lower())
                 seed_keywords.append(brand[:5].lower())
-            
+
             # 3) 从产品描述中提取【短的产品类型词】
             # 优先短词 (如 "earbuds", "headphones", "wireless")
             if product_description:
@@ -167,7 +167,7 @@ def generate_l0_keywords(
                     if len(product_type_words) >= 4:
                         break
                 seed_keywords.extend(product_type_words)
-            
+
             # 4) 产品型号 (从描述中提取含数字的型号代码)
             # 2026-06-07 David: ROVE R2-4K 是关键品牌型号, 之前硬编码 pattern 只匹配大写开头词
             # -> 错过 R2-4K / R2 4K / X431 PROS V 等含数字型号
@@ -184,13 +184,13 @@ def generate_l0_keywords(
                 model_candidates.extend(re.findall(r'\b[A-Z]\d+(?:\s[A-Z0-9]+)+\b', product_description))
                 # Pattern 4: 词首是数字的型号 (e.g., 128GB, 5G - 一般不是型号但是个制式)
                 # 保留含字母+数字混合的: 4K, 5G 跳过
-                
+
                 seen_seed = set()
                 for p in model_candidates:
                     p_clean = p.strip()
                     p_lower = p_clean.lower()
                     # 过滤: 长度>=2, 不是纯数字, 不是品牌
-                    if (p_lower not in seen_seed and 
+                    if (p_lower not in seen_seed and
                         p_lower not in brand.lower() and
                         len(p_clean) >= 2 and
                         any(c.isdigit() for c in p_clean) and
@@ -200,8 +200,8 @@ def generate_l0_keywords(
                         seen_seed.add(p_lower)
                     if len(seed_keywords) >= 12:  # 保留 room 给品牌名+短词
                         break
-            
-            # 去重保序，限制最多10个 (GKP 限制)
+
+            # 去重保序,限制最多10个 (GKP 限制)
             # 2026-06-07 David: 复合种子词 (品牌+型号/品牌+类别) 优先
             # AI 生成的复合 seed 排在前部, 单独的 brand/model 放后面
             all_keywords_seed = ai_composite_seeds + seed_keywords
@@ -233,7 +233,7 @@ def generate_l0_keywords(
                     )
                 gkp_raw = [kw.get('text', '') if isinstance(kw, dict) else kw for kw in gkws]
                 logger.info(f"GKP returned {len(gkp_raw)} keywords (seed: {all_keywords})")
-            
+
             # AI 从 GKP 中过滤品牌关键词 (3 路分类: brand / negative / drop)
             if gkp_raw and product_description:
                 gkp_result = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
@@ -245,7 +245,7 @@ def generate_l0_keywords(
                     logger.info(f"  Negative samples: {gkp_negatives[:5]}")
         except Exception as e:
             logger.warning(f"GKP failed: {e}")
-    
+
     # ============================================================
     # Stage 2: AI 生成 - 从产品描述中生成关键词
     # ============================================================
@@ -253,7 +253,7 @@ def generate_l0_keywords(
     if product_description:
         ai_raw = _generate_l0_from_description(brand_clean, product_description)
         logger.info(f"AI generated {len(ai_raw)} keywords from product description")
-    
+
     # ============================================================
     # Stage 3: AI 验证 - 过滤 AI 生成的关键词 (避免混入其他产品/竞品)
     # ============================================================
@@ -292,25 +292,25 @@ def generate_l0_keywords(
 
 def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description: str) -> list:
     """Validate AI-generated L0 keywords to filter out wrong-product/competitor keywords.
-    
+
     AI may generate keywords that are:
     - Same brand but different product model (detected via product description's technology/use case)
     - Competitor products
     - Generic terms
-    
+
     This validation ensures only brand + THIS specific product keywords remain.
-    
+
     IMPORTANT: Spelling variants are valuable - users who misspell still want
     this product. Keep severe misspellings if the intent is the same.
     """
     import json
     import subprocess
-    
+
     if not ai_keywords:
         return []
-    
+
     keywords_text = "\n".join([f"- {kw}" for kw in ai_keywords])
-    
+
     prompt = f"""验证以下AI生成的关键词是否属于"品牌+该产品"。
 
 【品牌】{brand}
@@ -322,7 +322,7 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
 【任务】只保留【用户搜索后想买本产品】的关键词。使用语义理解判断:
 - 读【产品描述】了解本产品是什么
 - 读【关键词列表】每个词
-- 问: "如果用户在Google上搜这个词，他们想买的是【本产品】吗?"
+- 问: "如果用户在Google上搜这个词,他们想买的是【本产品】吗?"
 
 【保留 - KEEP】:
 1. ✅ 品牌名 + 当前产品型号/变体
@@ -337,7 +337,7 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
    【判断原理】
    - 读产品描述了解本产品的技术特征、使用场景、设计类型
    - 同品牌不同型号 = 不同技术 / 不同使用场景 / 不同设计
-   - 例如: 本产品如果使用 [技术 A] 和 [场景 X]，则带 [技术 B] 或 [场景 Y] 的同品牌词不是当前产品
+   - 例如: 本产品如果使用 [技术 A] 和 [场景 X],则带 [技术 B] 或 [场景 Y] 的同品牌词不是当前产品
    - 提示: 对比关键词中的产品词与本产品描述中的特征是否一致
 2. ❌ 竞品品牌
 3. ❌ 纯品牌名 (无产品词)
@@ -355,13 +355,13 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
 }}
 
 只返回JSON。"""
-    
+
     try:
         result = subprocess.run(
             ['claude', '--print', '--output-format', 'json', prompt],
             capture_output=True, text=True, timeout=120
         )
-        
+
         # 解析响应 - AI 可能在 JSON 后添加解释文本
         try:
             outer = json.loads(result.stdout)
@@ -383,9 +383,9 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
                     # 清理后尝试解析
                     inner_clean = inner.replace('```json', '').replace('```', '').strip()
                     json_str = inner_clean
-            
+
             data = json.loads(json_str)
-            
+
             if isinstance(data, dict):
                 return data.get('valid_keywords', [])
             elif isinstance(data, list):
@@ -395,32 +395,32 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
             return ai_keywords
     except Exception as e:
         logger.warning(f"AI validation failed: {e}")
-    
+
     # Fallback: 返回原始 AI 关键词 (不推荐但避免丢失)
     return ai_keywords
 
 
 def _generate_composite_seeds(brand: str, product_description: str) -> list:
     """Use AI to generate COMPOSITE GKP seed keywords from product description.
-    
+
     Per David 2026-06-07: GKP 不返回配件词 (sd card / memory card / installation)
     根因是种子词不对。复合 seed (品牌+型号, 品牌+类别) 才是 GKP 返回配件词的关键。
 
     本函数从 product_description 动态生成复合种子词, 不硬编码任何产品信息。
-    
+
     Args:
         brand: Brand name
         product_description: Product description for context
-        
+
     Returns:
         List of composite seed keywords (e.g., ["Rove R2 4K", "Rove R2-4K", "Rove Dash Cam"])
     """
     import json
     import subprocess
-    
+
     if not brand or not product_description:
         return []
-    
+
     prompt = f"""从产品描述中生成【复合 GKP 种子词】。
 
 【背景】
@@ -459,13 +459,13 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
 {{"composite_seeds": ["[品牌] [型号1]", "[品牌] [型号2]", "[品牌] [类别]", ...]}}
 
 只返回 JSON。"""
-    
+
     try:
         result = subprocess.run(
             ['claude', '--print', '--output-format', 'json', prompt],
             capture_output=True, text=True, timeout=360  # 2026-06-07 David 23:35: 360s (复杂动作需要更长时间)
         )
-        
+
         try:
             outer = json.loads(result.stdout)
             inner = outer.get('result', '')
@@ -524,15 +524,15 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
 
 def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: str) -> dict:
     """Use AI to filter GKP keywords into 3 categories.
-    
+
     Per David 2026-06-07: GKP 阶段也能发现负面词 (配件/安装/竞品/对比/平台等),
     不应该只丢入, 应该 AI 提前识别为 negative_keywords, 加为 campaign 否定词。
-    
+
     Args:
         gkp_keywords: List of keywords from Google Keyword Planner
         brand: Brand name
         product_description: Product description for context
-        
+
     Returns:
         Dict with 3 lists:
         {
@@ -543,17 +543,17 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
     """
     import json
     import subprocess
-    
+
     # 生成品牌变体
     brand_lower = brand.lower().replace(' ', '')
     brand_variants = [brand, brand_lower]
-    
+
     keywords_text = "\n".join([f"- {kw}" for kw in gkp_keywords[:50]])  # 2026-06-07 David: 80 词让 AI 超时, 50 词平衡
     # 2026-06-07 David: 不要限制太死, 至少 50 词让 AI 看到完整型号变体
-    
+
     # 2026-06-07 David: 3 路分类 (brand / negative / drop)
-    prompt = f"""从GKP返回的关键词中，提取"有真实用户搜索量"且"与品牌+产品同含义"的品牌关键词。
-同时，识别出"有购买意外性"的词为否定关键词。
+    prompt = f"""从GKP返回的关键词中,提取"有真实用户搜索量"且"与品牌+产品同含义"的品牌关键词。
+同时,识别出"有购买意外性"的词为否定关键词。
 
 【背景】这些关键词来自Google Keyword Planner, 代表真实用户搜索。
 我们使用品牌型号作为 seed 词查询 GKP, 会返回三类词:
@@ -578,7 +578,7 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
   **重要: 负面词必须从 GKP 返回列表中存在, 不能凭空生成**。
   (这些词 GKP 返回说明有真实用户搜索, 证明他们会点击广告但不是购买意图)
   6 大负面词类别 (严格按语义判断, 不列举具体词):
-  
+
   B1. **ACCESSORY (配件)** - 用户想买配件, 不是本产品
     **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
     例: SD card, memory card, charger, mount, case, cable, holder, adapter, battery
@@ -635,7 +635,7 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
 
 只返回 JSON。"""
 
-    
+
     try:
         # Call AI via Claude Code
         result = __import__('subprocess').run(
@@ -644,12 +644,12 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
             text=True,
             timeout=120
         )
-        
+
         # 解析JSON格式响应
         try:
             outer = json.loads(result.stdout)
             inner = outer.get('result', '')
-            # AI 可能在 JSON 后添加解释文本，用正则优先提取 ```json 块
+            # AI 可能在 JSON 后添加解释文本,用正则优先提取 ```json 块
             import re
             code_block = re.search(r'```json\s*(\{.*?\})\s*```', inner, re.DOTALL)
             if code_block:
@@ -687,7 +687,7 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
                 if not json_str:
                     json_str = inner.replace('```json', '').replace('```', '').strip()
             data = json.loads(json_str)
-            
+
             # 2026-06-07 David: 3 路分类返回 (brand_keywords + negative_keywords + drop)
             if isinstance(data, dict):
                 return {
@@ -700,7 +700,7 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
                 return {'brand_keywords': data, 'negative_keywords': [], 'drop': []}
         except Exception as e:
             logger.warning(f"JSON parse failed: {e}")
-            
+
         # Fallback: 旧的解析逻辑
         response = result.stdout.strip()
         # Parse JSON from response - handle both {"keywords": [...]} and [...]
@@ -709,7 +709,7 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
             response = response.split('```json')[1].split('```')[0]
         elif '```' in response:
             response = response.split('```')[1].split('```')[0]
-        
+
         try:
             data = json.loads(response)
             if isinstance(data, dict):
@@ -729,7 +729,7 @@ def _generate_l0_from_description(brand: str, product_description: str) -> list:
     """Generate L0 keywords from product description using AI."""
     import json
     import subprocess
-    
+
     prompt = f"""Generate L0 (Brand + THIS Product) keywords for Google Ads.
 
 Brand: {brand}
@@ -797,10 +797,10 @@ STRICT RULES (use semantic understanding - do NOT list specific product names):
 9. **Type 1 (Model combinations) is the highest priority - generate as many valid variants as exist, not limited by a hard count**
 
 Return ONLY JSON array: ["Keyword 1", "Keyword 2", ...]"""
-    
+
     try:
         result = subprocess.run(['claude', '--print', '--output-format', 'json', prompt], capture_output=True, text=True, timeout=120)
-        
+
         # 解析JSON格式响应
         try:
             outer = json.loads(result.stdout)
@@ -818,35 +818,35 @@ Return ONLY JSON array: ["Keyword 1", "Keyword 2", ...]"""
             return []
     except Exception as e:
         logger.warning(f"AI generation failed: {e}")
-    
+
     return []
 
 
 def is_l0_keyword(keyword_text: str, brand: str, product_model: str = '', product_name: str = '') -> bool:
     """Check if keyword is a L0 (Brand_Model) keyword using AI语义分析.
-    
+
     Args:
         keyword_text: Keyword to check
         brand: Brand name
         product_model: Product model
         product_name: Full product name
-        
+
     Returns:
         True if matches L0 pattern
     """
     text_lower = keyword_text.lower()
     brand_lower = brand.lower() if brand else ""
-    
+
     # Must contain brand
     if brand_lower and brand_lower not in text_lower:
         return False
-    
+
     # Check product model (with default)
     if product_model and product_model:
         model_lower = product_model.lower()
         if model_lower in text_lower:
             return True
-    
+
     # Check product name components (with default)
     if product_name and product_name:
         words = product_name.split()
@@ -855,40 +855,40 @@ def is_l0_keyword(keyword_text: str, brand: str, product_model: str = '', produc
             if len(word_clean) > 2 and word_clean != brand_lower:
                 if word_clean in text_lower:
                     return True
-    
+
     return False
 
 def validate_params(args) -> tuple:
     """Validate all parameters before execution."""
     if not args.campaign_id:
         return False, "Campaign ID is required (--campaign-id)"
-    
+
     if not args.customer_id:
         return False, "Customer ID is required (--customer-id)"
-    
+
     # Product description is REQUIRED for accurate brand keywords
     if not args.product_description or len(args.product_description.strip()) < 10:
         return False, "Product description is required (--product-description). Please provide a product description for accurate brand keyword generation."
-    
+
     if args.price and (args.price <= 0 or args.price > 10000):
         return False, f"Price must be between 0 and 10000 (got {args.price})"
-    
+
     if args.commission_rate is not None:
         if args.commission_rate <= 0 or args.commission_rate > 1:
             return False, f"Commission rate must be between 0 and 1 (got {args.commission_rate})"
-    
+
     return True, ""
 
 
 def get_campaign_info(customer_id, campaign_id, args=None):
     """Get campaign info including existing ad content."""
     from src.refined_bid_optimizer import RefinedBidOptimizer, AdContent
-    
+
     optimizer = RefinedBidOptimizer()
-    
+
     # Extract existing ad content
     ad_content = optimizer.extract_existing_ad_content(customer_id, campaign_id)
-    
+
     # If no Main ad group, fail with clear error - do NOT use hardcoded fallback
     if not ad_content:
         error_msg = (
@@ -900,27 +900,35 @@ def get_campaign_info(customer_id, campaign_id, args=None):
         )
         logger.error(error_msg)
         return None, error_msg
-    
+
     if not ad_content:
         return None, "Could not extract ad content from Main ad group"
-    
+
     return ad_content, None
 
 
-def create_layered_ads(customer_id, campaign_id, ad_content, 
-                        brand=None, price=None, 
+def create_layered_ads(customer_id, campaign_id, ad_content,
+                        brand=None, price=None,
                         commission_rate=None, product_url=None,
-                        product_description=None):
+                        product_description=None,
+                        l0_keywords_user=None, l1_keywords_user=None,
+                        simplified_l0=False):
     """Create layered ad groups using existing ad content.
-    
+
     Args:
         product_description: Product description (REQUIRED for accurate keywords)
+        l0_keywords_user: User-provided L0 keywords (overrides AI-generated L0).
+                          Useful for precise brand+model targeting.
+        l1_keywords_user: User-provided L1 keywords (overrides L0-top-10 reuse).
+                          Useful for precise brand-only targeting.
+        simplified_l0: If True, use 1 L0 ad group @ max_cpc (instead of 5 L0_3-7 testing groups).
+                       Required for low max_cpc products (< \$3) where 5 L0_3-7 are duplicate.
     """
     optimizer = RefinedBidOptimizer()
-    
+
     # Use provided brand (from --brand parameter), OR extract from product_description using AI
     # DON'T use ad_content.brand (which is extracted from old ad素材, often wrong)
-    
+
     # If user provided --brand, use it
     if brand and brand.strip():
         effective_brand = brand.strip()
@@ -941,16 +949,16 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             effective_brand = 'Product'
     else:
         effective_brand = 'Product'
-    
+
     effective_url = product_url or ad_content.final_url
-    
+
     # ===== CRITICAL: Parse suffix from product_url =====
     # Extract ?后的追踪参数作为final_url_suffix
     effective_suffix = ''
     base_url = effective_url
-    
+
     if product_url and '?' in product_url:
-        # 分割URL，取?后部分
+        # 分割URL,取?后部分
         url_parts = product_url.split('?')
         base_url = url_parts[0]  # 不带参数的base URL
         query = url_parts[1] if len(url_parts) > 1 else ''
@@ -964,12 +972,12 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 encoded_val = quote(v, safe='')
                 suffix_parts.append(f"{key}={encoded_val}")
         effective_suffix = '&'.join(suffix_parts)
-    
-    # 如果没有从product_url解析到suffix，使用ad_content中已有的
+
+    # 如果没有从product_url解析到suffix,使用ad_content中已有的
     if not effective_suffix and ad_content.url_suffix:
         effective_suffix = ad_content.url_suffix
         logger.info(f"Using existing suffix from ad_content")
-    
+
     # 更新ad_content的suffix和final_url
     if effective_suffix:
         ad_content.url_suffix = effective_suffix
@@ -977,21 +985,21 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         logger.info(f"Set suffix: {effective_suffix[:50]}...")
     else:
         logger.warning("WARNING: No suffix found!")
-    
+
     # Calculate max_cpc if not provided
     if price and commission_rate:
         max_cpc = optimizer.calculate_max_cpc(price, commission_rate)
     else:
         max_cpc = 1.0  # Default
         logger.warning("No price/commission provided, using default CPC")
-    
+
     # Generate keywords with better brand/core_terms from AI
     logger.info(f"Generating keywords with brand={effective_brand}, core_terms={ad_content.core_product_terms}")
-    
+
     # ===== USE PRODUCT DESCRIPTION FOR ACCURATE KEYWORDS =====
     # If product_description provided, use it for better L0/L1 keyword generation
     product_desc_for_keywords = product_description or ""
-    
+
     try:
         result = optimizer.generate_from_product_info(
             product_name=effective_brand,
@@ -1004,13 +1012,13 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             product_description=product_description,  # FIX: Enable AI semantic classification (not just 50% word match)
             core_terms=ad_content.core_product_terms if ad_content and ad_content.core_product_terms else None  # FIX: Use AI-extracted core terms
         )
-        
+
         # Override brand/core_terms with AI-extracted values
         if ad_content.brand:
             result['brand'] = ad_content.brand
         if ad_content.core_product_terms:
             result['core_product_terms'] = ad_content.core_product_terms
-        
+
         # If product_description provided, use it for L0 keywords
         if product_desc_for_keywords and len(product_desc_for_keywords) > 10:
             logger.info(f"Using product description for L0 keywords: {product_desc_for_keywords[:50]}...")
@@ -1023,7 +1031,7 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 if match:
                     pm_for_l0 = match.group(1)
                 pu_for_l0 = ad_content.final_url
-            
+
             l0_from_desc, neg_from_desc = generate_l0_keywords(
                 brand=effective_brand,
                 product_description=product_desc_for_keywords,
@@ -1037,20 +1045,20 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 if neg_from_desc:
                     result.setdefault('gkp_negatives', []).extend(neg_from_desc)
                     logger.info(f"  + {len(neg_from_desc)} GKP negative candidates")
-        
+
         logger.info(f"Generated keywords for layers: {list(result.get('layers', {}).keys())}")
-        
+
         # ===== ADD L0 KEYWORDS FOR BRAND MODEL TESTING =====
         # Generate brand + product combination keywords for L0 multi-bid testing
         # Use Google Keyword Planner + AI semantics (FIXED)
-        
+
         # Use proper product_description instead of brand name
         # product_desc_for_keywords was already set above
         product_for_l0 = product_desc_for_keywords or effective_brand
         # 确保在此处定义product_model
         pm_for_l0 = None
         pu_for_l0 = None
-        
+
         if ad_content:
             # Extract ASIN from final_url as product_model
             final_url = ad_content.final_url or ''
@@ -1061,7 +1069,7 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 if match:
                     pm_for_l0 = match.group(1)
             pu_for_l0 = final_url
-        
+
         l0_keywords, neg_keywords = generate_l0_keywords(
             brand=effective_brand,
             product_description=product_for_l0,
@@ -1075,41 +1083,51 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             result.setdefault('gkp_negatives', []).extend(neg_keywords)
             logger.info(f"  + {len(neg_keywords)} GKP negative candidates from L0 generation")
 
+        # 2026-06-08 David: User-provided L0 keywords override (精确控制模式)
+        if l0_keywords_user:
+            result['L0_keywords'] = l0_keywords_user
+            logger.info(f"  OVERRIDE: User-provided L0 keywords ({len(l0_keywords_user)}) replace AI-generated")
+
         # 2026-06-07 David: L1 可以和 L0 关键词一样, 因为都是品牌词广告组
         # L1 是 baseline ($2.4), L0_3-7 是 CPC 测试组 ($3-7)
         # 强制 L1 复用 L0 的 brand+model 组合词, 避免被 _reclassify_keywords_with_better_info 分到 L2
-        if l0_keywords:
+        if l0_keywords or l0_keywords_user:
+            l1_source = l1_keywords_user if l1_keywords_user else (l0_keywords or l0_keywords_user)[:10]
             l1_ad_group_name = f"{effective_brand}_Brand"
+            l1_bid = min(max_cpc * 0.5, 2.0)  # L1 = 50% max_cpc, cap $2
             # 用 L0 关键词的纯 brand + model 变体 (保留前 10)
             l1_kw_data = [
                 {
                     'text': kw,
                     'match_type': 'PHRASE',
-                    'bid': 2.4,
+                    'bid': l1_bid,
                     'layer': 'L1'
                 }
-                for kw in l0_keywords[:10]
+                for kw in l1_source[:10]
             ]
             if 'layers' not in result:
                 result['layers'] = {}
             result['layers']['L1'] = {
                 'name': l1_ad_group_name,
-                'bid': 2.4,
+                'bid': l1_bid,
                 'keywords': l1_kw_data
             }
+            src_label = "User-provided" if l1_keywords_user else "L0-reuse"
             logger.info(
-                f"L1 ad group '{l1_ad_group_name}' will use same {len(l1_kw_data)} L0 keywords (David 2026-06-07 指示)"
+                f"L1 ad group '{l1_ad_group_name}' will use {len(l1_kw_data)} keywords ({src_label}, David 2026-06-07 指示)"
             )
 
         # Create ad groups with ads
         # Pass product_description to enable GKP-based negative keywords
+        # 2026-06-08 David: simplified_l0 mode (1 ad group @ max_cpc vs 5 L0_3-7 testing groups)
         created = optimizer.create_ad_groups(
             customer_id=customer_id,
             campaign_id=campaign_id,
             result=result,
             include_ads=True,
             ad_content=ad_content,
-            product_description=product_description
+            product_description=product_description,
+            simplified_l0=simplified_l0
         )
 
         # 2026-06-07 David: GKP 阶段 AI 识别的负面词, 添加为 campaign negatives
@@ -1141,7 +1159,7 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 logger.warning(f"Failed to add GKP negative keywords: {e}")
 
         return created, None
-        
+
     except Exception as e:
         logger.error(f"Failed to create layered ads: {e}")
         return None, str(e)
@@ -1155,7 +1173,7 @@ def expand_headlines(headlines: list, target: int = 15, brand: str = "") -> list
     """Expand headlines to target count using templates."""
     if len(headlines) >= target:
         return headlines[:target]
-    
+
     # Template headlines (brand-agnostic, policy-safe)
     templates = [
         "Premium Quality",
@@ -1169,7 +1187,7 @@ def expand_headlines(headlines: list, target: int = 15, brand: str = "") -> list
         "Limited Stock",
         "Order Now"
     ]
-    
+
     # Add brand if available
     if brand:
         brand_templates = [
@@ -1181,7 +1199,7 @@ def expand_headlines(headlines: list, target: int = 15, brand: str = "") -> list
             f"{brand} Deals"
         ]
         templates = brand_templates + templates
-    
+
     # Combine and deduplicate
     expanded = list(headlines)
     for t in templates:
@@ -1189,7 +1207,7 @@ def expand_headlines(headlines: list, target: int = 15, brand: str = "") -> list
             break
         if t not in expanded:
             expanded.append(t)
-    
+
     return expanded[:target]
 
 
@@ -1197,27 +1215,27 @@ def expand_descriptions(descriptions: list, target: int = 4) -> list:
     """Expand descriptions to target count."""
     if len(descriptions) >= target:
         return descriptions[:target]
-    
+
     templates = [
         "Premium quality product. Order now and enjoy fast shipping.",
         "Trusted by thousands of customers. 30-day return policy.",
         "Best value for money. Limited stock available.",
         "Professional grade product. Contact us for questions."
     ]
-    
+
     expanded = list(descriptions)
     for t in templates:
         if len(expanded) >= target:
             break
         if t not in expanded:
             expanded.append(t)
-    
+
     return expanded[:target]
 
 
 def expand_sitelinks(sitelinks: list, target: int = 6) -> list:
     """Expand sitelinks to target count. Returns SitelinkInfo objects.
-    
+
     NOTE: Only sitelinks with valid asset_id can be copied to ad groups.
     New template sitelinks (empty asset_id) need to be created separately.
     """
@@ -1233,10 +1251,10 @@ def expand_sitelinks(sitelinks: list, target: int = 6) -> list:
                 description1=v.get('description1', ''),
                 description2=v.get('description2', '')
             ) for v in valid]
-    
+
     if len(valid) >= target:
         return valid[:target]
-    
+
     # For templates, create with placeholder that we'll handle specially
     templates = [
         {"link_text": "Shop Now", "description1": "Browse collection", "description2": "Free shipping $50+"},
@@ -1246,7 +1264,7 @@ def expand_sitelinks(sitelinks: list, target: int = 6) -> list:
         {"link_text": "Shipping", "description1": "Fast delivery", "description2": "Free over $50"},
         {"link_text": "Returns", "description1": "Easy returns", "description2": "30-day policy"}
     ]
-    
+
     for s in templates:
         if len(valid) >= target:
             break
@@ -1256,13 +1274,13 @@ def expand_sitelinks(sitelinks: list, target: int = 6) -> list:
             description1=s['description1'],
             description2=s['description2']
         ))
-    
+
     return valid[:target]
 
 
 def ensure_ad_content_quantity(ad_content, brand: str = "") -> None:
     """Ensure ad_content has enough headlines/descriptions/sitelinks.
-    
+
     Modifies ad_content in-place to meet Google Ads requirements:
     - 15 headlines
     - 4 descriptions
@@ -1270,13 +1288,13 @@ def ensure_ad_content_quantity(ad_content, brand: str = "") -> None:
     """
     # Expand headlines to 15
     ad_content.headlines = expand_headlines(ad_content.headlines, 15, brand)
-    
+
     # Expand descriptions to 4
     ad_content.descriptions = expand_descriptions(ad_content.descriptions, 4)
-    
+
     # Expand sitelinks to 6
     ad_content.sitelinks = expand_sitelinks(ad_content.sitelinks, 6)
-    
+
     logger.info(f"Expanded: {len(ad_content.headlines)} headlines, "
                 f"{len(ad_content.descriptions)} descriptions, "
                 f"{len(ad_content.sitelinks)} sitelinks")
@@ -1291,29 +1309,43 @@ def main():
         description='Refined Ads Skill - Create Layered Ad Groups',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    
+
     # Required parameters
     parser.add_argument('--campaign-id', required=True, help='Target campaign ID')
     parser.add_argument('--customer-id', required=True, help='Google Ads customer ID')
-    parser.add_argument('--product-description', required=True, 
+    parser.add_argument('--product-description', required=True,
                         help='Product description (required for accurate brand keywords)')
-    
+
     # Optional parameters for better keyword generation
     parser.add_argument('--brand', help='Brand name (will be extracted from ads if not provided)')
     parser.add_argument('--product-url', help='Product URL for keyword research')
     parser.add_argument('--price', type=float, help='Product price in USD')
     parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate')
     parser.add_argument('--country', default='US', help='Target country (default: US)')
-    
+
+    # 2026-06-08 David: 精确控制 L0/L1 关键词 + 简化 L0 模式
+    parser.add_argument('--l0-keywords', dest='l0_keywords', default=None,
+                        help='Comma-separated L0 (brand_model) keywords. When provided, these '
+                             'OVERRIDE AI-generated L0 keywords. Use for precise brand+model targeting. '
+                             'Example: --l0-keywords "INTEX 28272EH,28272EH Pool"')
+    parser.add_argument('--l1-keywords', dest='l1_keywords', default=None,
+                        help='Comma-separated L1 (brand) keywords. When provided, these OVERRIDE the '
+                             'default L1 keyword reuse of L0 top 10. Use for precise brand-only targeting '
+                             '(without model). Example: --l1-keywords "INTEX Above Ground Pool"')
+    parser.add_argument('--simplified-l0', dest='simplified_l0', action='store_true',
+                        help='Use simplified L0 (1 ad group @ max_cpc) instead of 5 L0_3-7 testing groups. '
+                             'Required when max_cpc < \$3 (e.g. low-price products) to avoid 5 duplicate ad groups. '
+                             'Bid = min(max_cpc, \$7 cap). Ad group name: {Brand}_Brand_Model_Strict.')
+
     args = parser.parse_args()
-    
+
     # Validate parameters
     is_valid, error_msg = validate_params(args)
     if not is_valid:
         logger.error(f"Validation failed: {error_msg}")
         print(f"ERROR: {error_msg}")
         sys.exit(1)
-    
+
     print("="*70)
     print("🔧 Refined Ads Skill - Creating Layered Ad Groups")
     print("="*70)
@@ -1323,15 +1355,15 @@ def main():
         print(f"📋 Brand: {args.brand}")
     if args.price:
         print(f"📋 Price: ${args.price}")
-    
+
     # Step 1: Get existing ad content from Main ad group
     print("\n⏳ Step 1: Extracting ad content from Main ad group...")
     ad_content, error = get_campaign_info(args.customer_id, args.campaign_id, args)
-    
+
     if error:
         print(f"\n❌ FAILED: {error}")
         sys.exit(1)
-    
+
     print(f"   ✅ Extracted {len(ad_content.headlines)} headlines")
     print(f"   ✅ Extracted {len(ad_content.descriptions)} descriptions")
     print(f"   ✅ Extracted {len(ad_content.sitelinks)} sitelinks")
@@ -1341,25 +1373,44 @@ def main():
         print(f"   ✅ AI extracted core terms: {ad_content.core_product_terms}")
     if ad_content.url_suffix:
         print(f"   ✅ URL suffix present")
-    
+
     # ===== EXPAND AD CONTENT TO MEET REQUIREMENTS =====
     # Ensure we have 15 headlines, 4 descriptions, 6 sitelinks
     effective_brand = args.brand or ad_content.brand or ""
-    
+
     # ===== CHECK BLACKLIST =====
     if effective_brand and check_brand_blacklist(effective_brand):
         print(f"   ⚠️ Brand '{effective_brand}' is in blacklist! Confirm to proceed anyway?")
-    
+
     ensure_ad_content_quantity(ad_content, effective_brand)
-    
+
     print(f"   ✅ Expanded to {len(ad_content.headlines)} headlines, "
           f"{len(ad_content.descriptions)} descriptions, "
           f"{len(ad_content.sitelinks)} sitelinks")
-    
+
     time.sleep(1)
-    
+
     # Step 2: Create layered ad groups
     print("\n⏳ Step 2: Creating layered ad groups...")
+
+    # 2026-06-08 David: 解析 user-provided L0/L1 keywords (精确控制模式)
+    l0_keywords_user = None
+    if args.l0_keywords:
+        l0_keywords_user = [s.strip() for s in args.l0_keywords.split(',') if s.strip()]
+        logger.info(f"User-provided L0 keywords ({len(l0_keywords_user)}): {l0_keywords_user[:5]}...")
+        print(f"📋 User-provided L0 keywords: {len(l0_keywords_user)}")
+
+    l1_keywords_user = None
+    if args.l1_keywords:
+        l1_keywords_user = [s.strip() for s in args.l1_keywords.split(',') if s.strip()]
+        logger.info(f"User-provided L1 keywords ({len(l1_keywords_user)}): {l1_keywords_user[:5]}...")
+        print(f"📋 User-provided L1 keywords: {len(l1_keywords_user)}")
+
+    if args.simplified_l0:
+        print(f"📋 Simplified L0 mode: 1 ad group @ max_cpc (cap \$7)")
+    else:
+        print(f"📋 Standard L0 mode: 5 L0_3-7 testing groups (\$3/\$4/\$5/\$6/\$7)")
+
     created, error = create_layered_ads(
         customer_id=args.customer_id,
         campaign_id=args.campaign_id,
@@ -1368,22 +1419,25 @@ def main():
         price=args.price,
         commission_rate=args.commission_rate,
         product_url=args.product_url,
-        product_description=args.product_description
+        product_description=args.product_description,
+        l0_keywords_user=l0_keywords_user,
+        l1_keywords_user=l1_keywords_user,
+        simplified_l0=args.simplified_l0
     )
-    
+
     if error:
         print(f"\n❌ FAILED: {error}")
         sys.exit(1)
-    
+
     # Print results
     print("\n" + "="*70)
     print("✅ SUCCESS: Layered Ad Groups Created")
     print("="*70)
-    
+
     total_layers = 0
     total_keywords = 0
     total_sitelinks = 0
-    
+
     for layer, data in created.items():
         if isinstance(data, dict) and 'ad_group_id' in data:
             total_layers += 1
@@ -1395,7 +1449,7 @@ def main():
             print(f"     Keywords: {data.get('keywords_added', 0)}")
             print(f"     Ads: {'✅' if data.get('ads_created') else '❌'}")
             print(f"     Sitelinks: {data.get('sitelinks_added', 0)}")
-    
+
     print(f"\n📊 Summary:")
     print(f"   Total Layers Created: {total_layers}")
     print(f"   Total Keywords: {total_keywords}")
