@@ -32,6 +32,55 @@
 
 注意：仅当发现高风险搜索词时才发送通知
 
+## 联盟产品状态监控 (每2小时) 【2026-06-10 重构】
+
+当收到 cron 触发时 (`affiliate_product_monitor`):
+
+1. 执行: `python3 /root/.openclaw/workspace/autoads/archer-roi/scripts/monitor_product_status.py`
+2. 脚本会输出监控报告到 stdout（自动捕获到本地log）
+3. 脚本会调用 `pause_campaigns()` 自动暂停 unavailable 状态的商品
+4. **推送飞书**: 用 `message` tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 主动推送报告
+5. 如果脚本本身失败，用 `message` tool 推送失败告警到飞书（绝不静默吞掉）
+
+### 暂停规则 v2 (2026-06-10 重构, David 拍板)
+- `available` → 不动
+- `unavailable` / `out_of_stock` / `inactive` → **立即暂停** + 飞书通知
+- `pending` / `unknown` (API 异常/超时/空值) → **不暂停** + 飞书告警"首次未知状态"
+- 同一 ASIN **连续 2 次** pending/unknown → **暂停** + 飞书通知"连续 2 次未知"
+- Archer 和 PartnerBoost 池**使用完全相同规则**
+- 连续 unknown 跟踪: `autoads/archer-roi/logs/monitor_unknown_state.json` (7 天自动清理)
+
+注意：
+- 已处理的检查结果记录在 `/root/.openclaw/workspace/autoads/archer-roi/logs/monitor_YYYYMMDD_HHMMSS.log`
+- 重要：`delivery` 模式已废弃，**禁止改回 isolated + channel/last**（2026-06-10 14次连续失败教训）
+- 推送目标：飞书 user David（target=user:ou_1ba51a4ca094652b84fc99909c10b8e7）
+- 推送失败处理：retry 1次，失败后用 `message` tool 改发 text message（fallback）
+
+## Amazon URL Suffix检查 (每日20:00) 【2026-06-10 重构】
+
+当收到 cron 触发时 (`amazon_suffix_check`):
+
+1. 执行: `cd /root/.openclaw/workspace/autoads && python3 archer-roi/check_suffix.py --pause`
+2. 脚本会检查所有Google Ads广告的final_url_suffix合规性
+3. 缺失suffix的广告会被自动暂停
+4. **推送飞书**: 用 `message` tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 主动推送报告
+
+## 每日ROI报告 (早7-8点) 【2026-06-10 重构】
+
+当收到以下 cron 触发时（任一）:
+- `yeahpromos_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_yeahpromos_roi.sh`
+- `partnerboost_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_partnerboost_roi.sh`
+- `archer_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_archer_roi.sh`
+
+1. 脚本生成ROI报告（写到本地log + stdout）
+2. **推送飞书**: 用 `message` tool (channel=feishu, target=chat:oc_16f4d501d4e13793db85c88e17a9f110) 主动推送报告
+3. 飞书群是 ROI 报告专用群，所有三平台都发到那里
+4. 推送失败处理：重试 1 次 + fallback 用 `message` tool 发 user DM
+
+注意：
+- 报告log: `/root/.openclaw/workspace/autoads/archer-roi/logs/affiliate_report_YYYYMMDD_HHMMSS.txt`
+- 飞书群 chat_id: `oc_16f4d501d4e13793db85c88e17a9f110`（三平台 ROI 报告共用）
+
 ## 每日趋势简报 (早上9点)
 
 ### 任务: 每日趋势简报
