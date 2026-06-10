@@ -61,6 +61,16 @@ def main():
     parser.add_argument('--dry-run', action='store_true', dest='dry_run',
                         help='Dry run: only generate AI keywords + filter via ad_prevalidator. '
                              'Do NOT create any Google Ads campaign. Print filtered keywords for review.')
+    parser.add_argument('--simplified-l0', dest='simplified_l0', action='store_true', default=True,
+                        help='Use simplified L0 mode (1 L0 ad group @ max_cpc, cap $7) — DEFAULT. '
+                             'This is the recommended mode for new products (Mode B in SKILL.md). '
+                             'When False, would create 5 L0_3-7 testing groups ($3/$4/$5/$6/$7) '
+                             'to find optimal bid (Mode A — only for mature campaigns with baseline data). '
+                             'NOTE (2026-06-10): RefinedCampaignCreator only implements the simplified path; '
+                             '--no-simplified-l0 is accepted for API stability but currently logged-only.')
+    parser.add_argument('--no-simplified-l0', dest='simplified_l0', action='store_false',
+                        help='Disable simplified L0 (use 5 L0_3-7 testing groups). '
+                             'Same as --simplified-l0=False. Currently logged-only in this skill.')
     
     args = parser.parse_args()
     
@@ -83,10 +93,7 @@ def main():
     print(f"📋 Budget: ${args.budget}/day")
     print(f"📋 Country: {args.country}")
     print(f"📋 Network: {args.network or 'partnerboost (default)'}")
-    
-    # Create campaign
-    creator = RefinedCampaignCreator(network=args.network)
-    
+
     campaign_name = args.campaign_name
     if not campaign_name:
         campaign_name = f"{args.brand} {args.product_name[:30]} - {args.country}"
@@ -106,6 +113,14 @@ def main():
     if args.product_model:
         product_model = [s.strip() for s in args.product_model.split(',') if s.strip()]
         logger.info(f"User-provided L0 product_model keywords ({len(product_model)}): {product_model}")
+
+    # Log L0 mode selection (for clarity)
+    if args.simplified_l0:
+        logger.info("L0 mode: SIMPLIFIED (1 ad group @ max_cpc, cap $7) — Mode B [default for new products]")
+    else:
+        logger.warning("L0 mode: STANDARD (5 L0_3-7 testing groups $3-$7) — Mode A [for mature campaigns]")
+        logger.warning("  ⚠️ RefinedCampaignCreator currently only implements the simplified path; "
+                       "this flag is logged-only in refined-campaign-new. Use refined-ads skill for Mode A.")
 
     # Create campaign
     creator = RefinedCampaignCreator(network=args.network)
@@ -144,6 +159,27 @@ def main():
         for v in valid:
             print(f"  - {v['text']!r}")
         print(f"\n🧪 DRY-RUN COMPLETE: {len(all_kws)} → {len(valid)} ({len(filtered)} filtered)")
+
+        # 2026-06-10: Layered preview (L0/L1/L2/L5) + bid calculation
+        from src.refined_campaign_creator import LAYER_CONFIG
+        max_cpc = creator.calculate_max_cpc(args.price, args.commission_rate)
+        print(f"\n{'='*70}")
+        print(f"📊 LAYER PREVIEW (max_cpc=${max_cpc:.2f})")
+        print("="*70)
+        # Extract brand+product for layer classification
+        # 1) core_terms from L1 — used by classify_keyword
+        core_terms_for_l1 = [args.brand.lower(), (args.product_name or '').lower().split(' ')[0]]
+        for layer_key, cfg in LAYER_CONFIG.items():
+            bid = creator.get_layer_bid(max_cpc, layer_key)
+            cap = cfg.get('cpc_cap')
+            if cap and bid > cap:
+                actual_bid = cap
+                capped = f" (capped from ${bid:.2f})"
+            else:
+                actual_bid = bid
+                capped = ""
+            print(f"  {layer_key} | {cfg['name']:18s} | bid ${actual_bid:.2f}{capped} | match={cfg['match_type']}")
+        print(f"\n🧪 Layered preview only (not classified into buckets; full classification happens in create_layered_campaign)")
         sys.exit(0)
 
     result = creator.create_layered_campaign(
