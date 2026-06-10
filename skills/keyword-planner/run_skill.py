@@ -175,6 +175,93 @@ def extract_keywords_with_ai(description: str) -> List[str]:
 def extract_keywords_from_text(text: str) -> List[str]:
     """从商品描述提取关键词，使用本地规则"""
     return extract_keywords_local(text)
+
+
+def extract_brand_candidates(description: str) -> List[str]:
+    """仅提取品牌候选词（不组合产品类型）"""
+    text = description.strip()
+    words = re.findall(r'\b([A-Z][a-zA-Z]{2,15})\b', text)
+    words_upper = re.findall(r'\b([A-Z]{4,15})\b', text)
+    words.extend(words_upper)
+
+    excluded_brands = {
+        'The', 'With', 'And', 'For', 'From', 'Best', 'Top', 'New', 'Pro',
+        'Plus', 'SE', 'Dual', 'Twin', 'LED', 'USB', 'HDMI', 'WiFi', 'GPS',
+        'TV', 'DIY', 'Real', 'Time', 'Home', 'Women', 'Men', 'BPA', 'Free',
+        'SPE', 'PEM', 'Tritan', 'Water', 'Hydrogen', 'Machine', 'Generator',
+        'Filter', 'Pitcher', 'Magnetic', 'Vortex', 'Structured', 'Calcium',
+        'Sulfite', 'Tritan'
+    }
+    brand_candidates = []
+    for w in words:
+        if w not in excluded_brands and len(w) >= 2 and w not in brand_candidates:
+            brand_candidates.append(w)
+    return brand_candidates[:5]
+
+
+def extract_product_types(description: str) -> List[str]:
+    """从商品描述中识别产品类型词（支持两词组合如 hydrogen water machine）"""
+    text_lower = description.lower()
+    # 扩展产品词典（包含两词组合）
+    product_types = [
+        # 氢水机相关
+        'hydrogen water machine', 'hydrogen water generator', 'hydrogen water pitcher',
+        'hydrogen water', 'hydrogen generator', 'water ionizer', 'water pitcher',
+        # 通用电子
+        'speaker', 'headphone', 'earphone', 'earbud', 'charger', 'cable',
+        'case', 'cover', 'mount', 'stand', 'holder', 'keyboard', 'mouse',
+        'monitor', 'webcam', 'camera', 'light', 'lamp', 'bulb', 'plug',
+        'outlet', 'switch', 'sensor', 'lock', 'doorbell', 'watch', 'band',
+        'tracker', 'fitness', 'pod', 'drone', 'controller', 'gamepad',
+        'soundbar', 'subwoofer', 'mic', 'microphone', 'projector',
+        'adapter', 'hub', 'drive', 'storage',
+        # Pool相关
+        'pool skimmer', 'pool cleaner', 'pool robot', 'solar charger', 'solar panel',
+        'robot', 'robotic', 'cleaner', 'skimmer', 'chlorinator',
+        # 健身相关
+        'vibration plate', 'vibrating plate', 'vibration machine', 'vibrating machine',
+        'exercise machine', 'workout equipment', 'fitness equipment',
+        'treadmill', 'bike', 'cycling', 'rowing', 'elliptical', 'stepper',
+        # 医美/护肤类
+        'scar sheet', 'scar tape', 'silicone scar', 'scar cream', 'scar gel',
+        'silicone sheet', 'silicone tape', 'wrinkle patch', 'face tape',
+        'skin care', 'skincare', 'beauty product', 'anti aging',
+        # 眼部护理类
+        'eye massager', 'eye mask', 'sleep mask', 'eye strain', 'head massager', 'massager',
+    ]
+    found = []
+    for pt in product_types:
+        if pt in text_lower and pt not in found:
+            found.append(pt)
+    return found[:5]
+
+
+def extract_keywords_categorized(description: str) -> Dict[str, List[str]]:
+    """从商品描述提取三类关键词：品牌词 / 品牌+产品 / 产品词
+
+    Returns:
+        {
+            "brand": ["PIURIFY", ...],
+            "brand_product": ["PIURIFY hydrogen water machine", ...],
+            "product": ["hydrogen water machine", ...]
+        }
+    """
+    brands = extract_brand_candidates(description)
+    products = extract_product_types(description)
+
+    brand_product = []
+    for brand in brands[:2]:
+        for product in products[:3]:
+            combined = f"{brand} {product}"
+            if combined not in brand_product:
+                brand_product.append(combined)
+    brand_product = brand_product[:6]
+
+    return {
+        "brand": brands,
+        "brand_product": brand_product,
+        "product": products
+    }
     
     
 # 尝试导入autoads的config
@@ -694,14 +781,19 @@ def main():
             print("Error: --product-description or --url required for analyze command")
             sys.exit(1)
         
-        # AI提取关键词
+        # AI提取关键词（使用新分类提取器）
         print(f"🔍 Analyzing: {input_text}")
-        seed_keywords = extract_keywords_from_text(product_desc)
-        print(f"📋 Extracted keywords: {seed_keywords}")
-        
+        categorized = extract_keywords_categorized(product_desc)
+        print(f"📋 品牌词: {categorized['brand']}")
+        print(f"📋 品牌+产品: {categorized['brand_product']}")
+        print(f"📋 产品词: {categorized['product']}")
+
+        # 优先级：品牌+产品 > 品牌词 > 产品词
+        seed_keywords = (categorized['brand_product'] + categorized['brand'] + categorized['product'])[:8]
+
         if not seed_keywords:
-            print("Warning: No keywords extracted, using fallback")
-            seed_keywords = ['speaker']
+            print("Error: No keywords extracted from description, please provide a valid product description")
+            sys.exit(1)
     
     else:  # generate
         if not args.keywords:

@@ -58,6 +58,9 @@ def main():
                              'these model keywords. AI expands with same-semantic variants only '
                              '(spelling/case/spacing), never other brand product lines. '
                              'Example: --product-model "X431 PROS V 5.0,X431 PROS,X431,creader"')
+    parser.add_argument('--dry-run', action='store_true', dest='dry_run',
+                        help='Dry run: only generate AI keywords + filter via ad_prevalidator. '
+                             'Do NOT create any Google Ads campaign. Print filtered keywords for review.')
     
     args = parser.parse_args()
     
@@ -103,7 +106,46 @@ def main():
     if args.product_model:
         product_model = [s.strip() for s in args.product_model.split(',') if s.strip()]
         logger.info(f"User-provided L0 product_model keywords ({len(product_model)}): {product_model}")
-    
+
+    # Create campaign
+    creator = RefinedCampaignCreator(network=args.network)
+
+    # ===== DRY-RUN MODE: 仅生成 + 过滤, 不创建 Campaign =====
+    if args.dry_run:
+        print("\n" + "="*70)
+        print("🧪 DRY-RUN MODE: 仅生成 + 过滤, 不创建 Google Ads Campaign")
+        print("="*70)
+        ad_creative = creator.generate_ad_creative(
+            product_description=product_description,
+            product_url=args.url,
+            brand=args.brand,
+            product_name=args.product_name,
+            price=args.price,
+            commission_rate=args.commission_rate,
+            product_rating=args.rating,
+            product_reviews_count=args.reviews_count,
+            seed_keywords=seed_keywords
+        )
+        core = ad_creative.get('core_keywords', [])
+        long_tail = ad_creative.get('long_tail_keywords', [])
+        all_kws = core + long_tail
+        print(f"\n📝 AI Generated: {len(core)} core + {len(long_tail)} long-tail = {len(all_kws)} total")
+        print(f"\n🔧 Running validate_and_filter_keywords (ad_prevalidator 201 AMAZON_PLATFORM_TOKENS)...")
+        from src.ad_prevalidator import validate_and_filter_keywords
+        valid, filtered = validate_and_filter_keywords([{'text': k} for k in all_kws])
+        print(f"\n{'='*70}")
+        print(f"❌ FILTERED (DROP): {len(filtered)}")
+        print("="*70)
+        for f in filtered:
+            print(f"  - {f['text']!r}: {f['reason']}")
+        print(f"\n{'='*70}")
+        print(f"✅ KEPT (KEEP): {len(valid)}")
+        print("="*70)
+        for v in valid:
+            print(f"  - {v['text']!r}")
+        print(f"\n🧪 DRY-RUN COMPLETE: {len(all_kws)} → {len(valid)} ({len(filtered)} filtered)")
+        sys.exit(0)
+
     result = creator.create_layered_campaign(
         customer_id=args.customer_id,
         campaign_name=campaign_name,
