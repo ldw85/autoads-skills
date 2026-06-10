@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Logs and runtime outputs
+logs/*.log
+logs/*.md
+logs/*.txt
+logs/*.json
+logs/*.bak.*
+logs/*.sh
+logs/*.py
+memory/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets (security)
+*.json
+!config/*.json.example
+google-ads-config/*.json
