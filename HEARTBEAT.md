@@ -65,21 +65,25 @@
 3. 缺失suffix的广告会被自动暂停
 4. **推送飞书**: 用 `message` tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 主动推送报告
 
-## 每日ROI报告 (早7-8点) 【2026-06-10 重构】
+## 每日ROI报告 (早7-8点) 【2026-06-10 重构, 2026-06-11 修复】
 
-当收到以下 cron 触发时（任一）:
-- `yeahpromos_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_yeahpromos_roi.sh`
-- `partnerboost_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_partnerboost_roi.sh`
-- `archer_roi_report` → 执行 `bash /root/.openclaw/workspace/autoads/archer-roi/scripts/run_archer_roi.sh`
-
-1. 脚本生成ROI报告（写到本地log + stdout）
-2. **推送飞书**: 用 `message` tool (channel=feishu, target=chat:oc_16f4d501d4e13793db85c88e17a9f110) 主动推送报告
-3. 飞书群是 ROI 报告专用群，所有三平台都发到那里
-4. 推送失败处理：重试 1 次 + fallback 用 `message` tool 发 user DM
-
-注意：
-- 报告log: `/root/.openclaw/workspace/autoads/archer-roi/logs/affiliate_report_YYYYMMDD_HHMMSS.txt`
+**正确架构**（`isolated + agentTurn + delivery.announce`）：
+- `sessionTarget: isolated`（独立 session 跑，不依赖 main）
+- `payload: agentTurn`（直接给 agent 完整任务，含报告生成+推送飞书）
+- `delivery: { mode: announce, channel: feishu, to: oc_16f4d501..., bestEffort: true }`
 - 飞书群 chat_id: `oc_16f4d501d4e13793db85c88e17a9f110`（三平台 ROI 报告共用）
+
+**特例豁免**：本任务的 `isolated + agentTurn` 模式**不受 6/10 「delivery 模式已废弃」备注影响**。
+- 6/10 备注针对的是 Composio 邮件监控（`isolated + channel=last` 14次失败）
+- ROI 报告的 isolated 是正确架构（独立 session 自跑自推，不依赖 main 在线）
+- 绝不要改回 `main + systemEvent`（main 不在线时 systemEvent 投递即空跑，4-36ms 完成无推送）
+
+**6/11 修复事故记录**：
+- 6/10 12:30 有人把 3 个 ROI cron 改成 `main + systemEvent`，6/10-6/11 共 3 天早上 7:40-8:00 全部空跑（durationMs 4-36ms，sessionId=null，无飞书推送）
+- 6/11 21:43 David 拍板改回 `isolated + agentTurn` + delivery 显式 channel/to
+- 端到端验证：YeahPromos 21:47:38 跑通，agent 真发飞书（a232e31d session 的 message tool 调用记录在册）
+
+报告log: `/root/.openclaw/workspace/autoads/archer-roi/logs/affiliate_report_YYYYMMDD_HHMMSS.txt`
 
 ## 每日趋势简报 (早上9点)
 
