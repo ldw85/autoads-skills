@@ -246,6 +246,73 @@ grep -rnE "nargs='\+'\s*[,)]|nargs=\"\+\"\s*[,)]" /root/.openclaw/workspace/scri
 |---|---|---|
 | `scripts/search_term_negatives.py` | `889c2e3` | ✅ 12 个解析测试通过 + EVIQO 实测通过 |
 
+## 第十一铁律: AI 推理归属 (2026-06-12 09:57 确立)
+
+**【最高优先级】凡涉及「语义理解/品牌识别/策略判断/文本生成/AI 推理」，统一由小灰（主对话）完成；技能/工具只负责「数据查询/API 调用/IO 操作」。**
+
+### 1. 判断边界
+- **理解 / 判断 / 生成** → 小灰（主对话）
+- **调用 API / 读写数据** → 工具/技能
+
+### 2. 铁律确立根因 (2026-06-12 08:30-09:00 BJT)
+- David 测试 Saris Bones EX 产品, 让 keyword-planner 技能查搜索量
+- 技能返回结果把 "Bones"/"Bike"/"Trunk"/"Rack" 都当成"品牌词"
+- 后续小灰分析时正确识别 "Saris" 才是品牌, "Bones" 是产品系列
+- **同一产品, 两种 AI 推理, 表现差距巨大**:
+  - keyword-planner 内置 AI: 看到大写名词就抽, 上下文缺失
+  - 小灰 (主对话): 有世界知识 + MEMORY + 反例校验 + 多步推理
+
+### 3. keyword-planner 错误实现根因
+- `extract_brand_candidates()`: 纯规则, 把所有大写名词当品牌候选
+- `extract_product_types()`: 硬编码产品类型列表 (PIURIFY/KODAK/Bose 等)
+- `AI_EXTRACT_PROMPT`: 任务粒度太粗, 没有反例校验机制
+- **核心问题**: 单一职责违反 - 数据查询工具塞了 AI 推理, 上下文丢失
+
+### 4. 重构方案 (2026-06-12 David 拍板 D 方案)
+**keyword-planner 拆为两层**:
+1. **keyword-metrics (本技能, 纯数据查询)**: 接收调用方预定义的种子词, 调 GKP 查量
+2. **小灰主对话 (AI 推理层)**: 品牌识别 / 种子词生成 / 4 层过滤 / 分层建议 / ROI 估算
+
+### 5. keyword-metrics 重构要点
+- 删除 `extract_brand_candidates` / `extract_product_types` / `extract_keywords_local` / `extract_keywords_categorized` / `AI_EXTRACT_PROMPT` / `analyze` 命令
+- 删除 `--product-description` / `--url` 参数
+- 唯一输入: `--keywords` (调用方预定义的种子词)
+- 唯一职责: GKP 查量
+
+### 6. 调用工作流 (新)
+```
+小灰(AI 推理):  看到产品描述
+  → 识别品牌/子系列
+  → 准备种子词 (例: "saris bike, saris bones, 2-bike trunk rack")
+
+小灰(调用工具):  python3 run_skill.py --keywords "..." --ads-account 666...
+
+keyword-metrics:  GKP 查量 → 返回 100 关键词 + 搜索量 + CPC (未过滤)
+
+小灰(AI 推理):  4 层 keyword_filter 过滤 → 分层建议 + ROI 估算
+```
+
+### 7. 特例豁免
+自动化场景 (cron 任务) 需要"无 AI 推理"的兜底实现:
+- 4 层 keyword_filter 已成熟, 不依赖 LLM, 可直接用于 cron
+- 品牌识别需预先生成 seed 列表 (数据库/配置文件)
+- 不要在 cron 任务里调 LLM 推理 (6/11 ROI 虚假成功教训)
+
+### 8. 教训 (2026-06-12)
+- **把 AI 推理塞进工具 = 上下文丢失 + 单一职责违反**
+- **AI 推理必须在能拿到完整上下文的地方**: 也就是主对话
+- **"在工具里写 AI 提示词" 和 "在主对话里推理" 是两种不同的能力, 表现差异巨大**
+- **设计原则**: 工具 = 数据, 主对话 = 智能, 两者分离
+
+### 9. 验收检查命令
+```bash
+# 查找所有"工具内 AI 推理"违规
+grep -rnE "AI_EXTRACT_PROMPT|extract_brand_candidates|extract_product_types" \
+  /root/.openclaw/workspace/skills/ /root/.openclaw/workspace/autoads/src/ 2>/dev/null
+
+# 期望: 无输出 (或每个命中都有明确豁免说明)
+```
+
 ## V3 改造成与回退记录 (2026-06-07 4轮实验)
 
 ### 背景
@@ -800,6 +867,26 @@ affiliateCategory: "electronics"  # 联盟营销分类
 - electronics, audio, etc.
 
 ---
+
+## 🔴 联盟产品状态监控 ASIN 抽取铁律 (2026-06-11 确立)
+
+**【最高优先级】根据广告系列获取 ASIN 的方法, 要使用 Google Ads API 接口从广告的 final_url 抽 ASIN。**
+
+### 实现要点
+- **主路径**: GAQL 查 `ad_group_ad.ad.final_urls`, 正则 `amazon\.com/dp/(B0[A-Z0-9]{8})` 抽 ASIN
+- **Fallback**: DB 映射 `campaign_id → asin` (从 `ad_campaigns_db.json`)
+- **禁止用广告系列名模板** (template 不准确且可能缺失, 6/11 BJT 实证 4 个漏检)
+
+### 6/11 BJT 漏检事故
+- v4 改造: 从 `campaign.name` 用正则 `\b(B0[A-Z0-9]{8}|[A-Z0-9]{10})\b` 抽 ASIN
+- 漏检 4 个 price=0 广告 (B0BSP4NS28 RhinoUSA / B001IWNDDA Intex / B0D6J5B98H ROVE / B082LV2VH6 bedmettress)
+- 根因 1: 历史遗留广告 name 里没 ASIN → 正则抽不出
+- 根因 2: tracking ID (10 位数字如 1774619504) 被 `[A-Z0-9]{10}` 误识别为 ASIN → 用"假 ASIN" 查 API 返回空 → 错归类为 unknown 告警
+- David 明确指示: "提取 ASIN 应该从广告系列下的正在运行的广告系列下的广告的最终到达网址中, 根据正则提取网址最后面的那个 ASIN。Offset 逻辑应该是从数据库端去找到对应的 ASIN。不能用广告名称模板"
+
+### v5 改造文件
+- `autoads/archer-roi/scripts/monitor_product_status.py` (`load_campaigns()` 函数)
+- Commit: `0a3d9b1` (2026-06-11 12:48 BJT)
 
 ## 归档记录
 
