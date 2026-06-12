@@ -32,15 +32,22 @@
 
 注意：仅当发现高风险搜索词时才发送通知
 
-## 联盟产品状态监控 (每2小时) 【2026-06-10 重构】
+## 联盟产品状态监控 (每2小时) 【2026-06-12 v6 重构·Archer+PartnerBoost 双池】
 
 当收到 cron 触发时 (`affiliate_product_monitor`):
 
-1. 执行: `python3 /root/.openclaw/workspace/autoads/archer-roi/scripts/monitor_product_status.py`
+1. 执行: `cd /root/.openclaw/workspace/autoads && python3 archer-roi/scripts/monitor_product_status.py`
 2. 脚本会输出监控报告到 stdout（自动捕获到本地log）
 3. 脚本会调用 `pause_campaigns()` 自动暂停 unavailable 状态的商品
 4. **推送飞书**: 用 `message` tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 主动推送报告
 5. 如果脚本本身失败，用 `message` tool 推送失败告警到飞书（绝不静默吞掉）
+
+### v6 重构 (2026-06-12 David 拍板): 启用 PartnerBoost 池
+- **Archer 池**账号 666-035-6395 (原有)
+- **PartnerBoost 池**账号 477-285-9239 (v6 新增, 6/12 启用)
+- 双池均从 Google Ads API 拉取 ENABLED ASIN 列表
+- 同一份暂停规则同时适用于两个池
+- PB token: 优先从 cred agent 读 (PARTNERBOOST_API_TOKEN), 缺失回退到文件硬编码
 
 ### 暂停规则 v2 (2026-06-10 重构, David 拍板)
 - `available` → 不动
@@ -50,9 +57,12 @@
 - Archer 和 PartnerBoost 池**使用完全相同规则**
 - 连续 unknown 跟踪: `autoads/archer-roi/logs/monitor_unknown_state.json` (7 天自动清理)
 
+### 6/12 事故+修复记录
+- 事故: 6/8 之后 4 天没跑 (HEARTBEAT.md 记"每2小时"但实际 main+systemEvent 在 main 不在线时空跑, 8秒完成无推送)
+- 修复: cron 配置改为 isolated + agentTurn + delivery.announce (与 ROI 报告同架构, 6/11 验证有效)
+
 注意：
 - 已处理的检查结果记录在 `/root/.openclaw/workspace/autoads/archer-roi/logs/monitor_YYYYMMDD_HHMMSS.log`
-- 重要：`delivery` 模式已废弃，**禁止改回 isolated + channel/last**（2026-06-10 14次连续失败教训）
 - 推送目标：飞书 user David（target=user:ou_1ba51a4ca094652b84fc99909c10b8e7）
 - 推送失败处理：retry 1次，失败后用 `message` tool 改发 text message（fallback）
 
