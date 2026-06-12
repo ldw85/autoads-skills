@@ -313,6 +313,66 @@ grep -rnE "AI_EXTRACT_PROMPT|extract_brand_candidates|extract_product_types" \
 # 期望: 无输出 (或每个命中都有明确豁免说明)
 ```
 
+## L0/L1 分层定义 (2026-06-12 13:13 BJT 修正)
+
+**【背景】** 之前 L0 命名有错: 把"裸品牌名"当 L0 是不对的。L0 应该是"品牌+精确型号"，否则流量不精准。
+
+### 1. 修正后的分层定义 (David 13:13 BJT 拍板)
+
+| 层 | 含义 | 例子 (ZAFRO 14K BTU) | 例子 (Saris Bones EX) | 投放逻辑 |
+|---|---|---|---|---|
+| **L0** | 品牌+精确型号 | `zafro 14000 btu portable air conditioner` | `saris bones ex 2-bike trunk rack` | 最高竞价, 最高转化 |
+| **L1** | 品牌+产品类别 | `zafro portable air conditioner` | `saris bike rack` | 中竞价, 品牌品类 |
+| **L1_brand** | 裸品牌名(兑底) | `zafro` | `saris` | 低竞价, 捕获品牌泛搜 |
+| **L2** | 行业品类大词 | `14000 btu portable ac` | `2-bike trunk rack` | 中竞价, 品类流量 |
+| **L3** | 竞品词 | `lg lp1419ivsm`, `midea duo` | `thule easyfold`, `allen sports` | 低竞价, 需 brand 词排除 |
+| **L5** | 长尾/特性词 | `ultra quiet portable ac`, `drainage free portable ac` | `rust-free trunk rack` | 低竞价, 长尾补充 |
+
+### 2. ZAFRO 实测 (修正后)
+
+| 关键词 | 实际月搜 | 正确层 | 修正前错误层 |
+|---|---|---|---|
+| `zafro 14000 btu portable air conditioner` | 10 | **L0** | L0  |
+| `zafro portable air conditioner` | **1,900** | **L1** | L0  ← 错位 |
+| `zafro` | 390 | **L1_brand** | L0  ← 错位 |
+| `14000 btu portable ac` | 6,600 | L2 | L2  |
+| `ultra quiet portable ac` | 170 | L5 | L5  |
+
+**关键发现：L1 才是主流量词 (1,900/月)，L0 是精准但低量 (10/月)。分层需要 L0 配合 L1 一起投。**
+
+### 3. 修正后的工程实现
+
+**`autoads/src/brand_extractor.py` 新增 `layer` 子命令**:
+```bash
+# L0 精确型号层
+python3 brand_extractor.py layer --layer L0 --brand ZAFRO --subseries "14,000 BTU" --product-type "portable air conditioner"
+
+# L1 品牌品类层
+python3 brand_extractor.py layer --layer L1 --brand ZAFRO --product-type "portable air conditioner" --product-abbrev "portable ac"
+
+# L1_brand 兑底层
+python3 brand_extractor.py layer --layer L1_brand --brand ZAFRO
+```
+
+**特殊字符自动过滤 (6/11 教训)**:
+- `ZAFRO 14,000 BTU` 舍逗号 → `ZAFRO 14000 btu` (GKP 可接收)
+- 14,000 BTU 的 逗号 被 validate_seeds 拦截
+
+### 4. 修正前的错误记忆 (避免重复)
+
+**错误**：L0 = 裸品牌名 (例: `zafro`, `saris`)
+**原因**：误以为 L0 是"最高优先级品牌词"，但忽略了"品牌下可能有多个子品牌/产品线/型号"
+**修正**：L0 = 品牌+精确型号 (锁定具体产品)；L1 = 品牌+产品类别；L1_brand = 裸品牌
+
+**铁律11 项目**：`build_seed_keywords` (旧) → `build_seed_keywords_for_layer(..., layer=...)` (新)
+
+### 5. 验证
+
+- ZAFRO 案例: L0 `ZAFRO 14000 btu portable air conditioner` 10/月/CPC $5.72 (L0 实际是低量精准词)
+- ZAFRO 案例: L1 `ZAFRO portable air conditioner` 1,900/月/CPC $5.72 (L1 才是主流量)
+- Saris Bones EX 案例: 验证 L0 = `saris bones ex 2-bike trunk rack` (待补查)
+- 实际意义: 营销资源在 L1 (高量) + L0 (精准) 双层, L1_brand 兑底
+
 ## V3 改造成与回退记录 (2026-06-07 4轮实验)
 
 ### 背景
