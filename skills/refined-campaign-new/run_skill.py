@@ -289,28 +289,48 @@ def main():
             all_keywords.append(f"{args.brand} {args.product_name}")
         print(f"  Total before classify: {len(all_keywords)} (AI: {len(all_ai_kws)} + GKP_filtered: {len(google_filtered)})")
 
-        # 【2026-06-13 David 拍板】V3 默认工作流: AI 过滤 + AI 分类
-        # Fallback: 旧 rule-based classify_keyword
+        # 【2026-06-15 拍板】V3 路径全部走 one-shot (commit ba3f8fb 后续, 优化了 AI 调用)
+        # 品牌向 + 品类向 1 次 AI 调用 = 一次分桶
+        # 之前: ai_meaning_filter + ai_classify_brand_layer + split_l2l5 多次调用
         try:
-            from src.keyword_workflow import KeywordPipeline
-            wf = KeywordPipeline()
-            # AI 含义过滤
-            kept, drops = wf.ai_meaning_filter(
-                keywords=all_keywords,
-                product_description=product_description,
-                brand=args.brand,
-                product_model=args.product_model,
-            )
-            print(f"  V3 AI meaning filter: {len(all_keywords)} -> {len(kept)} 词")
+            from src.keyword_workflow import V3KeywordWorkflow
+            wf = V3KeywordWorkflow()
+            # seed_keywords 拆分为品牌种子词 (L0) + 品类种子词 (L2/L5)
+            # 品牌种子词: --seed-keywords (用户预给) + [品牌+型号变体]
+            brand_seed = list(seed_keywords) if seed_keywords else []
+            if args.product_model:
+                if isinstance(args.product_model, list):
+                    brand_seed.extend(args.product_model)
+                else:
+                    brand_seed.append(str(args.product_model))
+            # 品类种子词: --l2l5-keywords (用户预给品类 + 变体)
+            category_seed = list(l2l5_keywords) if l2l5_keywords else []
 
-            # AI L0/L1/L2 分类
-            l0l1 = wf.ai_classify_brand_layer(
-                keywords=kept,
+            # 品牌向 one-shot
+            brand_one_shot = wf.ai_filter_and_classify_one_shot(
+                keywords=all_keywords,
                 brand=args.brand,
-                product_model=args.product_model,
+                product_model=str(args.product_model) if args.product_model else '',
                 product_description=product_description,
+                is_brand_path=True,
+                seed_keywords=brand_seed,  # 传品牌种子词 → L0 强制起点
             )
-            l2l5 = wf.split_l2l5_by_word_count(kept)
+            kept = brand_one_shot['L0'] + brand_one_shot['L1'] + brand_one_shot['L2']
+            drops = brand_one_shot['drop']
+            l0l1 = {'L0': brand_one_shot['L0'], 'L1': brand_one_shot['L1'], 'L2': brand_one_shot['L2']}
+            print(f"  V3 品牌向 one-shot: {len(all_keywords)} -> keep={len(kept)} drop={len(drops)} (L0={len(brand_one_shot['L0'])} L1={len(brand_one_shot['L1'])} L2={len(brand_one_shot['L2'])})")
+
+            # 品类向 one-shot
+            category_one_shot = wf.ai_filter_and_classify_one_shot(
+                keywords=all_keywords,
+                brand=args.brand,
+                product_model=str(args.product_model) if args.product_model else '',
+                product_description=product_description,
+                is_brand_path=False,
+                seed_keywords=category_seed,  # 传品类种子词 → L2 起点
+            )
+            l2l5 = {'L2': category_one_shot['L2'], 'L5': category_one_shot['L5']}
+            print(f"  V3 品类向 one-shot: L2={len(l2l5['L2'])} L5={len(l2l5['L5'])} drop={len(category_one_shot['drop'])}")
 
             # 合并
             classified = {
