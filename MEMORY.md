@@ -313,6 +313,145 @@ grep -rnE "AI_EXTRACT_PROMPT|extract_brand_candidates|extract_product_types" \
 # 期望: 无输出 (或每个命中都有明确豁免说明)
 ```
 
+## 第十七铁律: 硬过滤 + AI 100% 复审架构原则 (2026-06-13 16:06 BJT 确立, David 拍板)
+
+**【背景】** 2026-06-13 一天跑完 15 个产品 (PB 6 + Yeah 9 + Archer 3) / 314 词 / $1,500+ 花费, 完整验证从"硬过滤 + AI 复审"架构 vs "旧 if-then 字符串规则" 的准确率差距。
+
+**【架构原则】** 
+- 搜索词分析 = 「**硬过滤(防 100% 错误) + AI 100% 复审(做语义裁判)**」二段式架构
+- **硬过滤 = 工程实现细节, 不算铁律** (可改清单/可加词/可减词)
+- **AI 100% 复审架构 = 铁律** (普适设计哲学, 与第十一铁律同等级)
+
+**【实证数据: 15 个产品 / 314 词对比】**
+
+| 维度 | 旧 if-then 字符串规则 | 新硬过滤 + AI 100% 复审 |
+|---|---|---|
+| 误伤数 | **9 个** (C3 Anker Laptop Power Bank) | **0** |
+| 漏标数 | 42 个 (规则 0 标不相关, AI 找出 42 个) | **0** (全靠 AI 找出) |
+| 总错判率 | **15.7%** | **0%** |
+| AI 找出真不相关词 | 0 / 56 = 0% | **56 / 56 = 100%** |
+| 跨产品普适性 | 差 (N² 增长, 新边界 case 修不完) | 好 (硬过滤 12 词跨产品通用, AI 推理自适应) |
+
+**【铁律三大原则 (David 拍板)】**
+
+1. **硬过滤只能用于「亚马逊平台词」** (Amazon 平台 + 国家/地区变体)
+   - 12 词清单 (EXACT 精确匹配, 不能用 PHRASE 会误伤 "amazon + 产品" KEEP 原则)
+   - 清单在 `scripts/search_term_negatives.py: HARDFILTER_AMAZON_PLATFORM_TERMS` 权威定义
+   - 通过 `scripts/add_amazon_hardfilter.py` 加到 3 账号 account-level 共享列表 (3×12=36 个, 幂等)
+   - 硬过滤命中的标"不相关 - Amazon 平台词", AI 不用再看
+   - 硬过滤不是铁律, 清单可改 (以后 Amazon 出新平台词随时加)
+
+2. **AI 100% 复审做裁判 (这是铁律的核心)**
+   - 在主对话做 (第十一铁律一致性: 工具不带 AI 推理)
+   - 拿到 product_context (brand + product_type + product_name)
+   - 逐个搜索词做语义判断, 输出 "DROP + 7 类理由"
+   - 用户拍板后批量加词
+
+3. **不再做 (这些由 AI 在主对话做, 工具不处理)**
+   - 产品类型漂移 (printer/laptop/tv) 
+   - 竞品品牌检测
+   - 单字过宽词
+   - 同品牌不同产品线
+   - 品牌误拼
+   - 西语/日语/德语意图查询
+   - 零售商/平台词 (除 Amazon 平台词硬过滤)
+
+**【架构示例】** (今天 6/13 全程)
+```
+搜索词 (N 个)
+  ↓
+[硬过滤: 12 Amazon 平台词 EXACT 匹配] → 命中 → "不相关 (Amazon 平台词)"
+  ↓ 未命中
+[AI 100% 复审] → 主对话推理 → "KEEP / DROP + 7 类理由"
+  ↓
+[用户拍板]
+  ↓
+[批量加词脚本: scripts/add_phrase_negatives.sh]
+```
+
+**【C3 Anker Laptop Power Bank 误伤案例作为反面教材】**
+- 旧规则机械匹配 `laptop` 字符串 → 误判 9 个 "laptop power bank" / "portable laptop charger" 不相关
+- 实际我们卖的就是 Laptop Power Bank, 这 9 个是核心搜索词
+- 验证了: 字符串规则无法处理"产品名 = 品类词"的情况, 必须靠 AI 推理
+
+**【今天 6/13 数据全貌】**
+
+| 账号 | 产品 | 词 | AI 真不相关 | 已加 PHRASE 否定词 |
+|---|---|---|---|---|
+| PB (4772859239) | 6 | 89 | 16 | 15 |
+| Yeah (6052559425) | 9 | 158 | 26 | 5 |
+| Archer (6660356395) | 3 (top 3) | 67 | 7 | 7 |
+| **合计** | **15** | **314** | **49** | **27** |
+
+**【硬过滤 + AI 复审 与第十一铁律的协同】**
+- 第十一铁律: AI 推理在主对话做, 工具只做 IO
+- 第十七铁律: 搜索词分析用"硬过滤 + AI 100% 复审"架构
+- 两者一致: 硬过滤是纯字符串 EXACT 匹配 (无 AI), AI 复审 100% 在主对话
+- search_term_negatives.py 内部不做任何 AI 推理, 只调 GKP API + 写文件
+
+**【6/13 C1 INTEX 修正案例 + 否定词判定铁律 (2026-06-13 16:33 BJT David 拍板)】**
+
+**【案例】** C1 INTEX Ultra XTR (23931014140) 我在 AI 复审中误加 3 个 PHRASE 否定词:
+- `intex ultra xtr 18x52` (实际是 18x9x52 省略中间 9)
+- `intex ultra xtr 14x48` (可能省略某数字,或者 14x48 是另一型号)
+- `pools for sale 18 x 52` (可能是 18x9x52 矩形,用户没打全)
+
+**【David 纠正】** 
+- 搜索词匹配原理: **Google Ads 是模糊匹配, 用户输入的词只要包含我们关键词的一部分, 也能匹配上**
+- 人的搜索习惯: **懒**, 会省略/缩写/打字错误
+- "搜索意图相同" > "搜索词字面不同"
+
+**【否定词判定铁律 (David 拍板)】**
+
+**判定否定词前, 必想:**
+1. **"这个人的真实搜索意图是什么?"** (不是"这个词字面是什么")
+2. **"他/她为什么会这么搜?"** (打字懒 / 找变体 / 找竞品 / 不确定)
+3. **"这个意图跟我们的产品意图相同吗?"** (高意图/低意图/不相关)
+4. **"意图相同的可能性 > 不同的可能性, 就不能加否定词"** (优先让 Google Ads 模糊匹配处理)
+
+**【反面教材: 我今天 6/13 16:08 误加的 3 词】**
+- 表面看: "18x52" / "14x48" / "18 x 52" 跟 18x9x52 矩形不同
+- 实际: 省略/懒打字的概率 >> 找其他型号的概率
+- **"型号不同" 不等于 "意图不同"** —— 型号可能用户没打完
+- 正确判断: KEEP, 让 Google Ads 模糊匹配 18x9x52 的关键词
+
+**【16:33 后修正动作】** 通过 CampaignCriterionService 移除 3 词:
+- 资源名格式: `customers/{cid}/campaignCriteria/{cid}~{crit_id}` (用波浪号, 不是斜杠)
+- Operation: `op.remove = "..."` (直接字符串, 不是 message)
+- 通过 criterion_id 精确移除
+- 验证: 验证查询确认 3 词已不在否定词列表
+
+**【与其他铁律的协同】**
+- 第十一铁律 (AI 推理归属): AI 推理在主对话做, 不在工具里
+- 第十七铁律 (硬过滤 + AI 100% 复审架构): AI 复审要"思考人类搜索意图", 不只是字面匹配
+- 两者结合: AI 复审 = "字面分析 + 搜索意图 + 搜索习惯" 三维度判断
+
+**【铁律 18 草案 (保留为草案)】**
+
+**【手动触发架构, 不考虑 Cron】**
+- David 明确: 以后都是手动触发
+- 不需要 fallback / 不需要 keyword_filter 兜底
+- search_term_negatives.py 只跑 GKP + 写 JSON, AI 复审在主对话, 加词脚本手动跑
+
+**【6/13 已落地工程产物】**
+- `scripts/search_term_negatives.py`: `analyze_with_rules` 重写为硬过滤, 签名简化为 `(search_terms)` 去掉 campaign_name
+- `scripts/add_amazon_hardfilter.py`: 通用化, 动态查 shared_set ID, 支持 `--customer-ids` / `--terms` / `--dry-run` 参数
+- `scripts/add_phrase_negatives.sh`: 通用批量加 PHRASE 否定词模板, 内嵌 PB 实战
+- 3 账号 account-level 共享列表: 36 个 Amazon 平台词硬过滤 (3×12)
+
+**【验证检查命令】**
+```bash
+# 1. 跑硬过滤回归测试 (新硬过滤 = 12 词 EXACT)
+python3 -c "import sys; sys.path.insert(0, '/root/.openclaw/workspace/scripts')
+import importlib.util
+spec = importlib.util.spec_from_file_location('stn', '/root/.openclaw/workspace/scripts/search_term_negatives.py')
+stn = importlib.util.module_from_spec(spec); spec.loader.exec_module(stn)
+print(f'硬过滤词: {len(stn.HARDFILTER_AMAZON_PLATFORM_TERMS)} 词 (预期 12)')"
+
+# 2. 验证 3 账号账号级硬过滤 (应 222/131/222)
+python3 /root/.openclaw/workspace/scripts/add_amazon_hardfilter.py --dry-run
+```
+
 ## L0/L1 分层定义 (2026-06-12 13:13 BJT 修正)
 
 **【背景】** 之前 L0 命名有错: 把"裸品牌名"当 L0 是不对的。L0 应该是"品牌+精确型号"，否则流量不精准。

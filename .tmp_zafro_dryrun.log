@@ -1,0 +1,108 @@
+======================================================================
+🔧 Refined Campaign New Skill - Creating NEW Layered Campaign
+======================================================================
+
+📋 URL: https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+📋 Brand: ZAFRO
+📋 Product: ZAFRO 8000 BTU Portable Air Conditioner
+📋 Price: $249.99
+📋 Commission: 18.0%
+📋 Budget: $20.0/day
+📋 Country: US
+📋 Network: archer
+2026-06-12 18:39:02,341 - INFO - User-provided L0 product_model keywords (1): ['8000 btu']
+2026-06-12 18:39:02,341 - INFO - L0 mode: SIMPLIFIED (1 ad group @ max_cpc, cap $7) — Mode B [default for new products]
+2026-06-12 18:39:02,350 - INFO - Loaded Service Account JSON from file: /root/.openclaw/workspace/autoads/awesome-ridge-478918-t7-bc818468b332.json
+
+======================================================================
+🧪 DRY-RUN MODE: 10 阶段完整准备 + 0 写入 (2026-06-11 David 拍板)
+======================================================================
+
+======================================================================
+📋 PHASE 1: Generating AI Ad Creative
+======================================================================
+2026-06-12 18:39:02,350 - INFO - Generating ad creative with AI...
+2026-06-12 18:39:02,350 - INFO - Starting AI-powered research from user input only
+2026-06-12 18:39:02,350 - INFO - Added price info to research: $249.99
+2026-06-12 18:39:02,350 - INFO - Research input length: 617 chars
+2026-06-12 18:39:08,808 - INFO - Extracted: ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White, ZAFRO, 5 pain points
+2026-06-12 18:39:16,470 - INFO - Extracted product components: brand=ZAFRO, core_product=portable air conditioner
+2026-06-12 18:39:22,068 - INFO - AI generated 10 core + 14 long-tail keywords
+2026-06-12 18:39:22,069 - INFO - No seed_keywords provided, using AI extraction only
+2026-06-12 18:39:22,069 - INFO - Standard campaign 4-layer filter: start with 10 keywords (layers: competitor=True, amazon=True, product_relevance=True)
+2026-06-12 18:39:29,357 - INFO - Layer1-competitor: kept 10/10 (removed 0)
+2026-06-12 18:39:29,357 - INFO - After Layer 1 (competitor): 10 keywords
+2026-06-12 18:39:29,357 - INFO - After Layer 2 (amazon): 10 keywords
+2026-06-12 18:39:34,993 - INFO - Layer3-product-relevance: kept 10/10 (removed 0)
+2026-06-12 18:39:34,993 - INFO - After Layer 3 (product relevance): 10 keywords
+2026-06-12 18:39:34,993 - INFO - Standard campaign filter complete: 10/10 keywords kept
+2026-06-12 18:39:34,993 - INFO - ai_core 4-layer filter: 10 -> 10 (removed 0, preserved 0 seed keywords)
+2026-06-12 18:39:34,994 - INFO - Standard campaign 4-layer filter: start with 14 keywords (layers: competitor=True, amazon=True, product_relevance=True)
+2026-06-12 18:40:01,706 - INFO - Layer1-competitor: kept 14/14 (removed 0)
+2026-06-12 18:40:01,706 - INFO - After Layer 1 (competitor): 14 keywords
+2026-06-12 18:40:01,706 - INFO - After Layer 2 (amazon): 14 keywords
+2026-06-12 18:40:07,257 - INFO - Layer3-product-relevance: kept 14/14 (removed 0)
+2026-06-12 18:40:07,257 - INFO - After Layer 3 (product relevance): 14 keywords
+2026-06-12 18:40:07,257 - INFO - Standard campaign filter complete: 14/14 keywords kept
+2026-06-12 18:40:07,257 - INFO - ai_long_tail 4-layer filter: 14 -> 14 (removed 0, preserved 0 seed keywords)
+2026-06-12 18:40:07,257 - INFO - Final keyword set: 24 total (10 core + 14 long-tail, 0 from Google API)
+2026-06-12 18:41:00,637 - INFO - Generated 8 headlines, 4 descriptions
+2026-06-12 18:41:00,638 - INFO - Normalized headline capitalization: 'ZAFRO Portable AC Unit' -> 'Zafro Portable Ac Unit'
+2026-06-12 18:41:00,638 - INFO - Normalized headline capitalization: 'Noisy AC Disturbing Sleep?' -> 'Noisy Ac Disturbing Sleep'
+2026-06-12 18:41:00,638 - INFO - Normalized headline capitalization: 'Room Too Hot to Sleep?' -> 'Room Too Hot to Sleep'
+2026-06-12 18:41:00,638 - INFO - Normalized headline capitalization: 'High Energy Bills?' -> 'High Energy Bills'
+2026-06-12 18:41:00,638 - INFO - Normalized headline capitalization: '2.1K+ Reviews' -> '21k Reviews'
+2026-06-12 18:41:00,638 - WARNING - Only 8 headlines generated, need 15 for optimal distribution
+2026-06-12 18:41:00,638 - INFO - Normalized description capitalization: 'Noisy, inefficient ACs waste money. ZAFR' -> 'Noisy Inefficient Acs Waste Money Zafro '
+2026-06-12 18:41:00,638 - INFO - Normalized description capitalization: 'Can't sleep in the heat? ZAFRO 8000 BTU ' -> 'Cant Sleep in the Heat Zafro 8000 Btu Co'
+2026-06-12 18:41:00,638 - INFO - Normalized description capitalization: 'Beat the heat energy efficiently. 4 mode' -> 'Beat the Heat Energy Efficiently 4 Modes'
+2026-06-12 18:41:00,638 - INFO - Normalized description capitalization: 'Cool 350 sq.ft. Ultra quiet. Remote and ' -> 'Cool 350 Sqft Ultra Quiet Remote and 24h'
+2026-06-12 18:41:00,639 - INFO - Research complete: 5 pain points, 8 headlines, 12 keywords
+  Headlines: 8
+  Descriptions: 4
+  Core keywords: 12
+  Long-tail keywords: 14
+
+======================================================================
+📋 PHASE 2: ad_prevalidator Filter (201 AMAZON tokens)
+======================================================================
+2026-06-12 18:41:00,639 - INFO - 关键词过滤: 'ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White' - 超过8词限制
+2026-06-12 18:41:00,639 - INFO - 关键词过滤: 'ZAFRO' - 全大写关键词
+  AI KEEP: 24, DROP: 2
+    DROP: 'ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White': 超过8词限制
+    DROP: 'ZAFRO': 全大写关键词
+
+======================================================================
+📋 PHASE 3: L0 product_model AI 扩展
+======================================================================
+2026-06-12 18:41:07,795 - INFO - AI expanded L0 model variants: user=1, AI_added=6, total=7
+  User L0 model: ['8000 btu']
+  After AI expansion: 7
+  Variants: ['8000 btu', '8000btu', '8000-btu', '8000BTU', '8000 b t u', '8000-b t u', 'btu 8000']
+
+======================================================================
+📋 PHASE 4: Sitelinks 生成 (含 4-6 fallback 验证)
+======================================================================
+2026-06-12 18:41:14,859 - INFO - Generated 5 AI sitelinks: Relevant dimensions: FEATURE_A (fast cooling 350 sq.ft), FEATURE_B (4 modes), TRUST (4.0 stars, 2.1K+ reviews), PRICING ($249.99), SUPPORT (premium customer service). TRANSACTIONAL skipped - no discounts/promotions mentioned.
+  Final sitelinks: 5 (Google 最佳实践: 4-6)
+    - Fast Cooling 350 sq.ft | Quickly cool rooms up to 350 sq.ft
+    - 4 Modes Cool Dehumidify | Cool, Dehumidifier, Fan, Sleep
+    - 4.0 Stars 2.1K+ Reviews | Join thousands of happy ZAFRO
+    - Only $249.99 Today Only | Affordable portable cooling
+    - Premium Customer Service | 24/7 dedicated support team
+
+======================================================================
+📋 PHASE 5: GKP 拉词 (含 l2l5_keywords 种子)
+======================================================================
+  GKP seed: None (fallback to URL seed)
+2026-06-12 18:41:14,877 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp8vdskzto.json)
+2026-06-12 18:41:15,661 - INFO - Generated 100 keyword ideas from URL: https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+  GKP returned: 100 keywords
+
+======================================================================
+📋 PHASE 6: 4 层 filter (UniversalKeywordFilter)
+======================================================================
+2026-06-12 18:41:15,662 - INFO - Standard campaign 4-layer filter: start with 100 keywords (layers: competitor=True, amazon=True, product_relevance=True)
+2026-06-12 18:41:46,916 - INFO - Layer1-competitor: kept 100/100 (removed 0)
+2026-06-12 18:41:46,917 - INFO - After Layer 1 (competitor): 100 keywords
+2026-06-12 18:41:46,918 - INFO - After Layer 2 (amazon): 100 keywords

@@ -269,6 +269,46 @@ python3 run_skill.py --url "https://..." --brand ROVE --product-name "Dash Cam" 
 
 ---
 
+## 🔴 Skill 选择决策树 (2026-06-11 David 拍板)
+
+每次 David 说 "创建精细化广告" / "创建分层广告" 时, 用 3 步决策, 不要长推理:
+
+```
+1. David 给了具体 --campaign-id 吗?
+   ├─ 是 → refined-ads (补充/升级现有)
+   │        例: "为 23849915004 加精细化分层"
+   └─ 否 → refined-campaign-new (从零创建)
+            例: "创建新产品 Lifepro 广告"
+
+2. David 说了 "新/全新/从零" + 产品 URL + 产品描述?
+   ├─ 是 → refined-campaign-new
+   │        例: "创建一个新的精细化广告, 联盟 archer, 账号 6660356395"
+   └─ 否 → refined-ads (默认是补充现有)
+            例: "为 Anker 补精细化"
+
+3. 两者都说? (升级 + 已有产品)
+   ├─ 是 → refined-ads (默认按 "升级现有" 处理)
+   └─ 否 → refined-campaign-new
+```
+
+**快查表**:
+| David 说什么 | 选哪个 | 必须参数 |
+|---|---|---|
+| "为 Campaign 23849915004 创建精细化" | refined-ads | --campaign-id |
+| "创建新的精细化广告系列, 联盟 archer" | refined-campaign-new | --url --brand --product-name --customer-id |
+| "为 Anker 加 L0 简化分层" | refined-ads | --campaign-id --simplified-l0 --max-cpc |
+| "为新产品 Lifepro 开广告" | refined-campaign-new | --url --brand --product-name --customer-id |
+| "为现有 Campaign 补 8 层精细化" | refined-ads | --campaign-id |
+| "从零创建分层广告" | refined-campaign-new | --url --brand --product-name --customer-id |
+
+**避免长推理**: 触发词 -> 直接映射, 不做 30+ 行需求分析。
+
+**反例 (不应该发生的)**:
+- 看到 "创建精细化" 就问 "补充现有还是从零?" → 查 1 + 2 问就能定
+- 先调 refined-ads 失败再回退 refined-campaign-new → 1 步决策就能避免
+
+---
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.

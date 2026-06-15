@@ -32,15 +32,43 @@
 
 注意：仅当发现高风险搜索词时才发送通知
 
-## 联盟产品状态监控 (每2小时) 【2026-06-12 v6 重构·Archer+PartnerBoost 双池】
+## 联盟产品状态监控 — v8 双节奏架构【2026-06-15 David 拍板重构】
 
-当收到 cron 触发时 (`affiliate_product_monitor`):
+**架构变革**: 拆为「**每 2 小时检查** (有异常才推)」+「**每 20:00 日报** (有货报平安)」双 cron, 避免过去 12 次/天的"全零报告"对飞书噪言污染。
 
-1. 执行: `cd /root/.openclaw/workspace/autoads && python3 archer-roi/scripts/monitor_product_status.py`
+### 任务 A：每 2 小时检查 (有异常才推) (`affiliate_product_monitor_bi2h`)
+
+1. 执行: `cd /root/.openclaw/workspace/autoads && python3 archer-roi/scripts/monitor_product_status.py --json-summary`
 2. 脚本会输出监控报告到 stdout（自动捕获到本地log）
 3. 脚本会调用 `pause_campaigns()` 自动暂停 unavailable 状态的商品
-4. **推送飞书**: 用 `message` tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 主动推送报告
-5. 如果脚本本身失败，用 `message` tool 推送失败告警到飞书（绝不静默吞掉）
+4. **【v8 新增】智能推送判断** (在 agent 层做, 不改脚本):
+   - 从 stdout 抓取 `===JSON_SUMMARY_START===` 与 `===JSON_SUMMARY_END===` 之间的 JSON 块
+   - 读 `should_push_feishu` 字段 (脚本已算好: `paused_count > 0 OR unknown_alerts_count > 0`)
+   - **`true` → 调 message tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 推送报告中**所有**已暂停项 + 首次未知告警 (含 ASIN / Campaign ID / 原因)**
+   - **`false` → 不推送飞书** (脚本输出有 "0 暂停 0 告警", David 不想被 12 条/天"全零报告"刷屏)
+5. 脚本本身失败时, **必须**用 `message` tool 推送失败告警到飞书（绝不静默吞掉）
+
+### 任务 B：每日 20:00 (BJT) 日终汇总 (`affiliate_product_monitor_daily_20h`)
+
+1. 执行: `cd /root/.openclaw/workspace/autoads && python3 archer-roi/scripts/monitor_product_status.py --daily-summary`
+2. 脚本会拉取最新状态, 报告中增加「当日累计」段 (今日 00:00 - 20:00 累计暂停数, 含 unavailable/price_zero/consecutive_unknown 三类分计数)
+3. **【v8 新增】无论是否异常, 都推送飞书** (这是用户明确要的"报平安"机制)
+   - 调 message tool (channel=feishu, target=user:ou_1ba51a4ca094652b84fc99909c10b8e7) 推送完整报告
+   - 报告包含: 当前各池各货状态分布 + 当日累计暂停数 + 当前跟踪中 unknown ASIN 数
+4. 脚本本身失败时, **必须**用 `message` tool 推送失败告警到飞书
+
+### v8 重构 (2026-06-15 David 拍板): 双节奏拆分
+
+| 频率 | 任务 | 推送条件 | 推送内容 | CLI flag |
+|---|---|---|---|---|
+| 每 2 小时 | 检查双池状态 | `should_push_feishu=true` 才推 | 仅异常 (已暂停项 + 首次未知) | `--json-summary` |
+| 每日 20:00 (BJT) | 日终汇总 | **总是推** (报平安) | 完整报告 + 当日累计 | `--daily-summary` |
+
+**双节奏的工程化价值**:
+- 减少 12x/天 → 1x/天 飞书消息量 (3/2/1 节奏: 有货/有异常/日终)
+- "报平安"机制让 David 知道监控仍在运行 (6/12 事故中 4 天未推送才被发现)
+- 异常不隐藏 (2h 节奏一旦 should_push=true 立即推, 延迟 ≤ 2h)
+- 日终可看当日趋势 (累计暂停/累计 unknown, 历史决策参考)
 
 ### v6 重构 (2026-06-12 David 拍板): 启用 PartnerBoost 池
 - **Archer 池**账号 666-035-6395 (原有)

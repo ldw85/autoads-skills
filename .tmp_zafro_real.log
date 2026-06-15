@@ -1,0 +1,228 @@
+======================================================================
+🔧 Refined Campaign New Skill - Creating NEW Layered Campaign
+======================================================================
+
+📋 URL: https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+📋 Brand: ZAFRO
+📋 Product: ZAFRO 8000 BTU Portable Air Conditioner
+📋 Price: $249.99
+📋 Commission: 18.0%
+📋 Budget: $20.0/day
+📋 Country: US
+📋 Network: archer
+2026-06-12 19:35:13,161 - INFO - User-provided seed keywords (5): ['zafro 8000 btu portable air conditioner', 'zafro portable air conditioner', 'zafro air conditioner', 'zafro portable ac', 'zafro']...
+2026-06-12 19:35:13,161 - INFO - User-provided L0 product_model keywords (1): ['8000 btu']
+2026-06-12 19:35:13,161 - INFO - User-provided L2/L5 category keywords (10): ['8000 btu portable air conditioner', '8000 btu air conditioner', 'portable ac for room', 'portable ac for bedroom', 'portable air conditioner for small room', 'small room air conditioner', 'mini air conditioner for room', 'quiet portable air conditioner', 'portable air conditioner with remote', 'small portable ac']
+2026-06-12 19:35:13,161 - INFO - L0 mode: SIMPLIFIED (1 ad group @ max_cpc, cap $7) — Mode B [default for new products]
+2026-06-12 19:35:13,170 - INFO - Loaded Service Account JSON from file: /root/.openclaw/workspace/autoads/awesome-ridge-478918-t7-bc818468b332.json
+2026-06-12 19:35:13,170 - INFO - URL parsed - final: https://www.amazon.com/dp/B0D62XSBPZ, suffix: maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1, asin: B0D62XSBPZ
+2026-06-12 19:35:13,170 - INFO - Max CPC: $5.59
+2026-06-12 19:35:13,170 - INFO - L0 mode: SIMPLIFIED (1 ad group @ max_cpc, cap $7) — default for new products
+2026-06-12 19:35:13,170 - INFO - Full campaign name: archer - ZAFRO 8000 BTU Portable Air Conditioner - B0D62XSBPZ - $5.59
+2026-06-12 19:35:13,170 - INFO - ============================================================
+2026-06-12 19:35:13,170 - INFO - STEP 1: Generating AI Ad Creative
+2026-06-12 19:35:13,170 - INFO - ============================================================
+2026-06-12 19:35:13,170 - INFO - Generating ad creative with AI...
+2026-06-12 19:35:13,171 - INFO - Starting AI-powered research from user input only
+2026-06-12 19:35:13,171 - INFO - Added price info to research: $249.99
+2026-06-12 19:35:13,171 - INFO - Research input length: 617 chars
+2026-06-12 19:35:20,508 - INFO - Extracted: ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White, ZAFRO, 5 pain points
+2026-06-12 19:36:09,123 - INFO - Extracted product components: brand=ZAFRO, core_product=portable air conditioner
+2026-06-12 19:36:16,502 - INFO - AI generated 12 core + 12 long-tail keywords
+2026-06-12 19:36:16,505 - INFO - Added 5 user seed keywords to core_keywords (guaranteed)
+2026-06-12 19:36:16,511 - INFO -   ai_core: bypassing 5 seed keywords from 4-layer filter (David 2026-06-10)
+2026-06-12 19:36:16,515 - INFO - Standard campaign 4-layer filter: start with 11 keywords (layers: competitor=True, amazon=True, product_relevance=True)
+2026-06-12 19:36:23,106 - INFO - Layer1-competitor: kept 11/11 (removed 0)
+2026-06-12 19:36:23,106 - INFO - After Layer 1 (competitor): 11 keywords
+2026-06-12 19:36:23,109 - INFO - After Layer 2 (amazon): 11 keywords
+2026-06-12 19:36:28,611 - INFO - Layer3-product-relevance: kept 11/11 (removed 0)
+2026-06-12 19:36:28,611 - INFO - After Layer 3 (product relevance): 11 keywords
+2026-06-12 19:36:28,611 - INFO - Standard campaign filter complete: 11/11 keywords kept
+2026-06-12 19:36:28,611 - INFO - ai_core 4-layer filter: 16 -> 16 (removed 0, preserved 5 seed keywords)
+2026-06-12 19:36:28,612 - INFO - Standard campaign 4-layer filter: start with 12 keywords (layers: competitor=True, amazon=True, product_relevance=True)
+2026-06-12 19:36:34,200 - INFO - Layer1-competitor: kept 12/12 (removed 0)
+2026-06-12 19:36:34,200 - INFO - After Layer 1 (competitor): 12 keywords
+2026-06-12 19:36:34,200 - INFO - After Layer 2 (amazon): 12 keywords
+2026-06-12 19:36:40,570 - INFO - Layer3-product-relevance: kept 12/12 (removed 0)
+2026-06-12 19:36:40,588 - INFO - After Layer 3 (product relevance): 12 keywords
+2026-06-12 19:36:40,588 - INFO - Standard campaign filter complete: 12/12 keywords kept
+2026-06-12 19:36:40,589 - INFO - ai_long_tail 4-layer filter: 12 -> 12 (removed 0, preserved 0 seed keywords)
+2026-06-12 19:36:40,591 - INFO - Final keyword set: 28 total (16 core + 12 long-tail, 0 from Google API)
+2026-06-12 19:36:57,964 - INFO - Generated 15 headlines, 4 descriptions
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'ZAFRO Portable AC Unit' -> 'Zafro Portable Ac Unit'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'ZAFRO 8000 BTU AC' -> 'Zafro 8000 Btu Ac'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'ZAFRO 4 Modes Portable AC' -> 'Zafro 4 Modes Portable Ac'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Best AC for Dorms' -> 'Best Ac for Dorms'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Fast Cooling AC Unit' -> 'Fast Cooling Ac Unit'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Noisy AC Keeping You Awake?' -> 'Noisy Ac Keeping You Awake'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Hot Room? Sleep Better Tonight' -> 'Hot Room Sleep Better Tonight'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'High Energy Bills From AC?' -> 'High Energy Bills from Ac'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: '4 Stars, 2.1K+ Reviews' -> '4 Stars 21k Reviews'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: '2.1K+ Happy Customers' -> '21k Happy Customers'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Energy Efficient AC' -> 'Energy Efficient Ac'
+2026-06-12 19:36:58,035 - INFO - Normalized headline capitalization: 'Save Now - ZAFRO AC Deal' -> 'Save Now - Zafro Ac Deal'
+2026-06-12 19:36:58,038 - INFO - Headline positions reorganized: Brand/Product=0, Product Variant=0, Features=10, Social=2, CTA=3
+2026-06-12 19:36:58,038 - INFO - Normalized description capitalization: 'Tossing in the heat? ZAFRO's low-noise 4' -> 'Tossing in the Heat Zafros Low-Noise 4-M'
+2026-06-12 19:36:58,038 - INFO - Normalized description capitalization: 'Struggling to cool hot rooms? ZAFRO's fa' -> 'Struggling to Cool Hot Rooms Zafros Fast'
+2026-06-12 19:36:58,038 - INFO - Normalized description capitalization: 'Dreading summer energy bills? ZAFRO's en' -> 'Dreading Summer Energy Bills Zafros Ener'
+2026-06-12 19:36:58,038 - INFO - Normalized description capitalization: 'Portable AC with remote and timer. Easy ' -> 'Portable Ac with Remote and Timer Easy W'
+2026-06-12 19:36:58,056 - INFO - Research complete: 5 pain points, 15 headlines, 17 keywords
+2026-06-12 19:36:58,069 - INFO - Generated 15 headlines
+2026-06-12 19:36:58,071 - INFO - Generated 4 descriptions
+2026-06-12 19:36:58,071 - INFO - ============================================================
+2026-06-12 19:36:58,071 - INFO - PRE-VALIDATION: Validating Ad Creative
+2026-06-12 19:36:58,071 - INFO - ============================================================
+2026-06-12 19:36:58,075 - INFO - ==================================================
+2026-06-12 19:36:58,075 - INFO - 开始广告素材预校验
+2026-06-12 19:36:58,076 - INFO - ==================================================
+2026-06-12 19:36:58,077 - INFO - Headlines: 15 -> 15 (已修正)
+2026-06-12 19:36:58,078 - INFO - Description精简: 'Tossing in the Heat Zafros Low-Noise 4-M...' -> 'Tossing in the Heat Zafros Low-Noise 4-Mode Ac Keeps You Cool and Quiet All Night Long'
+2026-06-12 19:36:58,078 - INFO - Description精简: 'Struggling to Cool Hot Rooms Zafros Fast...' -> 'Struggling to Cool Hot Rooms Zafros Fast Cooling Ac Handles 350 Sq Ft Effortlessly Buy'
+2026-06-12 19:36:58,078 - INFO - Description精简: 'Dreading Summer Energy Bills Zafros Ener...' -> 'Dreading Summer Energy Bills Zafros Energy-Efficient Ac Cools 350 Sq Ft Without High Costs'
+2026-06-12 19:36:58,079 - INFO - Description精简: 'Portable Ac with Remote and Timer Easy W...' -> 'Portable Ac with Remote and Timer Easy Wheels 4 Modes Fast Cooling for Bedroom and Dorms'
+2026-06-12 19:36:58,079 - INFO - Descriptions: 4 -> 4 (已修正)
+2026-06-12 19:36:58,079 - INFO - 广告素材预校验完成
+2026-06-12 19:36:58,079 - INFO - ==================================================
+2026-06-12 19:36:58,079 - INFO - After validation: 15 headlines, 4 descriptions
+2026-06-12 19:36:58,079 - INFO - Core terms for classification: ['efficient', 'room', 'modes', 'air', '8000', '24h', 'indoor', 'remote', 'zafro', 'fast']
+2026-06-12 19:37:05,901 - INFO - AI expanded L0 model variants: user=1, AI_added=9, total=10
+2026-06-12 19:37:05,901 - INFO - L0 product_model keywords (10): ['8000 btu', '8000btu', '8000 BTU', '8000-btu', '8,000 btu', '8,000btu', '8,000 BTU', '8k btu']...
+2026-06-12 19:37:05,901 - INFO - ============================================================
+2026-06-12 19:37:05,901 - INFO - STEP 2: Generating Sitelinks
+2026-06-12 19:37:05,901 - INFO - ============================================================
+2026-06-12 19:37:14,702 - INFO - Generated 4 AI sitelinks: FEATURE_A (fast cooling 350 sq.ft), FEATURE_B (4 modes), TRUST (4★ 2.1K+ reviews), and SUPPORT (premium customer service, washable filters) are relevant. TRANSACTIONAL and PRICING are not applicable as no discounts or pricing tiers were mentioned.
+2026-06-12 19:37:14,703 - INFO - Generated 4 sitelinks via researcher
+2026-06-12 19:37:14,703 - INFO - Generated 4 sitelinks
+2026-06-12 19:37:14,703 - INFO - ============================================================
+2026-06-12 19:37:14,703 - INFO - STEP 3: Creating Campaign
+2026-06-12 19:37:14,703 - INFO - ============================================================
+2026-06-12 19:37:14,703 - INFO - Creating campaign: Archer - ZAFRO 8000 BTU Portable AC - B0D62XSBPZ
+2026-06-12 19:37:14,776 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp7qvjch_2.json)
+2026-06-12 19:37:19,597 - INFO - Added location targeting: US
+2026-06-12 19:37:19,597 - INFO - Campaign created: 23935398869
+2026-06-12 19:37:19,599 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpjwi__cw_.json)
+2026-06-12 19:37:20,570 - INFO - Updated campaign 23935398869 name to: archer - ZAFRO 8000 BTU Portable Air Conditioner - B0D62XSBPZ - $5.59
+2026-06-12 19:37:20,570 - INFO - Campaign name updated to: archer - ZAFRO 8000 BTU Portable Air Conditioner - B0D62XSBPZ - $5.59
+2026-06-12 19:37:20,570 - INFO - ============================================================
+2026-06-12 19:37:20,570 - INFO - STEP 5: Creating Layered Ad Groups
+2026-06-12 19:37:20,570 - INFO - ============================================================
+2026-06-12 19:37:20,570 - INFO - Generating additional keywords from Google Keyword Planner...
+2026-06-12 19:37:20,570 - INFO -   GKP seed (L2/L5 from user): ['8000 btu portable air conditioner', '8000 btu air conditioner', 'portable ac for room', 'portable ac for bedroom', 'portable air conditioner for small room']...
+2026-06-12 19:37:20,619 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpy7pxgtxb.json)
+2026-06-12 19:37:24,068 - INFO - Generated 100 keyword ideas from URL: https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+2026-06-12 19:37:24,069 - INFO - Retrieved 100 keywords from Google Keyword Planner
+2026-06-12 19:37:24,069 - INFO - Total keywords for classification: 127 (29 AI + 100 Google)
+2026-06-12 19:37:24,070 - INFO -   B 方案: L0 词 (重复) 加到 L1 ad group, count=4
+2026-06-12 19:37:24,070 - INFO -   L0: 4 keywords
+2026-06-12 19:37:24,070 - INFO -   L1: 9 keywords
+2026-06-12 19:37:24,070 - INFO -   L2: 68 keywords
+2026-06-12 19:37:24,070 - INFO -   L3: 0 keywords
+2026-06-12 19:37:24,070 - INFO -   L5: 52 keywords
+2026-06-12 19:37:24,071 - INFO - ============================================================
+2026-06-12 19:37:24,071 - INFO - PRE-VALIDATION: Filtering Keywords
+2026-06-12 19:37:24,071 - INFO - ============================================================
+2026-06-12 19:37:24,071 - INFO - 关键词过滤: 'ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White' - 超过8词限制
+2026-06-12 19:37:24,074 - INFO -   L0: 过滤 1 个关键词
+2026-06-12 19:37:24,075 - INFO -     - ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White: 超过8词限制
+2026-06-12 19:37:24,075 - INFO - 关键词过滤: 'ZAFRO' - 全大写关键词
+2026-06-12 19:37:24,075 - INFO - 关键词过滤: 'ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White' - 超过8词限制
+2026-06-12 19:37:24,075 - INFO -   L1: 过滤 2 个关键词
+2026-06-12 19:37:24,075 - INFO -     - ZAFRO: 全大写关键词
+2026-06-12 19:37:24,075 - INFO -     - ZAFRO ZAFRO 8,000 BTU Portable Air Conditioners, 4 Modes Portable AC Unit with Fast Cooling/Energy Efficient/Remote/24Hrs Timer for Bedroom/Dorms/Indoor Rooms, White: 超过8词限制
+2026-06-12 19:37:24,081 - INFO - 关键词过滤: 133 -> 130
+2026-06-12 19:37:24,083 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpwtg7pimb.json)
+2026-06-12 19:37:24,779 - INFO - Ad group created: ZAFRO_Brand_Model_Strict (203081523568)
+2026-06-12 19:37:24,780 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpl84vtjlm.json)
+2026-06-12 19:37:25,678 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp18ky9o6q.json)
+2026-06-12 19:37:26,701 - INFO - RSA created for ad group 203081523568: 203081523568~812618533809
+2026-06-12 19:37:26,701 - INFO - ✅ L0: ZAFRO_Brand_Model_Strict - 3 keywords, bid $5.59
+2026-06-12 19:37:27,202 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp2bi7rq5c.json)
+2026-06-12 19:37:27,845 - INFO - Ad group created: ZAFRO_Brand_Broad (196953820466)
+2026-06-12 19:37:27,847 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpvojljfm2.json)
+2026-06-12 19:37:28,605 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp9_cpbaz4.json)
+2026-06-12 19:37:29,620 - INFO - RSA created for ad group 196953820466: 196953820466~812649524050
+2026-06-12 19:37:29,620 - INFO - ✅ L1: ZAFRO_Brand_Broad - 7 keywords, bid $2.00
+2026-06-12 19:37:30,120 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp5kpisfux.json)
+2026-06-12 19:37:30,745 - INFO - Ad group created: ZAFRO_Core (196157460166)
+2026-06-12 19:37:30,746 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp1hwme86d.json)
+2026-06-12 19:37:32,459 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpniu5kyji.json)
+2026-06-12 19:37:33,383 - INFO - RSA created for ad group 196157460166: 196157460166~812649551167
+2026-06-12 19:37:33,383 - INFO - ✅ L2: ZAFRO_Core - 68 keywords, bid $2.00
+2026-06-12 19:37:33,884 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpgma2z7bf.json)
+2026-06-12 19:37:34,882 - INFO - Ad group created: ZAFRO_LongTail (201016408521)
+2026-06-12 19:37:34,883 - INFO - Using Service Account JSON from config (temp file: /tmp/tmptklbfu55.json)
+2026-06-12 19:37:36,414 - INFO - Using Service Account JSON from config (temp file: /tmp/tmp6np18qjs.json)
+2026-06-12 19:37:37,437 - INFO - RSA created for ad group 201016408521: 201016408521~812649539434
+2026-06-12 19:37:37,437 - INFO - ✅ L5: ZAFRO_LongTail - 52 keywords, bid $2.00
+2026-06-12 19:37:37,937 - INFO - ============================================================
+2026-06-12 19:37:37,937 - INFO - STEP 5: Generating Negative Keywords
+2026-06-12 19:37:37,937 - INFO - ============================================================
+2026-06-12 19:37:55,757 - INFO - [HARD FILTER] Removed 1 shopping-intent negatives (kept them as potential positive keywords)
+2026-06-12 19:37:55,757 - INFO - Generated 4 negatives from GKP keywords
+2026-06-12 19:37:55,757 - INFO - Generating negative keywords for: ZAFRO 8000 BTU Portable Air Conditioner
+2026-06-12 19:37:55,757 - INFO - Skipping category negatives: no ai_product_description provided. Pass ai_product_description= to enable AI-driven category negatives.
+2026-06-12 19:37:55,757 - INFO - Skipping product-specific negatives: no ai_product_description provided. Pass ai_product_description= to enable AI-driven product-specific negatives.
+2026-06-12 19:37:55,757 - INFO - Skipping alternative negatives: no ai_product_description provided.
+2026-06-12 19:37:55,763 - INFO - Generated 50 negative keywords
+2026-06-12 19:37:55,763 - INFO - Generated 50 negative keywords
+2026-06-12 19:37:55,765 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpk94td_j3.json)
+2026-06-12 19:38:22,947 - INFO - Created 50 categorized negative keywords
+2026-06-12 19:38:22,947 - INFO - Applied 50 negative keywords
+2026-06-12 19:38:22,947 - INFO -   [intent/EXACT] 50 negatives
+2026-06-12 19:38:22,947 - INFO -     - 8000 accessories
+2026-06-12 19:38:22,947 - INFO -     - 8000 accessory
+2026-06-12 19:38:22,947 - INFO -     - 8000 adapter
+2026-06-12 19:38:22,947 - INFO -     ... and 47 more
+2026-06-12 19:38:22,948 - INFO - ============================================================
+2026-06-12 19:38:22,948 - INFO - STEP 6: Creating Sitelinks
+2026-06-12 19:38:22,948 - INFO - ============================================================
+2026-06-12 19:38:22,949 - INFO - Using Service Account JSON from config (temp file: /tmp/tmpb0rkg9s6.json)
+2026-06-12 19:38:24,056 - INFO - Created sitelink: Fast Cooling 350 sq.ft -> https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+2026-06-12 19:38:25,030 - INFO - Created sitelink: 4 Modes Portable AC Unit -> https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+2026-06-12 19:38:26,018 - INFO - Created sitelink: 2.1K+ Verified Reviews -> https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+2026-06-12 19:38:27,014 - INFO - Created sitelink: Zafro Customer Support -> https://www.amazon.com/dp/B0D62XSBPZ?maas=maas_adg_api_582978684579272445_static_12_113&ref_=aa_maas&tag=maas&aa_campaignid=Link018c9c8dc9&aa_adgroupid=LDWLDW85eb3aa1ffdc1942fc912de27109423b43&aa_creativeid=a0f4e71b04024a8aaee2b904d7a143e1
+2026-06-12 19:38:27,014 - INFO - Created 4 sitelinks
+2026-06-12 19:38:27,014 - INFO - ============================================================
+2026-06-12 19:38:27,014 - INFO - STEP 7: Verifying Campaign
+2026-06-12 19:38:27,014 - INFO - ============================================================
+2026-06-12 19:38:30,589 - WARNING - ⚠️ Campaign verification found issues:
+2026-06-12 19:38:30,589 - WARNING - Campaign verification failed: 'CampaignVerification' object has no attribute 'issues'
+2026-06-12 19:38:30,590 - INFO - ============================================================
+2026-06-12 19:38:30,590 - INFO - STEP 8: Saving to Database
+2026-06-12 19:38:30,590 - INFO - ============================================================
+2026-06-12 19:38:30,608 - INFO - Saved campaign record: 23935398869 | B0D62XSBPZ | $249.99 | 18.0%
+2026-06-12 19:38:30,608 - INFO - Campaign saved to database
+2026-06-12 19:38:30,608 - INFO - ============================================================
+2026-06-12 19:38:30,608 - INFO - STEP 9: Sending Feishu Notification
+2026-06-12 19:38:30,608 - INFO - ============================================================
+2026-06-12 19:38:30,608 - INFO - Feishu notification (logged):
+✅ 精细化分层广告系列创建完成
+
+📋 Campaign: Archer - ZAFRO 8000 BTU Portable AC - B0D62XSBPZ
+📋 Campaign ID: 23935398869
+📋 Brand: ZAFRO
+📋 Product: ZAFRO 8000 BTU Portable Air Conditioner
+📋 Price: $249.99
+📋 Commission: 18.0%
+📋 CPC: $5.59
+
+📊 分层广告组:
+   L0: ZAFRO_Brand_Model_Strict (3 关键词)
+   L1: ZAFRO_Brand_Broad (7 关键词)
+   L2: ZAFRO_Core (68 关键词)
+   L5: ZAFRO_LongTail (52 关键词)
+
+📊 Sitelinks: 4
+📊 否定关键词: 50
+
+
+======================================================================
+✅ SUCCESS: Campaign Created
+======================================================================
+
+📊 Campaign ID: 23935398869
+📊 Layers Created:
+  ✅ L0: ZAFRO_Brand_Model_Strict - 3 keywords
+  ✅ L1: ZAFRO_Brand_Broad - 7 keywords
+  ✅ L2: ZAFRO_Core - 68 keywords
+  ✅ L5: ZAFRO_LongTail - 52 keywords

@@ -75,7 +75,8 @@ def generate_l0_keywords(
     product_description: str = None,
     product_model: str = None,
     product_url: str = None,
-    customer_id: str = None
+    customer_id: str = None,
+    user_seed: list = None  # 2026-06-11 David: 用户提供的 L0 词也作为 GKP 种子 (需求: 13:56 拍板)
 ) -> list:
     """Generate L0 (Brand_Model) keywords - 合并GKP和AI生成。
 
@@ -204,6 +205,12 @@ def generate_l0_keywords(
             # 去重保序,限制最多10个 (GKP 限制)
             # 2026-06-07 David: 复合种子词 (品牌+型号/品牌+类别) 优先
             # AI 生成的复合 seed 排在前部, 单独的 brand/model 放后面
+            # 2026-06-11 David: 用户提供的 L0 词 (--l0-keywords) 作为 GKP 种子, 优先于 AI 复合 seed
+            if user_seed:
+                user_seed_clean = [k.strip() for k in user_seed if k and k.strip()]
+                # 去重后插入到最前面 (优先级最高)
+                seed_keywords = list(dict.fromkeys(user_seed_clean + seed_keywords))
+                logger.info(f"User L0 seed added to GKP seed list: {user_seed_clean[:5]}")
             all_keywords_seed = ai_composite_seeds + seed_keywords
             # 去重保序
             all_keywords = list(dict.fromkeys(all_keywords_seed))[:10]
@@ -357,15 +364,13 @@ def _validate_ai_generated_l0(ai_keywords: list, brand: str, product_description
 只返回JSON。"""
 
     try:
-        result = subprocess.run(
-            ['claude', '--print', '--output-format', 'json', prompt],
-            capture_output=True, text=True, timeout=120
-        )
+        # 2026-06-11 David: 改用 _call_claude_stream (stream-json 避免 pipe 死锁, timeout 真正生效)
+        # 原 120s x 2 = 240s
+        output = _call_claude_stream(prompt, timeout=240, label="validate_ai_l0")
 
         # 解析响应 - AI 可能在 JSON 后添加解释文本
         try:
-            outer = json.loads(result.stdout)
-            inner = outer.get('result', '')
+            inner = output
             # 策略: 提取第一个完整的 JSON 对象 {...}
             # 这样可以避免 AI 后续解释文本导致 "Extra data" 错误
             import re
@@ -461,15 +466,12 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
 只返回 JSON。"""
 
     try:
-        result = subprocess.run(
-            ['claude', '--print', '--output-format', 'json', prompt],
-            capture_output=True, text=True, timeout=360  # 2026-06-07 David 23:35: 360s (复杂动作需要更长时间)
-        )
+        # 2026-06-11 David: 改用 _call_claude_stream (stream-json 避免 pipe 死锁, timeout 真正生效, 2x)
+        # 原 timeout 360s x 2 = 720s
+        output = _call_claude_stream(prompt, timeout=720, label="composite_seeds")
 
         try:
-            outer = json.loads(result.stdout)
-            inner = outer.get('result', '')
-            # 提取 JSON
+            inner = output
             import re
             code_block = re.search(r'```json\s*(\{.*?\})\s*```', inner, re.DOTALL)
             if code_block:
@@ -520,6 +522,107 @@ Google Keyword Planner (GKP) 用复合种子词 (品牌+型号, 品牌+类别) �
     except Exception as e:
         logger.warning(f"AI composite seeds failed: {e}")
         return []
+
+
+class AIRetryExhausted(RuntimeError):
+    """2026-06-11 David: 连续 N 次 AI 调用 fail-fast 异常。
+    携带重试次数, 供上层 caller 透传到飞书报错. 避免程序在 AI API 慢响应时静默吞掉. """
+    def __init__(self, message: str, attempts: int, last_error: str):
+        super().__init__(message)
+        self.attempts = attempts
+        self.last_error = last_error
+
+
+# 2026-06-11 David: 全局 AI fail-fast 计数器
+# 同一次 run_skill.py 运行中, AI 调用连续失败超 N 次就拋 AIRetryExhausted
+_AI_FAIL_COUNT = 0
+_AI_FAIL_THRESHOLD = 3  # 连续 3 次 AI 失败 -> 拋异常
+_AI_TOTAL_COUNT = 0
+
+
+def _call_claude_stream(prompt: str, timeout: int = 240, label: str = "AI") -> str:
+    """2026-06-11 David: 调 claude CLI 用 stream-json 模式 (避免 pipe 死锁 + timeout 真正生效)。
+
+    实际测出 claude --print --output-format json 需要 130s+ (vs stream-json 2.3s)
+    stream-json 逐 chunk 推, pipe 不会 block, timeout 不会被 pipe 死锁蒙骗.
+
+    Args:
+        prompt: AI prompt
+        timeout: subprocess timeout (默认 240s, 原 120s 的 2x)
+        label: 用于日志的调用标识 (如 "GKP filter" / "L1 classify")
+
+    Returns:
+        最终的 text/result 字符串 (累积所有 streaming chunk)
+
+    Raises:
+        AIRetryExhausted: 连续 3 次 AI 失败
+        subprocess.TimeoutExpired: 单次调用超时
+    """
+    global _AI_FAIL_COUNT, _AI_TOTAL_COUNT
+    _AI_TOTAL_COUNT += 1
+
+    try:
+        result = subprocess.run(
+            ['claude', '--print', '--output-format', 'stream-json', '--verbose', '--include-partial-messages', prompt],
+            capture_output=True, text=True, timeout=timeout,
+            start_new_session=True
+        )
+
+        # 2026-06-11: stream-json 逐行解析, 累积 final result
+        text_accumulated = []
+        final_result = None
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            ev_type = event.get('type')
+            # assistant 事件有完整 content (最完整)
+            if ev_type == 'assistant':
+                msg = event.get('message', {})
+                for block in msg.get('content', []):
+                    if block.get('type') == 'text':
+                        text_accumulated.append(block.get('text', ''))
+            # 最终 result 事件
+            elif ev_type == 'result':
+                final_result = event.get('result', '')
+                if final_result and not text_accumulated:
+                    text_accumulated.append(final_result)
+                break  # 遇到 result 就停
+
+        if not text_accumulated:
+            raise RuntimeError(f"Empty response from claude stream (label={label})")
+
+        output = ''.join(text_accumulated).strip()
+        if not output:
+            raise RuntimeError(f"Empty text after parse (label={label})")
+
+        _AI_FAIL_COUNT = 0  # 成功, 重置计数器
+        return output
+
+    except subprocess.TimeoutExpired as e:
+        _AI_FAIL_COUNT += 1
+        logger.warning(f"AI call [{label}] timeout after {timeout}s (fail_count={_AI_FAIL_COUNT}/{_AI_FAIL_THRESHOLD})")
+        if _AI_FAIL_COUNT >= _AI_FAIL_THRESHOLD:
+            raise AIRetryExhausted(
+                f"AI call [{label}] failed {_AI_FAIL_COUNT} times consecutively, aborting",
+                attempts=_AI_FAIL_COUNT,
+                last_error=f"timeout {timeout}s"
+            )
+        raise
+    except Exception as e:
+        _AI_FAIL_COUNT += 1
+        logger.warning(f"AI call [{label}] failed: {e} (fail_count={_AI_FAIL_COUNT}/{_AI_FAIL_THRESHOLD})")
+        if _AI_FAIL_COUNT >= _AI_FAIL_THRESHOLD:
+            raise AIRetryExhausted(
+                f"AI call [{label}] failed {_AI_FAIL_COUNT} times consecutively, aborting",
+                attempts=_AI_FAIL_COUNT,
+                last_error=str(e)
+            )
+        raise
 
 
 def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: str) -> dict:
@@ -579,6 +682,59 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
   (这些词 GKP 返回说明有真实用户搜索, 证明他们会点击广告但不是购买意图)
   6 大负面词类别 (严格按语义判断, 不列举具体词):
 
+  【【【重要】产品类别词判定 - 必须先于 B1-B6 判断】】
+  2026-06-11 David 投诉: “portable battery charger” / “portable charger” / “battery pack” / “power banks”
+  等【本产品类别词】被误判为 ACCESSORY 类 negative。加为 campaign negatives 后
+  会【主动误伤 L2 Core 和 L5 LongTail】的同义流量 (这些词本身就是 L2/L5 的目标词)。
+
+  判定规则 (先于 B1-B6):
+  - 读 product_description 提取【本产品类别核心词】 (如“power bank” / “portable charger” / “air fryer” / “headphones” / “drill”)
+  - 如果 GKP 词是 product_description 描述的产品类别/产品同义词 (即使不带 brand), 仍应 KEEP 进 brand_keywords,
+    【绝对不能】进 negative_keywords
+  - 只有在 KEEP 之后, 这个词才可能被 L2/L5 当作同义词复用 -- 加为 negative 等于自我矛盾
+
+  通用 examples (抽象占位符, 不硬编码产品):
+  - Product = “[portable power bank for phones]” → GKP 返回 “portable charger” / “battery pack” / “power banks” → KEEP (本产品类别同义词)
+  - Product = “[cordless drill for home]” → GKP 返回 “electric drill” / “power drill” → KEEP (本产品类别)
+  - Product = “[noise canceling headphones]” → GKP 返回 “wireless headphones” / “bluetooth headphones” → KEEP (本产品类别)
+  - Product = “[mirrorless camera]” → GKP 返回 “digital camera” / “dslr camera” → KEEP (本产品类别)
+
+  判定失败才进 B1 ACCESSORY (例子别要误判):
+  - Product = “[camera with SD card slot]” → GKP 返回 “sd card” → NEGATIVE ACCESSORY (SD card 是配件, 不是相机)
+  - Product = “[phone with USB-C port]” → GKP 返回 “usb c cable” → NEGATIVE ACCESSORY (cable 是配件, 不是 phone)
+  - 但 Product = “[usb c cable]” → GKP 返回 “usb c charger” → KEEP (本产品类别同义)
+
+  【自我检查 (必走)】在输出 negative_keywords 之前, 再问一次: 列表里有没有本产品类别同义词?
+  如果有, 转移到 brand_keywords 或 drop, 【不能进 negative_keywords】。
+
+  【【【重要】L0 范围控制 - 同品牌其他产品线 DROP】】 2026-06-11 David 报告
+  之前多次 L0 重复误判: brand 返回的 GKP 词中含同品牌其他产品线/型号变体
+  (e.g., "Anker 521" (是氮化镥发电站不是本产品 power bank) / "Anker Powercore" (其他容量系列)
+   / "Anker 633 Magnetic Battery" (磁吸电池不是本产品) / "Anker 733" (氮化镥充电器) 等)
+  这些词加为 L0 关键词会【主动误伤预算】, 抢跟本产品不同型号/类目的竞标。
+
+  判定规则 (适用于 brand_keywords 列表):
+  - 只保留跟 product_description 描述的【本产品】同型号/同容量/同规格的变体
+  - 【同品牌但不同产品线/不同型号/不同容量/不同类目】一律 DROP, 不能进 brand_keywords
+  - 【DROP 后不进入 negative_keywords】(同品牌其他产品线不等于用户搜索意图负面,
+    只是不该作为本产品 L0 关键词)
+  - 如果不肯定该词是不是本产品同型号, 保守 KEEP, 报告者后续手动判断
+
+  通用 examples (抽象占位符, 不硬编码品牌/产品):
+  - Brand = X, Product = "[X 20000mAh Power Bank]" → GKP 返回 "X 521 portable power station" → DROP (不同产品类目)
+  - Brand = X, Product = "[X Power Bank 20000mAh]" → GKP 返回 "X PowerCore" → DROP (同品牌其他容量/系列)
+  - Brand = X, Product = "[X Power Bank 20000mAh]" → GKP 返回 "X 633 magnetic battery" → DROP (同品牌磁吸电池, 不同产品线)
+  - Brand = X, Product = "[X Power Bank 20000mAh]" → GKP 返回 "X USB C" → DROP (通用词, 不含产品型号变体)
+  - Brand = X, Product = "[X 20000mAh]" → GKP 返回 "X power bank 20000" → KEEP (同型号/同容量)
+  - Brand = X, Product = "[X 20000mAh]" → GKP 返回 "X portable charger 20000" → KEEP (本产品类别同义 + 容量匹配)
+  - Brand = X, Product = "[X TurboBlaze 6qt air fryer]" → GKP 返回 "X 6qt air fryer" → KEEP (同型号变体)
+  - Brand = X, Product = "[X TurboBlaze 6qt air fryer]" → GKP 返回 "X 5qt air fryer" → DROP (同品牌不同容量)
+  - Brand = X, Product = "[X TurboBlaze 6qt air fryer]" → GKP 返回 "X Air Fryer Max Xl" → DROP (同品牌不同产品线, Max Xl 是另一个型号)
+
+  【自我检查 (必走, 第 2 轮)】输出 brand_keywords 之前再问一次:
+  "列表中有没有同品牌但【不同产品线/不同型号/不同容量/不同类目】的词?"
+  如果有, 从 brand_keywords 中【移除】(转移到 drop, 不进 negative_keywords)。
+
   B1. **ACCESSORY (配件)** - 用户想买配件, 不是本产品
     **【严格】只能从 GKP 返回列表中选, 不能凭空生成**
     例: SD card, memory card, charger, mount, case, cable, holder, adapter, battery
@@ -637,18 +793,13 @@ def _ai_filter_l0_keywords(gkp_keywords: list, brand: str, product_description: 
 
 
     try:
-        # Call AI via Claude Code
-        result = __import__('subprocess').run(
-            ['claude', '--print', '--output-format', 'json', prompt],
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
+        # 2026-06-11 David: 改用 _call_claude_stream (stream-json 避免 pipe 死锁, timeout 真正生效)
+        # 原 120s x 2 = 240s
+        output = _call_claude_stream(prompt, timeout=240, label="filter_l0_keywords")
 
         # 解析JSON格式响应
         try:
-            outer = json.loads(result.stdout)
-            inner = outer.get('result', '')
+            inner = output
             # AI 可能在 JSON 后添加解释文本,用正则优先提取 ```json 块
             import re
             code_block = re.search(r'```json\s*(\{.*?\})\s*```', inner, re.DOTALL)
@@ -799,12 +950,13 @@ STRICT RULES (use semantic understanding - do NOT list specific product names):
 Return ONLY JSON array: ["Keyword 1", "Keyword 2", ...]"""
 
     try:
-        result = subprocess.run(['claude', '--print', '--output-format', 'json', prompt], capture_output=True, text=True, timeout=120)
+        # 2026-06-11 David: 改用 _call_claude_stream (stream-json 避免 pipe 死锁, timeout 真正生效)
+        # 原 120s x 2 = 240s
+        output = _call_claude_stream(prompt, timeout=240, label="generate_l0_keywords")
 
         # 解析JSON格式响应
         try:
-            outer = json.loads(result.stdout)
-            inner = outer.get('result', '')
+            inner = output
             # 移除markdown code blocks
             inner_clean = inner.replace('```json', '').replace('```', '').strip()
             if '[' in inner_clean:
@@ -909,7 +1061,7 @@ def get_campaign_info(customer_id, campaign_id, args=None):
 
 def create_layered_ads(customer_id, campaign_id, ad_content,
                         brand=None, price=None,
-                        commission_rate=None, product_url=None,
+                        commission_rate=None, max_cpc=None, product_url=None,
                         product_description=None,
                         l0_keywords_user=None, l1_keywords_user=None,
                         simplified_l0=False):
@@ -941,9 +1093,11 @@ Product: {product_description}
 
 Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         try:
-            result = subprocess.run(['claude', '--print', '--output-format', 'json', prompt], capture_output=True, text=True, timeout=30)
-            if '{"brand":' in result.stdout:
-                data = json.loads(result.stdout)
+            # 2026-06-11 David: 改用 _call_claude_stream (stream-json 避免 pipe 死锁, timeout 真正生效)
+            # 原 30s x 2 = 60s
+            output = _call_claude_stream(prompt, timeout=60, label="extract_brand")
+            if '{"brand":' in output:
+                data = json.loads(output)
                 effective_brand = data.get('brand', 'Product').strip()
         except:
             effective_brand = 'Product'
@@ -987,11 +1141,13 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
         logger.warning("WARNING: No suffix found!")
 
     # Calculate max_cpc if not provided
-    if price and commission_rate:
+    if price and commission_rate and not max_cpc:
         max_cpc = optimizer.calculate_max_cpc(price, commission_rate)
+    elif max_cpc:
+        logger.info(f"Using user-specified max_cpc: ${max_cpc:.2f} (David 2026-06-11: brand words 竞价高, 不适用公式)")
     else:
         max_cpc = 1.0  # Default
-        logger.warning("No price/commission provided, using default CPC")
+        logger.warning("No price/commission/max_cpc provided, using default CPC")
 
     # Generate keywords with better brand/core_terms from AI
     logger.info(f"Generating keywords with brand={effective_brand}, core_terms={ad_content.core_product_terms}")
@@ -1037,7 +1193,8 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
                 product_description=product_desc_for_keywords,
                 product_model=pm_for_l0,
                 product_url=pu_for_l0,
-                customer_id=customer_id
+                customer_id=customer_id,
+                user_seed=l0_keywords_user
             )
             if l0_from_desc:
                 result['L0_keywords'] = l0_from_desc
@@ -1075,7 +1232,8 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             product_description=product_for_l0,
             product_model=pm_for_l0,
             product_url=pu_for_l0,
-            customer_id=customer_id
+            customer_id=customer_id,
+            user_seed=l0_keywords_user
         )
         result['L0_keywords'] = l0_keywords
         logger.info(f"Generated {len(l0_keywords)} L0 keywords for Brand_Model testing")
@@ -1083,10 +1241,18 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             result.setdefault('gkp_negatives', []).extend(neg_keywords)
             logger.info(f"  + {len(neg_keywords)} GKP negative candidates from L0 generation")
 
-        # 2026-06-08 David: User-provided L0 keywords override (精确控制模式)
+        # 2026-06-11 David: User-provided L0 keywords MERGE (不是 override)
+        # 需求: 用户词全收 + GKP 扩展 + AI 提取合并去重
         if l0_keywords_user:
-            result['L0_keywords'] = l0_keywords_user
-            logger.info(f"  OVERRIDE: User-provided L0 keywords ({len(l0_keywords_user)}) replace AI-generated")
+            user_set = set([k.lower().strip() for k in l0_keywords_user if k and k.strip()])
+            ai_kws = result.get('L0_keywords', []) or []
+            # 用户词优先 (保留原始大小写/拼写), AI 词去重后追加
+            new_ai = [k for k in ai_kws if k and k.lower().strip() not in user_set]
+            merged = list(l0_keywords_user) + new_ai
+            result['L0_keywords'] = merged
+            logger.info(f"  MERGE: User-provided {len(l0_keywords_user)} + AI-extracted {len(new_ai)} (skipped {len(ai_kws)-len(new_ai)} dups) = {len(merged)} L0 keywords")
+        else:
+            logger.info(f"  No user L0 keywords; using {len(result.get('L0_keywords', []))} AI-generated only")
 
         # 2026-06-07 David: L1 可以和 L0 关键词一样, 因为都是品牌词广告组
         # L1 是 baseline ($2.4), L0_3-7 是 CPC 测试组 ($3-7)
@@ -1129,7 +1295,8 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
             product_description=product_description,
             simplified_l0=simplified_l0,
             price=price,
-            commission_rate=commission_rate
+            commission_rate=commission_rate,
+            max_cpc=max_cpc
         )
 
         # 2026-06-07 David: GKP 阶段 AI 识别的负面词, 添加为 campaign negatives
@@ -1162,6 +1329,17 @@ Return ONLY the brand name as JSON: {{"brand": "BrandName"}}"""
 
         return created, None
 
+    except AIRetryExhausted as e:
+        # 2026-06-11 David: 连续 AI 失败 (fail-fast), 透出异常 (不静默吞)
+        logger.error(f"❌ AIRetryExhausted: {e}")
+        # 飞书报错
+        try:
+            import traceback
+            tb = traceback.format_exc()
+            logger.error(f"Traceback:\n{tb}")
+        except:
+            pass
+        raise
     except Exception as e:
         logger.error(f"Failed to create layered ads: {e}")
         return None, str(e)
@@ -1338,6 +1516,10 @@ def main():
                         help='Use simplified L0 (1 ad group @ max_cpc) instead of 5 L0_3-7 testing groups. '
                              'Required when max_cpc < \$3 (e.g. low-price products) to avoid 5 duplicate ad groups. '
                              'Bid = min(max_cpc, \$7 cap). Ad group name: {Brand}_Brand_Model_Strict.')
+    parser.add_argument('--max-cpc', dest='max_cpc', type=float, default=None,
+                        help='2026-06-11 David: 直接指定 max_cpc (跳过 price*commission 公式)。'
+                             'Brand word 竞价本来就很高, 不适用那个公式。'
+                             'Example: --max-cpc 5.0')
 
     args = parser.parse_args()
 
@@ -1420,6 +1602,7 @@ def main():
         brand=args.brand,
         price=args.price,
         commission_rate=args.commission_rate,
+        max_cpc=args.max_cpc,
         product_url=args.product_url,
         product_description=args.product_description,
         l0_keywords_user=l0_keywords_user,

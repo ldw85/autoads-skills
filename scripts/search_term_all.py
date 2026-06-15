@@ -198,8 +198,8 @@ def main():
             
             logger.info(f'      获取到 {len(search_terms)} 个搜索词')
             
-            # 分析
-            analysis = analyze_with_rules(campaign_name, search_terms)
+            # 分析 (硬过滤: 仅 Amazon 平台词)
+            analysis = analyze_with_rules(search_terms)
             
             irrelevant = analysis.get('irrelevant', [])
             suggested_negatives = [item['term'] for item in irrelevant]

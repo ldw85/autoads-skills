@@ -193,67 +193,107 @@ def get_campaign_info(client, customer_id: str, campaign_id: str) -> Optional[Di
     return None
 
 
-def analyze_with_rules(campaign_name: str, search_terms: List[Dict]) -> Dict:
-    """使用规则分析搜索词（备选方案）"""
+# ============================================================
+# 硬过滤 (Hard Filter) - 只防 100% 错误的搜索词
+# ============================================================
+# 【2026-06-13 架构重写 (David 拍板)】
+# 背景:
+#   1. 之前 analyze_with_rules 是"if-then 字符串匹配",在 9 个产品 / 217 词实证中
+#      - 误伤 9 个 (C3 Anker Laptop Power Bank 误判 "laptop power bank" 不相关)
+#      - 漏标 25 个 (竞品/同品牌不同产品线/品牌误拼/品类漂移)
+#   2. David 决定规则降级为"硬过滤" (只防 100% 错误的词),语义判断由 AI 100% 复审
+#   3. 硬过滤清单来自: 3 个 Amazon 联盟账号 (PB/Yeah/Archer) 当前账号级否定词里
+#      含 amazon 但不含产品类型的纯平台词
+#   4. 架构简化: 手动触发,不考虑 Cron 场景
+#
+# 设计原则 (David 明确):
+#   - 硬过滤只能用于「亚马逊平台词」
+#   - 12 个 Amazon 平台词 EXACT 精确匹配 (因为"amazon"单独看可能是产品修饰词)
+#   - 硬过滤命中的标"不相关 - Amazon 平台词",AI 不用再看
+#   - 硬过滤未命中的全部归"待 AI 复审" (原 'relevant'),AI 100% 判断
+#   - 不再做: 产品类型漂移 / 竞品品牌 / 单字过宽 / 同品牌不同产品线
+#     (全部由主对话 AI 100% 复审,符合第十一铁律: 工具不带 AI 推理)
+# ============================================================
+
+# Amazon 平台词硬过滤清单 (EXACT 精确匹配)
+# 来源: 3 个 Amazon 联盟账号 (PB/Yeah/Archer) 当前账号级共享否定词列表
+# 筛选标准: 含 amazon/prime 但不含产品类型
+# 同步状态: 已加到 3 账号的 "account-level negative keywords list" 共享列表 (12 × 3 = 36)
+HARDFILTER_AMAZON_PLATFORM_TERMS = [
+    # Amazon 平台活动/支付词
+    'amazon prime',
+    'amazon gift card',
+
+    # Amazon + 国家/地区词 (用户在找特定地区 Amazon)
+    'amazone com usa',
+    'amazon estados unidos',
+    'amazon eeuu',
+    'amazon eua',
+    'amazon amerika',
+    'amazone us',
+    'amazon in usa',
+    'amazon eua site',
+    'eua amazon',
+
+    # Amazon 拼写错误
+    'amazoni',
+]
+
+
+def analyze_with_rules(search_terms: List[Dict]) -> Dict:
+    """使用硬过滤规则分析搜索词 (降级版, 2026-06-13)
     
-    campaign_lower = campaign_name.lower()
+    职责: 只做"硬过滤" - 只防 100% 错误的 Amazon 平台词
+    - 命中 HARDFILTER_AMAZON_PLATFORM_TERMS → 标"不相关 - Amazon 平台词"
+    - 未命中 → 标"待 AI 复审" (即 relevant 列表, 等主对话 AI 100% 判断)
     
-    core_words = []
-    if 'kodak' in campaign_lower:
-        core_words = ['kodak', 'luma']
-    elif 'dash cam' in campaign_lower:
-        core_words = ['dash cam', 'dashcam']
-    else:
-        words = campaign_lower.split()
-        core_words = [w for w in words if len(w) > 2][:2]
+    注: campaign_name 参数已删除 (硬过滤只看 Amazon 平台词, 不需要产品上下文)
     
-    # 产品型号检测（字母+数字组合如spx3000）
-    import re
+    不再做 (这些由 AI 在主对话做):
+    - 产品类型漂移 (printer/laptop/tv)
+    - 竞品品牌检测
+    - 单字过宽词
+    - 同品牌不同产品线
     
-    relevant = []
-    irrelevant = []
+    Args:
+        search_terms: List of dicts with keys 'term', 'clicks', 'impressions', etc.
+    
+    Returns:
+        Dict with 'relevant' (待 AI 复审) and 'irrelevant' (硬过滤命中)
+    """
+    relevant = []  # 待 AI 复审
+    irrelevant = []  # 硬过滤命中 (Amazon 平台词)
+    
+    # 归一化硬过滤词到小写集合 (O(1) 查询)
+    hardfilter_set = {w.lower() for w in HARDFILTER_AMAZON_PLATFORM_TERMS}
     
     for term_data in search_terms:
-        term = term_data['term'].lower()
+        term = term_data['term']
+        term_lower = term.lower()
         clicks = term_data.get('clicks', 0)
         
-        is_irrelevant = False
-        reason = ""
-        
-        # 1. 完全是其他产品类型
-        if 'printer' in term or 'print' in term:
-            is_irrelevant = True
-            reason = "办公打印机"
-        elif 'laptop' in term or 'computer' in term or 'pc ' in term:
-            is_irrelevant = True
-            reason = "电脑产品"
-        elif 'tv' in term or 'television' in term:
-            is_irrelevant = True
-            reason = "电视产品"
-        
-        # 2. 竞争对手品牌
-        elif any(brand in term for brand in ['zebronics', 'epson', 'sony', 'benq', 'viewsonic', 'optoma']):
-            is_irrelevant = True
-            reason = "竞争对手品牌"
-        
-        # 3. 产品型号（字母+数字）是相关的
-        elif re.match(r'^[a-zA-Z]+\d+$', term):
-            is_irrelevant = False
-        
-        # 4. 太宽泛的词
-        elif len(term.split()) == 1 and term not in ['projector', 'projectors']:
-            is_irrelevant = True
-            reason = "太宽泛的单词"
-        
-        if is_irrelevant:
-            irrelevant.append({'term': term_data['term'], 'clicks': clicks, 'reason': reason})
+        # 硬过滤: EXACT 精确匹配 (小写归一化)
+        if term_lower in hardfilter_set:
+            irrelevant.append({
+                'term': term,
+                'clicks': clicks,
+                'reason': 'Amazon 平台词 (硬过滤 EXACT 匹配)'
+            })
         else:
-            relevant.append({'term': term_data['term'], 'clicks': clicks, 'reason': '相关'})
+            # 其他全部归为"待 AI 复审"
+            relevant.append({
+                'term': term,
+                'clicks': clicks,
+                'reason': '待 AI 复审'
+            })
     
     return {
         'relevant': relevant,
         'irrelevant': irrelevant,
-        'summary': f'规则分析。核心词: {core_words}。不相关: {len(irrelevant)}个'
+        'summary': (
+            f'硬过滤分析。Amazon 平台词命中: {len(irrelevant)}个, '
+            f'待 AI 复审: {len(relevant)}个'
+        )
     }
 
 
@@ -409,8 +449,8 @@ def main():
             print('')
             print('请把上面的搜索词列表发给我，我会用AI帮你分析哪些是不相关的搜索词')
         
-        # 同时用规则分析作为备选
-        rule_analysis = analyze_with_rules(campaign_name, search_terms)
+        # 同时用硬过滤分析 (Amazon 平台词)
+        rule_analysis = analyze_with_rules(search_terms)
         logger.info(f'规则分析: {rule_analysis["summary"]}')
         
         campaign_result = {

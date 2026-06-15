@@ -1,19 +1,18 @@
-📈 **每日趋势简报** - 2026-06-07
-筛选了 5 条相关内容
-
-📱 产品/硬件
-• pauline astier (500+)
-  → Mercury vs. Liberty Prediction, Spread, WNBA Picks for Wedne...
+📈 **每日趋势简报** - 2026-06-15
+筛选了 7 条相关内容
 
 📰 其他科技
-• k'andre miller (500+)
-  → Revisiting the Rangers’ trade of K’Andre Miller as defensema...
-• usha vance (500+)
-  → JD Vance says Charlie Kirk’s assassination convinced wife Us...
-• sean reifel love island contestant (500+)
-  → Pennsylvania mayor rails against cop he says left for ‘Love ...
-• valentín barco (500+)
-  → Los tres futbolistas de la selección argentina que apuntan a...
+• ecuador president (500+)
+  → Ecuador to Cut Beer Prices 20% in World Cup Show of ‘Support...
+• sean o malley (500+)
+  → Zahabi attempting to upset O'Malley
+• john adams (500+)
+  → Bulwark Book Club for July: “Making the Presidency: John Ada...
+• outlast the jungle (500+)
+  → Outlast The Jungle Season 3 Episodes 1-6 Recap: Did Leiya Jo...
+• frío (500+)
+  → Domingo helado en el AMBA: hay alerta amarilla por frío extr...
+  +2 more
 
 ---
 💡 过滤掉了娱乐/体育/政治内容
@@ -25,4 +24,4 @@
 💡 工作日通常有更多 AI/科技 相关趋势
 
 
-🕐 2026/6/7 09:11:28
+🕐 2026/6/15 09:00:18

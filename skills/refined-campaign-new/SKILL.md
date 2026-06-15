@@ -21,6 +21,13 @@ triggers:
   - 从零创建广告
   - new refined ads
   - fresh layered campaign
+  - 创建精细化广告系列
+  - 创建一个新的精细化
+  - 新产品精细化
+  - 全新产品 精细化
+  - refined-campaign-new
+  - 为新产品做精细化
+  - 全新产品开广告
 
 ## 🎯 广告创建模式决策 (2026-06-08 16:41 David 确认)
 
