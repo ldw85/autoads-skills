@@ -19,6 +19,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 AUTOADS_DIR = '/root/.openclaw/workspace/autoads'
+
+# 【2026-06-15】Google Ads API 限制 (架构级常量, 不硬编码产品)
+# - L0_MAX_KEYWORDS: L0 ad group 最多 10 词 (Google Ads API 限制)
+# - KEYWORD_MAX_CHARS: 关键词最多 80 字符 (Google Ads API 限制)
+# - 这些是 API 限制, 不是产品相关, 可以作为常量定义
+L0_MAX_KEYWORDS = 10
+KEYWORD_MAX_CHARS = 80
+KEYWORD_MAX_WORDS = 10  # Google Ads 推荐 8 词, API 严格限制 10 词
 os.chdir(AUTOADS_DIR)
 sys.path.insert(0, AUTOADS_DIR)
 
@@ -67,6 +75,11 @@ def main():
                              'L2 (core product) and L5 (long-tail) keywords. AI filters for relevance '
                              '(same product category) and drops competitors/accessories. Example: '
                              '--l2l5-keywords "Vibration Plate,Whole Body Vibration,Standing Vibrating Platform"')
+    # 【2026-06-15 19:41 David 拍板】CA GKP 拉词失败, 提供手动 GKP 关键词清单接口
+    parser.add_argument('--gkw-keywords', dest='gkw_keywords', default=None,
+                        help='Comma-separated manually-retrieved GKP keywords (David 手动 拉取 2026-06-15). '
+                             'Bypass GKP API call (e.g. CA country GKP fails on Archer account). '
+                             'Example: --gkw-keywords "bodegacooler,bodega cooler,bodega car fridge"')
     parser.add_argument('--dry-run', action='store_true', dest='dry_run',
                         help='Dry run: only generate AI keywords + filter via ad_prevalidator. '
                              'Do NOT create any Google Ads campaign. Print filtered keywords for review.')
@@ -237,29 +250,39 @@ def main():
         print(f"\n{'='*70}")
         print("📋 PHASE 5: GKP 拉词 (含 l2l5_keywords 种子)")
         print("="*70)
-        # GKP seed: 用户 --seed-keywords 优先, 其次 l2l5_keywords, 最后 URL (2026-06-13 David 拍板)
-        gkp_seed = seed_keywords if seed_keywords else (l2l5_keywords if l2l5_keywords else None)
-        if seed_keywords:
-            print(f"  GKP seed (user --seed-keywords): {seed_keywords[:5]}")
-        elif l2l5_keywords:
-            print(f"  GKP seed (L2/L5 from AI): {l2l5_keywords[:5]}")
+        # 【2026-06-15 19:41 David 拍板】如果用户提供了 --gkw-keywords, 跳过 GKP API 调用
+        if args.gkw_keywords:
+            google_kw_texts = [k.strip() for k in args.gkw_keywords.split(',') if k.strip()]
+            print(f"  【2026-06-15 拍板】使用 David 手动 GKP 关键词 (跳过 GKP API, CA Archer 账号 INVALID_VALUE)")
+            print(f"  GKP keywords (manual): {len(google_kw_texts)} 词")
+            for kw in google_kw_texts[:10]:
+                print(f"    - {kw}")
+            if len(google_kw_texts) > 10:
+                print(f"    ... and {len(google_kw_texts) - 10} more")
         else:
-            print(f"  GKP seed: None (fallback to URL seed)")
-        try:
-            from src.google_ads_client import GoogleAdsClientWrapper
-            google_kw_client = GoogleAdsClientWrapper(config=creator.config.google_ads)
-            google_keywords = google_kw_client.generate_keyword_ideas(
-                customer_id=args.customer_id,
-                url=args.url,
-                country=args.country,
-                language='EN',
-                keyword_texts=gkp_seed
-            )
-            google_kw_texts = [kw['text'] for kw in google_keywords if kw.get('text')]
-            print(f"  GKP returned: {len(google_kw_texts)} keywords")
-        except Exception as e:
-            print(f"  ⚠️ GKP failed: {e}")
-            google_kw_texts = []
+            # GKP seed: 用户 --seed-keywords 优先, 其次 l2l5_keywords, 最后 URL (2026-06-13 David 拍板)
+            gkp_seed = seed_keywords if seed_keywords else (l2l5_keywords if l2l5_keywords else None)
+            if seed_keywords:
+                print(f"  GKP seed (user --seed-keywords): {seed_keywords[:5]}")
+            elif l2l5_keywords:
+                print(f"  GKP seed (L2/L5 from AI): {l2l5_keywords[:5]}")
+            else:
+                print(f"  GKP seed: None (fallback to URL seed)")
+            try:
+                from src.google_ads_client import GoogleAdsClientWrapper
+                google_kw_client = GoogleAdsClientWrapper(config=creator.config.google_ads)
+                google_keywords = google_kw_client.generate_keyword_ideas(
+                    customer_id=args.customer_id,
+                    url=args.url,
+                    country=args.country,
+                    language='EN',
+                    keyword_texts=gkp_seed
+                )
+                google_kw_texts = [kw['text'] for kw in google_keywords if kw.get('text')]
+                print(f"  GKP returned: {len(google_kw_texts)} keywords")
+            except Exception as e:
+                print(f"  ⚠️ GKP failed: {e}")
+                google_kw_texts = []
 
         # ===== PHASE 6: 4 层 filter (UniversalKeywordFilter) =====
         print(f"\n{'='*70}")
@@ -278,11 +301,46 @@ def main():
             google_filtered = []
             print("  (skipped: no GKP results)")
 
+        # ===== PHASE 6.5: 二次预校验 (L0 model + GKP 词过 8 词/UPPERCASE 过滤) =====
+        # 【2026-06-15 19:41 修复】Phase 2 只过滤 AI core+long_tail, 没过滤 L0 model 变体 + GKP 词
+        # 后果: 8+ 词 / UPPERCASE 词漏到 L0/L1 → Google Ads 拒绝创建
+        # 修复: Phase 7 之前再用 ad_prevalidator 过滤一遍 全部 词
+        print(f"\n{'='*70}")
+        print("📋 PHASE 6.5: 二次预校验 (L0 model + GKP 词 过 8 词/UPPERCASE 过滤)")
+        print("="*70)
+        from src.ad_prevalidator import validate_and_filter_keywords
+        # 收集 L0 model 变体 + GKP 词
+        pre_check_kws = []
+        if product_model_keywords:
+            pre_check_kws.extend(product_model_keywords)
+        if google_kw_texts:
+            pre_check_kws.extend(google_kw_texts)
+        # 加主对话手工种子词 (BODEGACOOLER 12 Volt Car Refrigerator, BODEGA COOLER 等)
+        if seed_keywords:
+            pre_check_kws.extend(seed_keywords)
+        # 去重
+        pre_check_kws = list(set(pre_check_kws))
+        valid_pc, filtered_pc = validate_and_filter_keywords([{'text': k} for k in pre_check_kws])
+        # 建立过滤后的白名单集合 (lowercase)
+        pre_check_white = {v['text'].lower() for v in valid_pc}
+        pre_check_drops_set = {f['text'].lower() for f in filtered_pc}
+        print(f"  Input: {len(pre_check_kws)} 词, KEEP: {len(valid_pc)}, DROP: {len(filtered_pc)}")
+        for f in filtered_pc[:10]:
+            print(f"    DROP: {f['text']!r}: {f['reason']}")
+        # 【关键】过滤 GKP 词 + L0 model 变体
+        original_gkp_count = len(google_kw_texts)
+        google_kw_texts = [k for k in google_kw_texts if k.lower() in pre_check_white]
+        print(f"  GKP 词过滤: {original_gkp_count} -> {len(google_kw_texts)} (移除 {original_gkp_count - len(google_kw_texts)} 个 8+词/UPPERCASE)")
+        if product_model_keywords:
+            original_l0_count = len(product_model_keywords)
+            product_model_keywords = [k for k in product_model_keywords if k.lower() in pre_check_white]
+            print(f"  L0 model 过滤: {original_l0_count} -> {len(product_model_keywords)} (移除 {original_l0_count - len(product_model_keywords)} 个)")
+
         # ===== PHASE 7: 合并 + 分类到 L0/L1/L2/L5 =====
         print(f"\n{'='*70}")
         print("📋 PHASE 7: 合并 AI + GKP + 分类到 L0/L1/L2/L5")
         print("="*70)
-        # 合并关键词
+        # 合并关键词 (Google Ads L0 词上限 10 词, 总词上限 80-100)
         all_keywords = list(set(all_ai_kws + google_filtered))
         if args.brand:
             all_keywords.append(args.brand)
@@ -333,9 +391,20 @@ def main():
             print(f"  V3 品类向 one-shot: L2={len(l2l5['L2'])} L5={len(l2l5['L5'])} drop={len(category_one_shot['drop'])}")
 
             # 合并
+            # 【2026-06-15 20:07 修复】L0 词上限: Google Ads L0 ad group 最多 10 词
+            # 超出的词降级到 L1 (保留, 但不再高价争)
+            l0_list = l0l1.get('L0', [])
+            l0_overflow = []
+            if len(l0_list) > L0_MAX_KEYWORDS:
+                l0_overflow = l0_list[L0_MAX_KEYWORDS:]
+                l0_list = l0_list[:L0_MAX_KEYWORDS]
+                print(f"  ⚠️ L0 词超 {L0_MAX_KEYWORDS} 词上限: 移 {len(l0_overflow)} 词到 L1 (overflow)")
+                for kw in l0_overflow:
+                    print(f"    overflow: {kw}")
+
             classified = {
-                'L0': l0l1.get('L0', []),
-                'L1': l0l1.get('L1', []),
+                'L0': l0_list,
+                'L1': l0l1.get('L1', []) + l0_overflow,  # L0 overflow 进 L1
                 'L2': l2l5.get('L2', []),
                 'L3': [],
                 'L5': l2l5.get('L5', []),
@@ -362,10 +431,8 @@ def main():
 
         for layer_key, kws in classified.items():
             print(f"  {layer_key}: {len(kws)} keywords")
-            for kw in kws[:5]:
+            for kw in kws:
                 print(f"    - {kw}")
-            if len(kws) > 5:
-                print(f"    ... +{len(kws) - 5} more")
 
         # ===== PHASE 8: L0 词数计算 + L0/L1 词覆盖率检查 =====
         print(f"\n{'='*70}")
@@ -441,7 +508,8 @@ def main():
         network=args.network,
         seed_keywords=seed_keywords,
         product_model=product_model,
-        l2l5_keywords=l2l5_keywords  # 2026-06-11 David 拍板
+        l2l5_keywords=l2l5_keywords,  # 2026-06-11 David 拍板
+        gkw_keywords=([k.strip() for k in args.gkw_keywords.split(',') if k.strip()] if args.gkw_keywords else None)  # 2026-06-15 19:41 手动 GKP 词
     )
     
     print("\n" + "="*70)
