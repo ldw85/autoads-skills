@@ -242,10 +242,49 @@ def generate_l0_keywords(
                 logger.info(f"GKP returned {len(gkp_raw)} keywords (seed: {all_keywords})")
 
             # AI 从 GKP 中过滤品牌关键词 (3 路分类: brand / negative / drop)
+            # 【2026-06-15 拍板】--use-one-shot opt-in 路径: 走 one-shot 分类
             if gkp_raw and product_description:
-                gkp_result = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
-                gkp_filtered = gkp_result.get('brand_keywords', [])
-                gkp_negatives = gkp_result.get('negative_keywords', [])
+                if getattr(args, 'use_one_shot', False):
+                    # one-shot 路径 (V3 推荐)
+                    logger.info("【one-shot 路径】使用 V3 one-shot 分类 (commit 4d5292b)")
+                    try:
+                        from src.keyword_workflow import V3KeywordWorkflow
+                        wf = V3KeywordWorkflow()
+                        # seed_keywords: --l0-keywords + --product-model + 品牌名
+                        one_shot_seeds = []
+                        if user_seed:
+                            one_shot_seeds.extend([s.strip() for s in user_seed if s.strip()])
+                        if product_model:
+                            one_shot_seeds.append(str(product_model))
+                        one_shot_seeds.append(brand_clean)
+                        # 去重
+                        one_shot_seeds = list(dict.fromkeys(one_shot_seeds))
+                        # 跑 one-shot 品牌向
+                        one_shot_result = wf.ai_filter_and_classify_one_shot(
+                            keywords=gkp_raw,
+                            brand=brand_clean,
+                            product_model=str(product_model) if product_model else '',
+                            product_description=product_description,
+                            is_brand_path=True,
+                            seed_keywords=one_shot_seeds,
+                        )
+                        gkp_filtered = one_shot_result['L0'] + one_shot_result['L1']
+                        # drop 词转换为 negative_keywords 格式 [{keyword, reason}]
+                        gkp_negatives = [
+                            {'keyword': d.get('keyword', ''), 'reason': d.get('reason', '')}
+                            for d in one_shot_result['drop']
+                        ]
+                        logger.info(f"one-shot: L0={len(one_shot_result['L0'])} L1={len(one_shot_result['L1'])} drop={len(gkp_negatives)}")
+                    except Exception as e:
+                        logger.warning(f"one-shot 路径失败: {e}, 降级到 _ai_filter_l0_keywords")
+                        gkp_result = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
+                        gkp_filtered = gkp_result.get('brand_keywords', [])
+                        gkp_negatives = gkp_result.get('negative_keywords', [])
+                else:
+                    # 默认路径: _ai_filter_l0_keywords (存量补充逻辑)
+                    gkp_result = _ai_filter_l0_keywords(gkp_raw, brand_clean, product_description)
+                    gkp_filtered = gkp_result.get('brand_keywords', [])
+                    gkp_negatives = gkp_result.get('negative_keywords', [])
                 logger.info(f"AI extracted {len(gkp_filtered)} brand keywords from GKP")
                 logger.info(f"AI identified {len(gkp_negatives)} negative keywords from GKP")
                 if gkp_negatives:
@@ -1520,6 +1559,11 @@ def main():
                         help='2026-06-11 David: 直接指定 max_cpc (跳过 price*commission 公式)。'
                              'Brand word 竞价本来就很高, 不适用那个公式。'
                              'Example: --max-cpc 5.0')
+    parser.add_argument('--use-one-shot', dest='use_one_shot', action='store_true',
+                        help='【2026-06-15 拍板】使用 one-shot 分类 (V3 路径) 替代默认 _ai_filter_l0_keywords。'
+                             'L0 起点: --l0-keywords + --product-model + 品牌名.'
+                             'L1 起点: 品牌名 + 同产品线变体.'
+                             '默认: opt-in 不启用, 保持 _ai_filter_l0_keywords().')
 
     args = parser.parse_args()
 
