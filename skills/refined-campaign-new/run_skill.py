@@ -537,6 +537,20 @@ def main():
                 'L5': l2l5.get('L5', []) + _l5_relocated + _l5_relocated_from_l1,
             }
             print(f"  V3 AI 分类: L0={len(classified['L0'])}, L1={len(classified['L1'])}, L2={len(classified['L2'])}, L5={len(classified['L5'])}")
+
+            # 【2026-06-17 David 拍板】V3 LLM 幻觉兑底: 再次过滤 8 词+UPPERCASE (L0/L1)
+            # 问题: V3 LLM 有时会 hallucinate 添加完整产品名 (8+ 词) 到 L0/L1 (例 "SIHOO SIHOO M57 Ergonomic Mesh Office Chair")
+            # 后果: Google Ads 拒绝创建 (超过 8 词限制)
+            # 修法: 合并后用 ad_prevalidator 再过滤一遍 L0/L1, 避免幻觉产物逃出
+            # L2/L5 不过滤 (8+ 词可能是长尾调色)
+            from src.ad_prevalidator import validate_and_filter_keywords
+            for _layer in ['L0', 'L1']:
+                _valid_layer, _filtered_layer = validate_and_filter_keywords([{'text': k} for k in classified[_layer]])
+                if _filtered_layer:
+                    print(f"  [V3 hallucination 兑底] {_layer} 过滤 {len(_filtered_layer)} 个幻觉词:")
+                    for _f in _filtered_layer:
+                        print(f"    {_layer} DROP: {_f['text']!r}: {_f['reason']}")
+                classified[_layer] = [v['text'] for v in _valid_layer]
         except Exception as e:
             print(f"  ⚠️ V3 AI 分类失败: {e}, fallback 到旧规则分类")
             core_terms = []
