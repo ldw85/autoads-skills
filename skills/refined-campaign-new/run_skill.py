@@ -189,6 +189,8 @@ def main():
         from src.ad_prevalidator import validate_and_filter_keywords
         all_ai_kws = core + long_tail
         valid, filtered = validate_and_filter_keywords([{'text': k} for k in all_ai_kws])
+        # 【2026-06-16 David 拍板】修复: 赋值回 all_ai_kws (原代码 valid 被丢弃, 过滤后词仍混入合并池)
+        all_ai_kws = [v['text'] for v in valid]
         print(f"  AI KEEP: {len(valid)}, DROP: {len(filtered)}")
         for f in filtered[:5]:
             print(f"    DROP: {f['text']!r}: {f['reason']}")
@@ -285,18 +287,16 @@ def main():
                 google_kw_texts = []
 
         # ===== PHASE 6: 4 层 filter (UniversalKeywordFilter) =====
+        # 【2026-06-16 David 拍板】精细化路径不调 4 层 AI, 只保留规则匹配
+        # 原因: V3 one-shot 已经一次分桶 (含 AI 含义过滤 + 分桶), 4 层是双跑
+        # 规则匹配 (Phase 6.5 ad_prevalidator 8 词/全大写 + Amazon 平台词 EXACT) 保留
         print(f"\n{'='*70}")
-        print("📋 PHASE 6: 4 层 filter (UniversalKeywordFilter)")
+        print("📋 PHASE 6: 规则匹配 (跳过 4 层 AI 调) - 保留 Phase 6.5 8 词/UPPERCASE 过滤")
         print("="*70)
         if google_kw_texts:
-            from src.keyword_filter import UniversalKeywordFilter
-            universal_filter = UniversalKeywordFilter()
-            google_filtered = universal_filter.filter_for_standard_campaign(
-                keywords=google_kw_texts,
-                product_description=product_description,
-                brand=args.brand
-            )
-            print(f"  GKP → 4-layer filter: {len(google_kw_texts)} → {len(google_filtered)}")
+            # 4 层 AI filter 跳过 - 交给 V3 one-shot AI 一次性分桶
+            google_filtered = google_kw_texts
+            print(f"  跳过 4 层 AI filter, 直接进入 Phase 6.5 规则匹配 ({len(google_kw_texts)} 词)")
         else:
             google_filtered = []
             print("  (skipped: no GKP results)")
@@ -341,10 +341,10 @@ def main():
         print("📋 PHASE 7: 合并 AI + GKP + 分类到 L0/L1/L2/L5")
         print("="*70)
         # 合并关键词 (Google Ads L0 词上限 10 词, 总词上限 80-100)
+        # 【2026-06-16 David 拍板】删除主动追加 brand + brand+product_name 逻辑
+        # 原因: 1) 全大写污染 (args.brand 原样追加)  2) 8+ 词污染 (brand+product_name 拼接)  3) 绕过 Phase 6.5 预校验
+        # 修法: 全部词从 AI 核心 + AI 长尾 + GKP 池子来, 不再主动追加
         all_keywords = list(set(all_ai_kws + google_filtered))
-        if args.brand:
-            all_keywords.append(args.brand)
-            all_keywords.append(f"{args.brand} {args.product_name}")
         print(f"  Total before classify: {len(all_keywords)} (AI: {len(all_ai_kws)} + GKP_filtered: {len(google_filtered)})")
 
         # 【2026-06-15 拍板】V3 路径全部走 one-shot (commit ba3f8fb 后续, 优化了 AI 调用)
@@ -402,12 +402,139 @@ def main():
                 for kw in l0_overflow:
                     print(f"    overflow: {kw}")
 
+            # 【2026-06-16 David 拍板】V3 post-process 兑底
+            # 问题 1: L0 出现不含 brand 的词 (例 "330 lbs office chair" / "big and tall office chair")
+            # 后果 1: 违反 L0 硬规则 (MUST contain brand)
+            # 修法 1: L0 不含 brand 强制重分 L2/L5 (按词数, <5 -> L2, >=5 -> L5)
+            #
+            # 问题 2: L1 出现"同品牌其他产品线"词 (例 "sihoo doro c300" - SIHOO 另一产品线)
+            # 后果 2: 违反"L1 只收同品牌同产品线"架构原则
+            # 修法 2: L1 词不含 seed_keywords 里同产品线词/类别描述词 → 重分 L2/DROP
+            #
+            # 【为什么不在 V3 prompt 里加 fuzzy_clause】:
+            # - LLM 推理负担大, 加 fuzzy_clause 后 V3 one-shot 从 5min -> 10min 超时
+            # - 用 post-process + seed_keywords 产品线词作为判定基准更快更准
+            _brand_lower_local = (args.brand or '').lower().strip()
+            _l2l5_keywords_lower = [k.lower().strip() for k in (l2l5_keywords or [])]
+            _seed_keywords_lower = [k.lower().strip() for k in (seed_keywords or [])]
+            # 提取产品类别词 (从 l2l5_keywords 提取单词)
+            _category_words = set()
+            for _ckw in _l2l5_keywords_lower:
+                for _w in _ckw.split():
+                    if len(_w) > 2 and _w not in _brand_lower_local:
+                        _category_words.add(_w)
+            # 从 seed_keywords 提取"产品类别描述词" (如 "sihoo m57 office chair" -> "office chair")
+            _seed_product_words = set()
+            for _skw in _seed_keywords_lower:
+                # 去除 brand 和 model 后剩下的词
+                _words = _skw.split()
+                _no_brand = [w for w in _words if w != _brand_lower_local and w != 'm57']
+                _seed_product_words.update(_no_brand)
+            _relevant_words = _category_words | _seed_product_words
+            # 【2026-06-16 补充】提取主型号 (product_model) 变体, 用于 L1 反查同品牌其他产品线
+            # 如果 L1 词含 brand + 含 product_model 变体, 表示是同型号 -> KEEP L1
+            # 如果 L1 词含 brand + 含其他型号代码 (m18/m90d/m16 等) -> 同品牌其他产品线 -> 重分 L2
+            # 注意: product_model 是 list (--product-model "M57" 解析为 ['M57']), 取第一个为主型号
+            _product_model_lower = ''
+            if product_model:
+                if isinstance(product_model, list):
+                    _product_model_lower = str(product_model[0]).lower().strip() if product_model else ''
+                else:
+                    _product_model_lower = str(product_model).lower().strip()
+            print(f"  [V3 post-process] 提取产品类别词 ({len(_relevant_words)} 个): {list(_relevant_words)[:10]}...")
+
+            _l0_relocate_log = {'to_L2': 0, 'to_L5': 0}
+            _l1_relocate_log = {'to_L2': 0, 'to_L5': 0, 'to_DROP': 0}
+            _l5_relocated = []
+            _l2_relocated = []
+            _l5_relocated_from_l1 = []
+            _l2_relocated_from_l1 = []
+            _drop_from_l1 = []
+
+            # 处理 L0: 不含 brand → 重分 L2/L5
+            _l0_kept = []
+            for _kw in l0_list:
+                if _brand_lower_local and _brand_lower_local not in _kw.lower():
+                    _wc = len(_kw.split())
+                    _target = 'L5' if _wc >= 5 else 'L2'
+                    print(f"  [V3 post-relocate] L0 -> {_target}: '{_kw}' (no brand, {_wc} words)")
+                    if _target == 'L5':
+                        _l5_relocated.append(_kw)
+                    else:
+                        _l2_relocated.append(_kw)
+                    _l0_relocate_log[f'to_{_target}'] += 1
+                    continue
+                _l0_kept.append(_kw)
+            l0_list = _l0_kept
+
+            # 处理 L1: 验证是否同产品线
+            # 判定标准 (五层检查, 顺序重要 - "同品牌其他产品线型号"优先级高于 product_words):
+            # 1. 裸 brand "SIHOO" → KEEP L1 (品牌兜底)
+            # 2. 含 brand + 含其他型号代码 (m18/m90d/m16/m82c/m76/m59b/m81/m56/m7) → 同品牌其他产品线 → 重分 L2 (优先级高)
+            # 3. 含 product_model 主型号 (m57) → KEEP L1 (同型号)
+            # 4. 含 product_words (office chair / desk chair / etc.) → KEEP L1 (同产品线)
+            # 5. 含 brand + 不含 product_words + 不含型号代码 (如 "sihoo doro c300") → 其他产品线 → L2 or DROP
+            # 6. 不含以上任一 → DROP
+            import re as _re_l1
+            # 产品型号代码匹配: 字母+数字 (如 m18, m90d, m82c, m57)
+            # 但需要排除主型号 (m57) 以免误判自己
+            _l1_kept = []
+            for _kw in l0l1.get('L1', []):
+                _kw_lower = _kw.lower()
+                # 裸 brand 单独 → KEEP
+                if _kw_lower.strip() == _brand_lower_local:
+                    _l1_kept.append(_kw)
+                    continue
+                # 含 brand + 含其他型号代码 (m18/m90d 等) → 同品牌其他产品线 → 重分 L2 (优先级高)
+                # 型号代码: \b[a-z]\d+  (字母 + 1个以上数字)
+                _model_code_matches = _re_l1.findall(r'\b[a-z]\d+[a-z0-9]*\b', _kw_lower)
+                _other_model_codes = [m for m in _model_code_matches if m != _product_model_lower]
+                if _brand_lower_local in _kw_lower and _other_model_codes:
+                    _wc = len(_kw.split())
+                    _target = 'L5' if _wc >= 5 else 'L2'
+                    print(f"  [V3 post-relocate] L1 -> {_target}: '{_kw}' (同品牌其他产品线, 含其他型号 {_other_model_codes}, {_wc} words)")
+                    if _target == 'L5':
+                        _l5_relocated_from_l1.append(_kw)
+                    else:
+                        _l2_relocated_from_l1.append(_kw)
+                    _l1_relocate_log[f'to_{_target}'] += 1
+                    continue
+                # 含 product_model 主型号 → KEEP (同型号同产品线)
+                if _product_model_lower and _product_model_lower in _kw_lower:
+                    _l1_kept.append(_kw)
+                    continue
+                # 含 product_words → KEEP (同产品线)
+                if _relevant_words and any(_rw in _kw_lower for _rw in _relevant_words):
+                    _l1_kept.append(_kw)
+                    continue
+                # 含 brand + 不含 product_words + 不含型号代码 (如 "sihoo doro c300") → 重分 L2
+                if _brand_lower_local in _kw_lower:
+                    _wc = len(_kw.split())
+                    _target = 'L5' if _wc >= 5 else 'L2'
+                    print(f"  [V3 post-relocate] L1 -> {_target}: '{_kw}' (同品牌其他产品线, 不含同产品线词, {_wc} words)")
+                    if _target == 'L5':
+                        _l5_relocated_from_l1.append(_kw)
+                    else:
+                        _l2_relocated_from_l1.append(_kw)
+                    _l1_relocate_log[f'to_{_target}'] += 1
+                    continue
+                # 不含 brand + 不含 product_words → DROP (本来就不该进 L1)
+                print(f"  [V3 post-DROP] L1: '{_kw}' (不含 brand + 不含 product_words)")
+                _drop_from_l1.append(_kw)
+                _l1_relocate_log['to_DROP'] += 1
+            l0l1['L1'] = _l1_kept
+
+            if any(v > 0 for v in _l0_relocate_log.values()):
+                print(f"  V3 L0 重分(无brand): to_L2 - {_l0_relocate_log['to_L2']}, to_L5 - {_l0_relocate_log['to_L5']}")
+            if any(v > 0 for v in _l1_relocate_log.values()):
+                print(f"  V3 L1 重分(其他产品线/DROP): to_L2 - {_l1_relocate_log['to_L2']}, to_L5 - {_l1_relocate_log['to_L5']}, to_DROP - {_l1_relocate_log['to_DROP']}")
+
             classified = {
                 'L0': l0_list,
                 'L1': l0l1.get('L1', []) + l0_overflow,  # L0 overflow 进 L1
-                'L2': l2l5.get('L2', []),
+                'L2': l2l5.get('L2', []) + _l2_relocated + _l2_relocated_from_l1,
                 'L3': [],
-                'L5': l2l5.get('L5', []),
+                'L5': l2l5.get('L5', []) + _l5_relocated + _l5_relocated_from_l1,
             }
             print(f"  V3 AI 分类: L0={len(classified['L0'])}, L1={len(classified['L1'])}, L2={len(classified['L2'])}, L5={len(classified['L5'])}")
         except Exception as e:
