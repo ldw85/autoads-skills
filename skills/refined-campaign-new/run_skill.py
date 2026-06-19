@@ -51,7 +51,14 @@ def main():
     parser.add_argument('--product-description', default='', help='Product description for AI')
     parser.add_argument('--price', type=float, help='Product price (USD)')
     parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate (decimal)')
-    parser.add_argument('--country', default='US', help='Target country (default: US)')
+    parser.add_argument('--country', default='US',
+                        help='Target country (ISO 2-letter, default: US). 例: US/GB/DE/JP/AU/CA/FR/IT/ES/BR/MX/IN/KR/SG/HK/TW 等')
+    parser.add_argument('--language', default='EN',
+                        help='Target language (ISO code, default: EN). 例: EN/DE/FR/JA/ES/IT/ZH 等')
+    parser.add_argument('--start-date', default=None,
+                        help='Campaign start date (YYYY-MM-DD, 或 IMMEDIATE). 默认: IMMEDIATE')
+    parser.add_argument('--end-date', default=None,
+                        help='Campaign end date (YYYY-MM-DD). 默认: 无结束')
     parser.add_argument('--budget', type=float, default=20.0, help='Daily budget (default: 20)')
     parser.add_argument('--rating', help='Product rating (e.g., "4.6")')
     parser.add_argument('--reviews-count', type=int, dest='reviews_count', help='Number of reviews (e.g., 21000)')
@@ -277,7 +284,7 @@ def main():
                     customer_id=args.customer_id,
                     url=args.url,
                     country=args.country,
-                    language='EN',
+                    language=args.language,
                     keyword_texts=gkp_seed
                 )
                 google_kw_texts = [kw['text'] for kw in google_keywords if kw.get('text')]
@@ -649,8 +656,10 @@ def main():
         network=args.network,
         seed_keywords=seed_keywords,
         product_model=product_model,
-        l2l5_keywords=l2l5_keywords,  # 2026-06-11 David 拍板
-        gkw_keywords=([k.strip() for k in args.gkw_keywords.split(',') if k.strip()] if args.gkw_keywords else None)  # 2026-06-15 19:41 手动 GKP 词
+        l2l5_keywords=l2l5_keywords,
+        gkw_keywords=([k.strip() for k in args.gkw_keywords.split(',') if k.strip()] if args.gkw_keywords else None),
+        start_date=args.start_date,  # 2026-06-17
+        end_date=args.end_date,  # 2026-06-17
     )
     
     print("\n" + "="*70)
