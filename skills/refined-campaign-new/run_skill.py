@@ -62,7 +62,7 @@ def main():
     parser.add_argument('--budget', type=float, default=20.0, help='Daily budget (default: 20)')
     parser.add_argument('--rating', help='Product rating (e.g., "4.6")')
     parser.add_argument('--reviews-count', type=int, dest='reviews_count', help='Number of reviews (e.g., 21000)')
-    parser.add_argument('--network', default=None, help='Affiliate network name (e.g. archer, yeahpromos, partnerboost). Default: from creator init')
+    parser.add_argument('--network', required=True, help='Affiliate network name (archer/yeahpromos/partnerboost)')
     parser.add_argument('--seed-keywords', dest='seed_keywords', default=None,
                         help='Comma-separated seed keywords (OPTIONAL). When provided, these '
                              'are GUARANTEED to be in core_keywords. Typical content: brand name, '
@@ -121,7 +121,7 @@ def main():
     print(f"📋 Commission: {args.commission_rate * 100}%")
     print(f"📋 Budget: ${args.budget}/day")
     print(f"📋 Country: {args.country}")
-    print(f"📋 Network: {args.network or 'partnerboost (default)'}")
+    print(f"📋 Network: {args.network}")
 
     campaign_name = args.campaign_name
     if not campaign_name:
@@ -658,8 +658,6 @@ def main():
         product_model=product_model,
         l2l5_keywords=l2l5_keywords,
         gkw_keywords=([k.strip() for k in args.gkw_keywords.split(',') if k.strip()] if args.gkw_keywords else None),
-        start_date=args.start_date,  # 2026-06-17
-        end_date=args.end_date,  # 2026-06-17
     )
     
     print("\n" + "="*70)

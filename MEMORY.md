@@ -1000,6 +1000,21 @@ from ad_campaigns_db import (
 
 ## 完成的工作
 
+### 2026-06-21 (今日)
+- ✅ Launch X431 CRP919XBT (Campaign 23959722689) L0=0 故障根因诊断 + 修复闭环
+  - **首轮误诊 → 三轮修正**: 第一轮归因"V3 LLM 幻觉 DROP CRP919XBT" → 第二轮归因"policy_filter 全大写过滤" → 第三轮 dry-run 实测发现都不是
+  - **真实根因**: `src/refined_campaign_creator.py:1313-1338` 内部 one-shot 调用漏传 `seed_keywords=` 参数 (与 run_skill.py:381 行为不一致)
+  - **修复 (commit 9d1e14f 之后)**: 改 2 处:
+    1. one-shot 内部调用补传 `seed_keywords=_brand_seed_for_oneshot` (单次 + 分批两路)
+    2. L0=0 兑底升级为 L0 **无条件强制注入** user-provided seed (不依赖 L0 是否空)
+  - **验证**: dry-run 3 分 24 秒, L0=3 含 `Launch X431 CRP919XBT` ✅
+  - **顺手发现**: 6/20 实跑时 `--product-model CRP919XBT` **没传**到 CLI (主对话有写, 透传漏了), 这是独立于 L0 兑底的参数透传缺口
+- ✅ **第二十二铁律确立** (David 9:44 BJT 拍板): 「改代码的综合影响面分析原则」
+  - 核心: 修被多处调用的模块/函数前, 必须基于**可靠日志和代码**做综合影响面分析, 不能为了改 A 不管 B, 不能基于估计和猜测
+  - 8 节结构: 原文 / 三大原则 / 5 步工作流 / 错误案例 / 正确做法 / 验收命令 / 与已有铁律协同 / 教训
+  - 6/21 Launch X431 诊断全过程作为 4 个错误案例 (凭印象给方案 / 修 dead code 当修复 / 误诊 100% / 函数体注释 ≠ 实现)
+  - 加入「错误案例 + 正确做法」对偶写法, 未来同源问题可复用
+
 ### 2026-06-08 (今日)
 - ✅ L0/L1 分层优化 (David 13:36 15:02)
   - L0: bid_rate=1.0, cap=$7 (5/29 立, 公式 max_cpc 超 $7 封顶)
@@ -1087,7 +1102,158 @@ affiliateCategory: "electronics"  # 联盟营销分类
 - `autoads/archer-roi/scripts/monitor_product_status.py` (`load_campaigns()` 函数)
 - Commit: `0a3d9b1` (2026-06-11 12:48 BJT)
 
-## 归档记录
+## 🔴 第二十一铁律草案: user-provided L0 种子词强制入 L0 (2026-06-19 Autofull G7 故障确立)
+
+**【背景】** 2026-06-19 Autofull G7 Gaming Chair (Campaign 23961493414) 创建时，V3 one-shot LLM 输出 `L0=0`，导致程序跳过 L0 ad group 创建。根因：GKP 没拉到含 "G7" 的词（低搜索量新型号），LLM 看到的 product_model 扩展词被误分到 L1。
+
+**【铁律草案】** V3 one-shot 输入范围是 GKP 拉取词 + 用户种子词，**用户提供的 L0 种子词（product_model 扩展）应该默认作为 L0，不经过 LLM 判断**。
+
+**【修复方向】**
+- 当 `product_model` 参数传入时，其扩展的 10 个变体（`creator._expand_product_model_variants`）应该**强制入 L0**，不做 one-shot 分类
+- 只把 GKP 拉的词送 one-shot 分类
+- LLM 输出只影响 GKP 词，不覆盖 user-provided L0 种子词
+
+**【验证场景】**
+- Autofull G7: product_model=G7 → 扩展 10 词 → 强制 L0 ✅
+- SIHOO M57: product_model=M57 → 扩展后入 L1（早期 bug，已修复）
+- CRAFT RESIN: 无 product_model → 跳过 L0（正确）
+
+---
+
+---
+
+## 🔴 第二十二铁律: 改代码的综合影响面分析原则 (2026-06-21 09:44 BJT David 拍板)
+
+**【最高优先级】修改被多处调用的模块/函数前，必须基于可靠日志和代码做综合影响面分析，不能为了改 A 不管 B，不能基于估计和猜测就动刀。**
+
+### 1. 铁律原文 (David 9:44 BJT 飞书原话)
+
+> "你要从整体视角制定优化方案，如果一个模块或者函数被多个功能使用，不能为了改 A，而不管 B。比如政策检查过滤模块，'我只要去掉关键词过滤部分的全大写检查和过滤'，你就需要分析修改的模块对引用这个模块的其他代码有什么影响，不能影响 headlines 和 description 的政策过滤，因为 headlines 和 description 不允许全大写。关键词过滤部分，是不是只有全大写过滤，还是有其他过滤内容，其他的过滤内容是否有效？你要做综合分析，基于可靠的日志和代码的综合分析，而不是估计和猜测。"
+
+### 2. 铁律核心三大原则
+
+**原则 1: 调用方 × 检查对象 全量矩阵（不允许只盯改 A）**
+- 任何修改前必须列出**所有调用方**（grep 模块/函数名全工程）
+- 列出每个调用方的**检查对象**（关键词？headlines？description？sitelinks？）
+- 列出每个调用方**当前实际行为**（生效中？no-op？被注释？）
+- 用矩阵表达，矩阵有空单元 = 分析没做完
+
+**原则 2: 改之前先做死代码审计（不允许凭印象说"修了"）**
+- 看函数体**实际实现**——不是看注释/外部调用方
+- 函数体注释 "已禁用" 跟函数体实现 "no-op" 是不是一致？
+- 函数的 dead code（注释掉的、return 后的）包含什么过滤逻辑？这些是不是还有效？
+- **铁律 7「交叉引用扫描」的延伸**：不仅看谁调了，还要看函数体里实际在跑什么
+
+**原则 3: 基于可靠日志和代码，不允许估计和猜测**
+- "可能是"、"大概是"、"应该不会影响" = 不允许
+- 必须有：grep 结果 + 函数体行号 + dry-run 实际输出 + 至少 1 个回归测试
+- 静默 fall back 也算"估计猜测"——如果不能给出"修了等于修 dead code，零回归风险"这种**确定性结论**，就别动
+
+### 3. 启动"改 X 影响面分析"的标准工作流
+
+**Step 1: grep 全部调用方**
+```bash
+grep -rn "from .module_name import\|module_name\." src/ --include="*.py" | grep -v ".pyc"
+```
+输出: 调用方列表 (文件:行)
+
+**Step 2: 列出每个调用方的检查对象 + 当前行为**
+| # | 调用方 | 文件:行 | 调用方法 | 检查对象 | 实际行为 (有/无/部分) |
+|---|---|---|---|---|---|
+
+**Step 3: 看目标函数体实际实现**
+- 函数体是 no-op (return 立即) → 修了等于修 dead code，零回归
+- 函数体有真实逻辑 → 列出**所有**分支（DANGEROUS_TERMS / COUNTERFEIT_GOODS / UNAPPROVED_SUBSTANCES...）
+- 哪些分支当前仍在生效？哪些是 dead code？
+
+**Step 4: 画影响面矩阵**
+- 修 X 后，A 调用方影响 = ？
+- 修 X 后，B 调用方影响 = ？
+- 修 X 后，C 调用方影响 = ？
+- 矩阵里有任何一个不确定 = **停下来，先做实验验证，再改**
+
+**Step 5: 给出"确定性结论"才能动刀**
+- ✅ 允许的表述: "修 X 等于修 dead code，3 个调用方全部 no-op，0 回归"
+- ❌ 禁止的表述: "估计不会影响"、"大概是 no-op"、"应该只影响 A 调用方"
+
+### 4. 错误案例 (2026-06-21 Launch X431 CRP919XBT 诊断过程)
+
+**【错误 1: AI 凭印象给方案，没看函数体】**
+- AI 第一轮提了 3 个修复方案（"加 text_type 参数"/"加 skip_caps_check 参数"/"拆成两个独立函数"）
+- **问题：3 个方案都假设 `policy_filter.check_keyword()` 在关键词路径仍生效**
+- **真相：函数体 line 842-843 已是 no-op (return True, [])，dead code 200+ 行**
+- **AI 之前一整轮都在讨论"如何拆分一个根本不执行的函数"**
+
+**【错误 2: AI 给出"如果 A 修 1 行就能解决"的轻量方案】**
+- AI 第一轮说"修 X 只改 policy_filter.py 一行 diff"
+- **真相：政策过滤的"全大写检查"在 5 个独立路径都有副本（ad_prevalidator / policy_filter.check_keyword / policy_filter.check_ad_copy / LLM one-shot / V3 post-relocate）**
+- **修 A 不修 B = B 仍 DROP 关键词**
+- **修 A 不看 B = A 可能误伤 B 路径的合法 headline（如 "SAVE 50% OFF" 这种促销词）**
+
+**【错误 3: AI 第一次根因诊断 100% 错（V3 LLM 幻觉）】**
+- AI 第一轮说"LLM 看到 CRP919XBT 当成违反 Google Ads 大小写政策 DROP 到 drop 列表"
+- **没有验证：直接调 `ai_filter_and_classify_one_shot` 实测**
+- **真相：LLM 没 DROP CRP919XBT**，根因是 `refined_campaign_creator.py` 的 one-shot 调用**没传 `seed_keywords=` 参数**（6/20 拍板时的"漏传"代码缺口）
+
+### 5. 正确做法 (6/21 验证通过版)
+
+**Step 1: 不看 AI 推理，先看代码 + 跑实测**
+- grep `policy_filter` 全部调用方 → 5 处
+- 看 `check_keyword` 函数体 line 842 → 已是 no-op
+- **结论：关键词路径所有政策过滤 + 全大写过滤**全部 dead code**，"修 policy_filter" 等于修 dead code**
+
+**Step 2: 跑 dry-run 实测 V3 one-shot 行为**
+- 直接调 `wf.ai_filter_and_classify_one_shot(keywords=..., brand='Launch', product_model='CRP919XBT', seed_keywords=[...])`
+- 实测结果：LLM 看到 `Launch X431 CRP919XBT` **正常入 L0**，没幻觉 DROP
+- **结论：根因不在 LLM，在调用链上游**
+
+**Step 3: 走真实路径 dry-run（run_skill.py --dry-run）**
+- 完整 10 阶段准备 + 0 写入
+- 实测 L0=2（不是 6/20 实跑的 0）→ 怀疑 LLM 推理不稳定 → 进一步查代码
+- 发现 `create_layered_campaign` 内部 one-shot 调用**漏传 `seed_keywords=`**（line 1313-1338）
+
+**Step 4: 修两处**
+- 改动 1: 内部 one-shot 补传 `seed_keywords=`（修复"漏传"代码缺口）
+- 改动 2: L0=0 兜底升级为 L0 无条件强制注入（应对未来类似 LLM 推理不稳定）
+- 改完 dry-run 验证：L0=3 ✅ `Launch X431 CRP919XBT` 在 L0
+
+### 6. 验收检查命令
+
+```bash
+# Step 1: 列出被修改模块的全部调用方
+grep -rn "from .MODULE_NAME import\|MODULE_NAME\." src/ --include="*.py" | grep -v ".pyc"
+
+# Step 2: 验证"修 X 等于修 dead code"的假设
+# 找函数体是否在 return 立即 / 是否全部被注释
+sed -n '/^    def FUNCTION_NAME/,/^    def [a-z]/p' src/MODULE_NAME.py | head -30
+
+# Step 3: 跑最小回归测试
+python3 -c "from src.MODULE_NAME import FUNCTION; print(FUNCTION('test_input'))"
+
+# Step 4: 跑端到端 dry-run 验证
+python3 skills/refined-campaign-new/run_skill.py ... --dry-run
+```
+
+### 7. 与已有铁律的协同
+
+| 已有铁律 | 协同点 |
+|---|---|
+| 第十一铁律「AI 推理归属」 | 工具/规则模块不带 AI 推理 → 改工具时基于"被调用的代码"做影响面分析 |
+| 「全局反硬编码铁律」 | 同一过滤逻辑在多处副本 = 反硬编码铁律延伸：应在唯一权威源维护 |
+| 「故障即文档元规则」 | 误判时**先做综合影响面分析**，再写提示词规则 |
+| 「CLI 工具 nargs 陷阱铁律」 | 改 CLI 参数类型前，先 grep 全部 CLI 调用方 + 看实际解析函数 |
+| 第十八铁律草案（手动触发架构） | 手动触发的搜索词分析流程，**不**属于"高频调用"——改搜索词分析工具时无需担心自动化场景 |
+| 第二十一铁律草案「user-provided L0 强制入 L0」 | 本次修复是第二十一铁律的工程化落地 + 加了"create_layered_campaign 路径漏传 seed"的额外修复 |
+
+### 8. 教训（2026-06-21 09:44 BJT）
+
+- **"我只要改 A" 是危险信号** — 触发后立即强制做"调用方 × 检查对象"矩阵
+- **dead code 是隐藏的真相** — 函数注释 "已禁用" 不等于函数体 no-op，必须看函数体
+- **可靠日志 > 估计猜测** — 任何"修 X"决策前必须有 dry-run 实测输出或 grep 结果做依据
+- **错误诊断比不改还糟糕** — 6/21 第一轮 AI 提的 3 个方案全部基于错误前提，等于把"修 dead code"包装成"实质修复"
+- **AI 推理不确定性要用工程化兜底** — LLM 输出统计性结果 → 不能依赖 LLM 100% 把 user-provided seed 入 L0 → 必须 Python 循环硬注入兜底
+
+---
 
 > 以下是已归档的历史记忆
 

@@ -223,8 +223,8 @@ def generate_l0_keywords(
                     gkws = opt.client.generate_keyword_ideas(
                         customer_id=customer_id,
                         url=product_url,
-                        country='US',
-                        language='EN',
+                        country=args.country,
+                        language=args.language,
                         limit=80,
                         keyword_texts=all_keywords,
                     )
@@ -233,8 +233,8 @@ def generate_l0_keywords(
                     gkws = opt.client.generate_keyword_ideas(
                         customer_id=customer_id,
                         url=None,
-                        country='US',
-                        language='EN',
+                        country=args.country,
+                        language=args.language,
                         limit=80,
                         keyword_texts=all_keywords,
                     )
@@ -1540,7 +1540,14 @@ def main():
     parser.add_argument('--product-url', help='Product URL for keyword research')
     parser.add_argument('--price', type=float, help='Product price in USD')
     parser.add_argument('--commission-rate', type=float, dest='commission_rate', help='Commission rate')
-    parser.add_argument('--country', default='US', help='Target country (default: US)')
+    parser.add_argument('--country', default='US',
+                        help='Target country (ISO 2-letter, default: US). 例: US/GB/DE/JP/AU/CA/FR 等')
+    parser.add_argument('--language', default='EN',
+                        help='Target language (ISO code, default: EN). 例: EN/DE/FR/JA/ES/IT/ZH 等')
+    parser.add_argument('--start-date', default=None,
+                        help='Campaign start date (YYYY-MM-DD, 或 IMMEDIATE). 默认: IMMEDIATE')
+    parser.add_argument('--end-date', default=None,
+                        help='Campaign end date (YYYY-MM-DD). 默认: 无结束')
 
     # 2026-06-08 David: 精确控制 L0/L1 关键词 + 简化 L0 模式
     parser.add_argument('--l0-keywords', dest='l0_keywords', default=None,

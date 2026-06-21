@@ -63,14 +63,37 @@ python3 run_skill.py \
 
 ## 参数
 
-| 参数 | 必填 | 说明 |
-|------|-----|------|
-| --keywords | 是 | 种子关键词（多个用逗号分隔，调用方已识别品牌/子系列） |
-| --ads-account | 是 | Google Ads 账户 ID |
-| --months | 否 | 历史数据月份范围（默认 3 个月） |
-| --use-fallback | 否 | 启用 gotrends.app fallback (429 时切换) |
-| --output | 是 | console / file / feishu |
-| --page-size | 否 | 每个种子词生成的最大关键词数 (默认 100) |
+| 参数 | 必填 | 默认 | 说明 |
+|------|-----|------|------|
+| --keywords | 是 | - | 种子关键词（多个用逗号分隔，调用方已识别品牌/子系列） |
+| --ads-account | 是 | - | Google Ads 账户 ID |
+| --months | 否 | 3 | 历史数据月份范围 |
+| --use-fallback | 否 | false | 启用 gotrends.app fallback (429 时切换) |
+| --output | 是 | - | console / file / feishu |
+| --page-size | 否 | 100 | 每个种子词生成的最大关键词数 |
+| --country | 否 | US | 地域代码 ISO 2-letter (US/GB/DE/JP/AU/CA/FR/IT/ES/BR/MX/IN/KR/SG/HK/TW/AE 等 30+) |
+| --language | 否 | en | 语言代码 ISO (en/de/fr/ja/es/it/zh/zh-TW/ko/pt/ar/ru/tr/th/vi 等) |
+
+### 多地域示例
+
+```bash
+# 英国市场
+python3 run_skill.py --keywords "ulike air10" --ads-account 6052559425 --country GB --language en --output console
+
+# 德国市场（德语）
+python3 run_skill.py --keywords "ulike air10" --ads-account 6052559425 --country DE --language de --output console
+
+# 日本市场（日语）
+python3 run_skill.py --keywords "ulike air10" --ads-account 6052559425 --country JP --language ja --output console
+
+# 香港 / 台湾（繁中）
+python3 run_skill.py --keywords "ulike air10" --ads-account 6052559425 --country HK --language zh-TW --output console
+```
+
+注意事项:
+- 主路径(GKP) 支持 30+ 国家 + 20+ 语言, 见 GEO_TARGET_MAP / LANGUAGE_MAP 常量
+- gotrends.app fallback 仅支持 US/GB/CA/AU/DE/FR/JP, 其他国家会强制 fallback 到 US (会有 Warning)
+- 非英语市场请同时指定 --country 和 --language (例 DE+de / JP+ja / ES+es)
 
 ## 输出格式
 
@@ -111,6 +134,7 @@ keyword-metrics（数据查询）:
 
 ## 历史
 
+- **2026-06-17**: 加入 `--country` / `--language` 参数, 支持 30+ 国家 + 20+ 语言 (GB/DE/JP/AU/CA/HK/TW 等)
 - **2026-06-12**: 重构为 keyword-metrics，删除 AI 推理模块，确立铁律 11（AI 推理归属小灰）
 - **2026-06-04**: 429 fallback + 调用间隔控制
 - **2026-06-03**: 初始版本

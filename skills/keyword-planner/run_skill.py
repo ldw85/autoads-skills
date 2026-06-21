@@ -42,13 +42,78 @@ API_CALL_INTERVAL = 2.0
 MAX_RETRIES = 3
 RETRY_WAIT = 60
 
+# === Google Ads Geo Target IDs (主路径 GKP) ===
+# 参考: https://developers.google.com/google-ads/api/reference/data/geotargets
+GEO_TARGET_MAP = {
+    'US': '2840',  # United States
+    'GB': '2826', 'UK': '2826',  # United Kingdom
+    'CA': '2124',  # Canada
+    'AU': '2036',  # Australia
+    'DE': '2276',  # Germany
+    'FR': '2250',  # France
+    'JP': '2392',  # Japan
+    'IT': '2380',  # Italy
+    'ES': '2724',  # Spain
+    'NL': '2528',  # Netherlands
+    'SE': '2752',  # Sweden
+    'BR': '2076',  # Brazil
+    'MX': '2484',  # Mexico
+    'IN': '2356',  # India
+    'KR': '2410',  # South Korea
+    'SG': '2702',  # Singapore
+    'HK': '2344',  # Hong Kong
+    'TW': '2158',  # Taiwan
+    'MY': '2458',  # Malaysia
+    'AE': '2784',  # UAE
+    'SA': '2682',  # Saudi Arabia
+    'PL': '2616',  # Poland
+    'TR': '2792',  # Turkey
+    'RU': '2643',  # Russia
+    'ID': '2360',  # Indonesia
+    'TH': '2764',  # Thailand
+    'VN': '2704',  # Vietnam
+    'PH': '2608',  # Philippines
+    'NZ': '2554',  # New Zealand
+    'ZA': '2710',  # South Africa
+}
+
+# === Google Ads Language IDs ===
+# 参考: https://developers.google.com/google-ads/api/reference/data/codes-formats
+LANGUAGE_MAP = {
+    'en': '1000',
+    'de': '1001',
+    'fr': '1002',
+    'es': '1003',
+    'it': '1004',
+    'ja': '1005',
+    'nl': '1010',
+    'ko': '1012',
+    'sv': '1015',
+    'pt': '1014',
+    'pt-BR': '1014',
+    'zh': '1017', 'zh-CN': '1017',
+    'zh-TW': '1018',
+    'ar': '1019',
+    'pl': '1030',
+    'ru': '1031',
+    'tr': '1037',
+    'th': '1044',
+    'vi': '1040',
+    'id': '1025',
+    'hi': '1023',
+    'ms': '1102',
+}
+
 # === gotrends.app Fallback ===
 GOTRENDS_API_URL = 'https://insitto.gotrends.app/kw/gethistorymetric'
 GOTRENDS_COUNTRY_MAP = {
     'US': '2840',
-    'GB': '2826',
-    'CA': '2286',
-    'AU': '2276',
+    'GB': '2826', 'UK': '2826',
+    'CA': '2124',
+    'AU': '2036',
+    'DE': '2276',
+    'FR': '2250',
+    'JP': '2392',
 }
 
 
@@ -87,6 +152,14 @@ def parse_args():
     parser.add_argument(
         '--page-size', type=int, default=100,
         help='每个种子词生成的最大关键词数 (默认100)'
+    )
+    parser.add_argument(
+        '--country', type=str, default=DEFAULT_COUNTRY,
+        help=f'地域代码 (ISO 2-letter, 默认 {DEFAULT_COUNTRY}). 例: US/GB/DE/JP/AU/CA/FR/IT/ES/BR/MX/IN/KR/SG/HK/TW/AE'
+    )
+    parser.add_argument(
+        '--language', type=str, default=DEFAULT_LANGUAGE,
+        help=f'语言代码 (ISO, 默认 {DEFAULT_LANGUAGE}). 例: en/de/fr/ja/es/it/zh/zh-TW/ko/pt/ar/ru/tr/th/vi'
     )
     return parser.parse_args()
 
@@ -190,7 +263,10 @@ def is_rate_limit_error(e: Exception) -> bool:
 def fetch_gotrends_metrics(keywords: List[str], country: str = 'US') -> List[Dict]:
     """使用gotrends.app API获取关键词指标"""
     
-    country_id = GOTRENDS_COUNTRY_MAP.get(country, '2840')
+    country_upper = country.upper() if country else 'US'
+    country_id = GOTRENDS_COUNTRY_MAP.get(country_upper, '2840')
+    if country_upper not in GOTRENDS_COUNTRY_MAP:
+        print(f"[Warning] gotrends.app fallback does not support '{country}', using US (2840)")
     
     params = {
         'keywords': keywords,
@@ -236,7 +312,8 @@ def fetch_gotrends_metrics(keywords: List[str], country: str = 'US') -> List[Dic
 
 def fetch_keyword_metrics(
     client, customer_id: str, keywords: List[str],
-    months: int = 3, use_fallback: bool = False, page_size: int = 100
+    months: int = 3, use_fallback: bool = False, page_size: int = 100,
+    country: str = 'US', language: str = 'en'
 ) -> List[Dict]:
     """
     唯一职责: 接收调用方提供的种子关键词, GKP 查量
@@ -250,11 +327,25 @@ def fetch_keyword_metrics(
     from google.ads.googleads.v23.enums.types.keyword_plan_network import KeywordPlanNetworkEnum
     from google.ads.googleads.v23.common.types.keyword_plan_common import HistoricalMetricsOptions
     
+    # 解析 country/language 到 Google Ads ID
+    country_upper = country.upper() if country else 'US'
+    geo_id = GEO_TARGET_MAP.get(country_upper)
+    if not geo_id:
+        raise ValueError(f"Unsupported country '{country}'. Supported: {sorted(set(k for k in GEO_TARGET_MAP.keys() if len(k) == 2))}")
+
+    lang_id = LANGUAGE_MAP.get(language)
+    if not lang_id:
+        lang_id = LANGUAGE_MAP.get(language.lower() if language else 'en')
+    if not lang_id:
+        raise ValueError(f"Unsupported language '{language}'. Supported: {sorted(LANGUAGE_MAP.keys())}")
+
+    print(f"[Info] Geo target: {country_upper} (ID {geo_id}) | Language: {language} (ID {lang_id})")
+
     # Fallback 优先路径
     if use_fallback:
         print("[Info] Trying gotrends.app fallback API...")
         try:
-            results = fetch_gotrends_metrics(keywords, 'US')
+            results = fetch_gotrends_metrics(keywords, country_upper)
             if results:
                 print(f"[Info] gotrends.app returned {len(results)} results")
                 return results
@@ -280,8 +371,8 @@ def fetch_keyword_metrics(
                 request.keyword_seed = seed
                 
                 request.keyword_plan_network = KeywordPlanNetworkEnum.KeywordPlanNetwork.GOOGLE_SEARCH_AND_PARTNERS
-                request.geo_target_constants = ['geoTargetConstants/2840']
-                request.language = 'languageConstants/1000'
+                request.geo_target_constants = [f'geoTargetConstants/{geo_id}']
+                request.language = f'languageConstants/{lang_id}'
                 
                 request.historical_metrics_options = HistoricalMetricsOptions()
                 request.page_size = page_size
@@ -327,7 +418,7 @@ def fetch_keyword_metrics(
                 if not use_fallback:
                     print("[Info] Retrying with gotrends.app fallback...")
                     try:
-                        return fetch_gotrends_metrics(keywords, 'US')
+                        return fetch_gotrends_metrics(keywords, country_upper)
                     except Exception as fe:
                         print(f"[Error] Fallback also failed: {fe}")
                 import traceback
@@ -429,10 +520,11 @@ def main():
         sys.exit(1)
     
     # 查量
-    print(f"🔑 Fetching keyword data...")
+    print(f"🔑 Fetching keyword data ({args.country}/{args.language})...")
     results = fetch_keyword_metrics(
         client, args.ads_account, seed_keywords,
-        args.months, args.use_fallback, args.page_size
+        args.months, args.use_fallback, args.page_size,
+        country=args.country, language=args.language
     )
     
     if not results:

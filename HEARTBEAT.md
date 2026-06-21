@@ -4,6 +4,44 @@
 
 收到以下 systemEvent 时执行对应任务：
 
+## 🔴 Exec 超时铁律 — 双层架构 (2026-06-17 09:18 David 拍板定稿)
+
+**【历史沿革】**
+- 2026-06-14 确立: 15 分钟 exec 超时铁律(原)
+- 2026-06-17 09:04 升级: **15 → 25 分钟** (David 拍板)
+- 2026-06-17 09:18 拍板定稿: **分层架构** — 仅 LLM 推理类 25 分钟, 其他 15 分钟不变
+
+**【新铁律架构 (已落地)】**
+
+| 任务类别 | 超时阈值 | 典型场景 |
+|---|---|---|
+| **LLM 推理类** | **25 分钟** | run_skill.py 真创建 / 干跑 (V3 Step 1 one-shot filter) / AI 文本生成 / 提示词迭代 |
+| **其他 exec 类** | **15 分钟** | cron 监控 (affiliate product monitor) / ROI 报告 / GKP 查量 / GKP 拉词 / 邮件监控 / 搜索词分析 |
+
+**【拍板根因】**
+- 2026-06-17 上午 LLM 限流已 2 次导致 15 分钟 SIGKILL:
+  - 8:49 SIHOO M57 真创建 (空 campaign 23948389391)
+  - 9:03 SIHOO M57 方案 A (空 campaign 23948412653)
+- 两次都死在 V3 Step 1 LLM 推理卡死
+- 「LLM 后端限流是周期性而非偶发」新认知 + 双层超时同时达到上限 = 全面崩溃点
+- 25 分钟延长 = 容忍一次完整 LLM 限流周期(峰值期排队 + 推理)
+- **不延长其他 exec 类别** = 避免误把基础设施超时当 LLM 限流掩盖
+
+**【2026-06-17 09:18 David 拍板补完】** 创建类操作架构变更铁律:
+- **核心原则**: 素材准备(关键词生成 / headlines / descriptions / sitelinks)与广告系列创建**完全分离**
+- **执行顺序**:
+  1. **素材准备阶段** (含 LLM 推理, 25 分钟) — 关键词、分层、广告素材全生成完成
+  2. **创建阶段** (Google Ads API 调用, 15 分钟) — 一次性把素材传过去创建广告系列
+- **核心要求**: 原始参数(URL / brand / product / price / commission / discount / rating / reviews / seed-keywords / product-model / l2l5-keywords / max_cpc / budget / network)必须**准确传递**到创建阶段
+- **实战教训**: 8:49 + 9:03 两次 SIGKILL 时, LLM 推理在 V3 Step 1 卡死,**但 8:50-8:52 段(AI 推理 + 4 层过滤 + headlines/description 生成 + Campaign 创建)都已完成** — 8:52:50 Campaign 已创建, 9:10:59 又创一个
+- **解决思路**: 把"创建"放到"素材准备"之后, 全部素材准备好再一次性创建, **避免中间卡死时反复创空 campaign**
+
+**【等清理的 2 个空 campaign】**
+- 23948389391 (8:52 创建, 已改名为 `yeahpromos - SIHOO M57 ...`, PAUSED, 空)
+- 23948412653 (9:10 创建, name `SIHOO SIHOO M57 Ergonomic Mesh Offic - US`, PAUSED, 空)
+- **状态**: PAUSED, 不消耗预算, 但污染账号结构
+- **9:18 拍板**: **删除这 2 个空 campaign**
+
 ## Composio Outlook 邮件监控 (每日2次)
 
 当收到 cron 触发时 (`composio_email_monitor`):

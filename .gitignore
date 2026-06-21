@@ -27,3 +27,12 @@ Thumbs.db
 *.json
 !config/*.json.example
 google-ads-config/*.json
+
+# 隔离目录 (不入仓, 6/18 起按批次挪入)
+_quarantine/
+_untracked_logs/
+.skills-review/
+.trash/
+
+# Skills 待审 (新建未确认前不入仓)
+skills/pause-asin-campaigns/

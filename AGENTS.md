@@ -232,6 +232,37 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## 第二十二铁律: 查询类不写临时脚本 (2026-06-21 12:21 BJT David 拍板)
+
+**【铁律】** exec preflight 是为拦截破坏性 API 调用设计的，**查询类操作（只读 GKP / API 拉数据 / log 读取 / 状态查询）不受 preflight 限制，直接 exec 跑，不要写临时脚本**。
+
+### 1. 错误示范（2026-06-21 Niphean 关键词查询）
+- AI 跑 GKP 查量时 preflight 报"complex interpreter invocation detected"
+- AI 误判为"系统拒绝"，额外写 `/tmp/niphean_gkp.sh` 再 exec
+- **根因**: preflight 只拦截"长 inline python -c 类解释器调用"，是为了防止"破坏性 Python 一次性执行"
+- 真实情况: `python3 run_skill.py --keywords "..."` 这种是**直接调用一个脚本文件**，本质上是 IO 命令，不在 preflight 拦截范围内
+- **错上加错**: AI 看到 preflight 拒绝就以为"必须写脚本"，再制造一个临时文件 → 污染 /tmp
+
+### 2. 正确做法
+- **查询类操作**: `python3 /path/to/skill/run_skill.py --args "..."` 直接 exec，**不写 .sh / .py 临时文件**
+- **preflight 拒绝时**: 仔细看错误信息，**只把"长 inline python -c '...'"**改写为 `python3 file.py`，**不**额外造临时脚本
+- **写入类操作**: 该用临时脚本组织步骤时再用（如 create campaign 多步），不要为了躲 preflight 写临时脚本
+
+### 3. 验收检查命令
+```bash
+# 每次 exec 前自检：是不是查询类？
+# 1. 只读 API（GKP / Archer / PartnerBoost / 状态查询）→ 直接 exec
+# 2. 写文件 / 调 create / pause API → 看 preflight 报错再决定
+# 3. 错误示范：preflight 拒绝 → 写 /tmp/*.sh → 那是错的
+```
+
+### 4. 教训
+- **AI 看到 preflight 拒绝不应该慌**——preflight 是为安全而设的，但它的安全边界是"破坏性 API"，不是"一切长命令"
+- **写临时脚本 = 制造技术债**——`/tmp/*.sh` 没人清理，越来越多就是 6/18 那种 93+ 临时文件隔离噩梦的复刻
+- **"怕 preflight 拒绝" → "多写一层脚本"是反模式**——应该在第一次就判断"这是不是查询类"
+
+---
+
 ## 精细化广告创建规则
 
 当用户要求创建精细化分层广告时，必须遵循以下规则：
