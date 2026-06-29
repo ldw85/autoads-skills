@@ -92,6 +92,10 @@ input:
     product_description:
       type: string
       description: 产品描述（用于AI生成素材，可选）
+    timeout:
+      type: integer
+      description: Exec超时秒数（默认1500=25分钟，适用于LLM推理类任务）
+      default: 1500
 
 output:
   type: object

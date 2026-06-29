@@ -100,6 +100,10 @@ input:
       type: boolean
       description: 是否创建广告素材（默认True，复制Main广告内容）
       default: true
+    timeout:
+      type: integer
+      description: Exec超时秒数（默认1500=25分钟，适用于LLM推理类任务）
+      default: 1500
 output:
   type: object
   properties:
