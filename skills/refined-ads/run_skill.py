@@ -1571,6 +1571,10 @@ def main():
                              'L0 起点: --l0-keywords + --product-model + 品牌名.'
                              'L1 起点: 品牌名 + 同产品线变体.'
                              '默认: opt-in 不启用, 保持 _ai_filter_l0_keywords().')
+    parser.add_argument('--from-campaign-history', dest='from_campaign_history', action='store_true',
+                        help='【2026-06-30 P0】从 Campaign 历史搜索词拉取竞品分析, 复用为否定词。'
+                             '仅在 --campaign-id 路径 (补充分层) 生效, 新建路径不暴露。'
+                             '调用 BrandCompetitionAnalyzer.analyze_from_campaign_history()。')
 
     args = parser.parse_args()
 
@@ -1646,6 +1650,30 @@ def main():
     else:
         print(f"📋 Standard L0 mode: 5 L0_3-7 testing groups (\$3/\$4/\$5/\$6/\$7)")
 
+    # 2026-06-30: P0 - --from-campaign-history 竞品分析
+    if args.from_campaign_history and args.brand and args.product_description:
+        try:
+            from src.brand_competition_analyzer import BrandCompetitionAnalyzer
+            analyzer = BrandCompetitionAnalyzer()
+            comp_result = analyzer.analyze(
+                brand=args.brand,
+                product_description=args.product_description,
+            )
+            print(f"\n📊 Brand Competition Analysis:")
+            print(f"  Competitors ({len(comp_result.competitor_brands)}): {comp_result.competitor_brands}")
+            print(f"  Same-brand lines: {comp_result.same_brand_product_lines}")
+            print(f"  Source: {comp_result.source}")
+            print(f"  Confidence: {comp_result.confidence:.2f}")
+            
+            # 可选: 自动添加竞品否定词
+            if comp_result.competitor_brands:
+                negatives = comp_result.to_phrase_negatives()
+                print(f"\n💡 Suggestion: Add these as PHRASE negatives: {negatives[:5]}...")
+                print(f"   Run: python3 scripts/search_term_negatives.py --campaign-id {args.campaign_id} --add \"{','.join(negatives)}\"")
+                
+        except Exception as e:
+            logger.warning(f"Brand competition analysis failed: {e}")
+    
     created, error = create_layered_ads(
         customer_id=args.customer_id,
         campaign_id=args.campaign_id,
